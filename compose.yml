@@ -1,0 +1,20 @@
+services:
+  postgres:
+    image: docker.io/library/postgres:17-alpine
+    container_name: craftsmen-pg
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: craftsmen
+    configs:
+      - source: init-test-db
+        target: /docker-entrypoint-initdb.d/test-db.sql
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+volumes:
+  pgdata:
+configs:
+  init-test-db:
+    content: CREATE DATABASE craftsmen_test;
