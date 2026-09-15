@@ -1,0 +1,27 @@
+{
+  "name": "@local-craftsmen/db",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./migrate": "./src/migrate.ts",
+    "./test-db": "./src/test-db.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "bun --env-file=.env test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "bun --env-file=.env src/seed.ts"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "@local-craftsmen/config": "workspace:*",
+    "@types/bun": "latest",
+    "drizzle-kit": "^0.31.10"
+  }
+}
