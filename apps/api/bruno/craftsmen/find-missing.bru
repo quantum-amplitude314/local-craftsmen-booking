@@ -1,0 +1,16 @@
+meta {
+  name: find craftsman (404)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/craftsmen/does-not-exist
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 404
+  res.body.code: eq NOT_FOUND
+}

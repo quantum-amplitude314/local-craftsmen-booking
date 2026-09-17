@@ -1,0 +1,13 @@
+vars:pre-request {
+  baseUrl: http://localhost:3001
+}
+
+docs {
+  # local-craftsmen API
+
+  Start the API with `bun run dev` from `apps/api`. `baseUrl` defaults to
+  localhost:3001 at collection level; pick an environment only to override it.
+
+  Folders map 1:1 to API resources. Each request carries assertions, so the
+  whole collection doubles as a smoke suite: `bun run test:api`.
+}

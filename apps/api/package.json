@@ -1,0 +1,33 @@
+{
+  "name": "@local-craftsmen/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun --hot --env-file=../../packages/db/.env src/bun.ts",
+    "dev:worker": "wrangler dev --env-file .env.example --port 3001",
+    "build": "wrangler deploy --dry-run --outdir dist",
+    "deploy": "wrangler deploy",
+    "cf-typegen": "wrangler types --env-file .env.example",
+    "typecheck": "bun run cf-typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:api": "cd bruno && bru run --env local --env-var baseUrl=${API_URL:-http://localhost:3001} --reporter-html ../../../.turbo/bruno-report.html"
+  },
+  "dependencies": {
+    "@local-craftsmen/application": "workspace:*",
+    "@local-craftsmen/contracts": "workspace:*",
+    "@local-craftsmen/db": "workspace:*",
+    "@orpc/openapi": "^1.15.1",
+    "@orpc/server": "^1.15.1",
+    "hono": "^4.13.8"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-plugin": "^1.2.1",
+    "@local-craftsmen/config": "workspace:*",
+    "@types/bun": "latest",
+    "@types/node": "^26.6.2",
+    "@usebruno/cli": "^2.0.0",
+    "vitest": "^4.1.0",
+    "wrangler": "^4.136.1"
+  }
+}

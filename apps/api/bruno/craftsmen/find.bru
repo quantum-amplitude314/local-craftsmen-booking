@@ -1,0 +1,17 @@
+meta {
+  name: find craftsman
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/craftsmen/{{craftsmanId}}
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: eq {{craftsmanId}}
+  res.body.availability: isArray
+}

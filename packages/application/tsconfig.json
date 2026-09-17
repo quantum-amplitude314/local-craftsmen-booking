@@ -1,0 +1,4 @@
+{
+  "extends": "@local-craftsmen/config/tsconfig.base.json",
+  "include": ["src"]
+}

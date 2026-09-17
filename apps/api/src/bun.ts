@@ -1,0 +1,59 @@
+import { createCraftsmenService } from "@local-craftsmen/application";
+import { createDb } from "@local-craftsmen/db";
+import { createApp } from "./app.ts";
+
+type Database = ReturnType<typeof createDb>;
+type Server = ReturnType<typeof Bun.serve>;
+
+type LocalRuntime = typeof globalThis & {
+  localCraftsmenDatabase?: Database;
+  localCraftsmenServer?: Server;
+  localCraftsmenShutdownHandler?: () => void;
+};
+
+const databaseUrl = process.env.DATABASE_URL;
+if (!databaseUrl) throw new Error("DATABASE_URL is required");
+
+const port = Number(process.env.PORT ?? 3001);
+if (!Number.isInteger(port)) throw new Error("PORT must be an integer");
+
+const runtime = globalThis as LocalRuntime;
+const database = runtime.localCraftsmenDatabase ?? createDb({ connectionString: databaseUrl });
+runtime.localCraftsmenDatabase = database;
+
+const craftsmen = createCraftsmenService({ db: database.db });
+const app = createApp<Record<string, never>>({
+  createApiContext: () => {
+    const apiContext = { craftsmen };
+
+    return apiContext;
+  },
+});
+
+const server = Bun.serve({ port, fetch: app.fetch });
+runtime.localCraftsmenServer = server;
+
+if (runtime.localCraftsmenShutdownHandler) {
+  process.off("SIGINT", runtime.localCraftsmenShutdownHandler);
+  process.off("SIGTERM", runtime.localCraftsmenShutdownHandler);
+}
+
+const shutdown = async () => {
+  try {
+    await runtime.localCraftsmenServer?.stop();
+    await runtime.localCraftsmenDatabase?.close({ timeout: 0 });
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+    console.error(JSON.stringify({ message: "API shutdown failed", detail }));
+    process.exit(1);
+  }
+
+  process.exit(0);
+};
+
+const shutdownHandler = () => void shutdown();
+process.once("SIGINT", shutdownHandler);
+process.once("SIGTERM", shutdownHandler);
+runtime.localCraftsmenShutdownHandler = shutdownHandler;
+
+console.log(JSON.stringify({ message: "API listening", url: server.url.toString() }));

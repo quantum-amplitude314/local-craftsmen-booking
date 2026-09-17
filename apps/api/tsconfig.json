@@ -1,0 +1,7 @@
+{
+  "extends": "@local-craftsmen/config/tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["./worker-configuration.d.ts", "bun", "node"]
+  },
+  "include": ["src", "test", "vitest.config.ts", "worker-configuration.d.ts"]
+}

@@ -1,0 +1,17 @@
+meta {
+  name: list crafts
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/crafts
+  body: none
+  auth: none
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+  res.body[0]: eq painter
+}

@@ -1,0 +1,26 @@
+meta {
+  name: list craftsmen
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/craftsmen?craft=painter
+  body: none
+  auth: none
+}
+
+params:query {
+  craft: painter
+  ~city: Berlin
+}
+
+vars:post-response {
+  craftsmanId: res.body[0]?.id
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+  res.body[0].craft: eq painter
+}
