@@ -1,5 +1,6 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
+import { meContract } from "./auth.ts";
 import { craftSchema } from "./crafts.ts";
 import { craftsmenContract } from "./craftsmen.ts";
 
@@ -10,9 +11,19 @@ export const contract = {
       .output(z.array(craftSchema)),
   },
   craftsmen: craftsmenContract,
+  me: meContract,
 };
 
 export type Contract = typeof contract;
+
+export {
+  loginSchema,
+  registrationSchema,
+  type SessionUser,
+  sessionUserSchema,
+  type UserRole,
+  userRoleSchema,
+} from "./auth.ts";
 
 export { idSchema, type TimeRange, timeRangeSchema, userIdSchema } from "./common.ts";
 export { CRAFTS, type Craft, craftSchema } from "./crafts.ts";
