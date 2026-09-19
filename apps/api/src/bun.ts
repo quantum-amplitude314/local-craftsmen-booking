@@ -1,6 +1,7 @@
 import { createCraftsmenService } from "@local-craftsmen/application";
 import { createDb } from "@local-craftsmen/db";
 import { createApp } from "./app.ts";
+import { createAuth } from "./auth.ts";
 
 type Database = ReturnType<typeof createDb>;
 type Server = ReturnType<typeof Bun.serve>;
@@ -22,9 +23,20 @@ const database = runtime.localCraftsmenDatabase ?? createDb({ connectionString: 
 runtime.localCraftsmenDatabase = database;
 
 const craftsmen = createCraftsmenService({ db: database.db });
+const {
+  BETTER_AUTH_SECRET,
+  BETTER_AUTH_URL = "http://localhost:3001",
+  WEB_ORIGIN = "http://localhost:3000",
+} = process.env;
+const auth = createAuth({
+  db: database.db,
+  secret: BETTER_AUTH_SECRET,
+  baseURL: BETTER_AUTH_URL,
+  webOrigin: WEB_ORIGIN,
+});
 const app = createApp<Record<string, never>>({
   createApiContext: () => {
-    const apiContext = { craftsmen };
+    const apiContext = { craftsmen, getAuth: () => auth };
 
     return apiContext;
   },
