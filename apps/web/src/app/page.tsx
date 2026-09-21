@@ -1,5 +1,6 @@
 import type { Craft } from "@local-craftsmen/contracts";
 import { ArrowUpRight, MapPin } from "lucide-react";
+import { SiteHeader } from "@/components/site-header";
 import { apiClient } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -92,10 +93,7 @@ export default function Home() {
   return (
     <main className="min-h-screen px-5 sm:px-8">
       <div className="mx-auto max-w-6xl">
-        <header className="flex h-20 items-center justify-between border-border border-b">
-          <p className="text-sm font-semibold tracking-tight">LOCAL / CRAFT</p>
-          <p className="font-mono text-xs text-muted-foreground">BERLIN · HAMBURG</p>
-        </header>
+        <SiteHeader />
 
         <section className="grid gap-10 py-16 sm:py-24 lg:grid-cols-[1.5fr_1fr] lg:items-end">
           <div>

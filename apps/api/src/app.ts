@@ -51,7 +51,6 @@ export const createApp = <Bindings extends object>({
     return context.get("getAuth")().handler(context.req.raw);
   });
 
-  app.use("/me", requireSession);
   app.use("/me/*", requireSession);
 
   app.use("*", async (context, next) => {
