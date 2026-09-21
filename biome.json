@@ -18,5 +18,11 @@
   "css": { "parser": { "tailwindDirectives": true } },
   "javascript": {
     "formatter": { "quoteStyle": "double", "semicolons": "always", "trailingCommas": "all" }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["apps/web/src/components/ui/**"],
+      "linter": { "enabled": false }
+    }
+  ]
 }
