@@ -1,6 +1,6 @@
 # Local Craftsmen
 
-Booking platform connecting customers with local craftsmen. Portfolio project.
+Booking platform connecting customers with local craftsmen. Demo PoC project.
 
 Currently implemented: a public craftsmen directory, email/password registration and login,
 and a role-aware account page. Profile editing, availability management, and booking flows are next.
