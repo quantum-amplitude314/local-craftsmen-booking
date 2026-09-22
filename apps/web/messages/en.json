@@ -14,6 +14,7 @@
     "myAccount": "My account",
     "signIn": "Sign in",
     "createAccount": "Create account",
-    "togglePalette": "Toggle light and dark theme"
+    "togglePalette": "Toggle light and dark theme",
+    "language": "Language"
   }
 }

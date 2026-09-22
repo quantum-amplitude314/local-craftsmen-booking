@@ -1,7 +1,7 @@
 "use client";
 
 import { type UserRole, userRoleSchema } from "@local-craftsmen/contracts";
-import Link from "next/link";
+import { useLocale } from "next-intl";
 import { useActionState, useState } from "react";
 import { login, register } from "@/app/auth-actions";
 import { Button } from "@/components/ui/button";
@@ -16,11 +16,13 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { Link } from "@/i18n/navigation";
 import type { AuthFormState } from "@/lib/auth-form-state";
 
 const initialState: AuthFormState = { error: null };
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
+  const locale = useLocale();
   const isRegistration = mode === "register";
   const [role, setRole] = useState<UserRole>("customer");
   const [state, formAction, pending] = useActionState(
@@ -31,6 +33,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   return (
     <form action={formAction} className="flex flex-col gap-8" aria-busy={pending}>
+      <input type="hidden" name="locale" value={locale} />
       <FieldGroup>
         {isRegistration ? (
           <>

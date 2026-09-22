@@ -1,8 +1,9 @@
-import Link from "next/link";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { PaletteToggle } from "@/components/palette-toggle";
 import { buttonVariants } from "@/components/ui/button";
+import { Link } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
 async function AccountNavigation() {
@@ -47,6 +48,7 @@ export async function SiteHeader() {
             <AccountNavigation />
           </Suspense>
         </nav>
+        <LocaleSwitcher />
         <PaletteToggle />
       </div>
     </header>

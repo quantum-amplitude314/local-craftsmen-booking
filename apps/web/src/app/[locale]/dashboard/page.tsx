@@ -1,15 +1,15 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import { getLocale } from "next-intl/server";
 import { SignOutButton } from "@/components/sign-out-button";
 import { buttonVariants } from "@/components/ui/button";
+import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
 export const metadata: Metadata = { title: "My account | Local Craftsmen" };
 
 export default async function DashboardPage() {
-  const user = await getCurrentUser();
-  if (!user) redirect("/login");
+  const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
+  if (!user) return redirect({ href: "/login", locale });
   const { name, email, role } = user;
 
   return (
