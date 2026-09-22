@@ -199,3 +199,25 @@ describe("authentication", () => {
     expect(me.status).toBe(401);
   });
 });
+
+describe("craftsmen directory access", () => {
+  test("rejects an anonymous request for the craftsmen list", async () => {
+    const response = await call({ path: "/craftsmen" });
+
+    expect(response.status).toBe(401);
+  });
+
+  test("rejects an anonymous request for a craftsman profile", async () => {
+    const response = await call({ path: "/craftsmen/seed-painter" });
+
+    expect(response.status).toBe(401);
+  });
+
+  test("lists craftsmen for a signed-in user", async () => {
+    const { cookie } = await registerUser({ role: "customer" });
+    const response = await call({ path: "/craftsmen", cookie });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.not.toHaveLength(0);
+  });
+});

@@ -23,7 +23,13 @@ import { validateAuthForm } from "@/lib/auth-form-validation";
 
 const initialState: AuthFormState = { error: null };
 
-export function AuthForm({ mode }: { mode: "login" | "register" }) {
+export function AuthForm({
+  mode,
+  initialRole = userRoleSchema.enum.customer,
+}: {
+  mode: "login" | "register";
+  initialRole?: UserRole;
+}) {
   const locale = useLocale();
   const t = useTranslations("auth");
   const isRegistration = mode === "register";
@@ -32,7 +38,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     initialState,
   );
   const { values } = state;
-  const [role, setRole] = useState<UserRole>(values?.role ?? userRoleSchema.enum.customer);
+  const [role, setRole] = useState<UserRole>(values?.role ?? initialRole);
   const [clientState, setClientState] = useState<AuthFormState | null>(null);
   const [editedFields, setEditedFields] = useState<AuthField[]>([]);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);

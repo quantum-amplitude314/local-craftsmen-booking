@@ -13,6 +13,8 @@ export const craftsmanProfileSchema = z.object({
   bio: z.string().nullable(),
 });
 
+export type CraftsmanProfile = z.infer<typeof craftsmanProfileSchema>;
+
 export const craftsmanDetailSchema = craftsmanProfileSchema.extend({
   availability: z.array(timeRangeSchema.and(z.object({ id: idSchema }))),
 });

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Local Craftsmen",
-    "description": "Najděte spolehlivé řemeslníky ve svém okolí pro svůj příští projekt."
+    "description": "Najděte řemeslníky ve svém okolí pro svůj příští projekt."
   },
   "shell": {
     "skipToContent": "Přejít na obsah",
@@ -10,14 +10,36 @@
   },
   "home": {
     "eyebrow": "Nezávislí řemeslníci ve vašem okolí",
-    "heading": "Poctivá práce,<br></br>blízko domova.",
-    "description": "Prohlédněte si šikovné řemeslníky ve svém městě, porovnejte hodinové sazby a najděte toho pravého pro svůj projekt.",
-    "directory": "Přehled řemeslníků",
-    "empty": "Zatím tu nejsou žádní řemeslníci. Naplňte databázi ukázkovými profily.",
-    "unavailable": "Přehled řemeslníků není dostupný.",
-    "unavailableDescription": "Spusťte PostgreSQL, naplňte databázi ukázkovými daty a spusťte API pro načtení řemeslníků z místní databáze.",
+    "heading": "Najděte řemeslníka<br></br>ve svém okolí.",
+    "description": "Prohlédněte si místní řemeslníky a porovnejte hodinové sazby. Stačí bezplatný účet.",
+    "findCraftsman": "Najít řemeslníka",
+    "offerServices": "Nabídnout své služby",
+    "signInPrompt": "Už máte účet? <link>Přihlaste se</link>",
+    "howItWorks": {
+      "heading": "Jak to funguje",
+      "step": "Krok {number}",
+      "createAccount": {
+        "title": "Založte si bezplatný účet",
+        "description": "Zaregistrujte se jako zákazník, pokud hledáte pomoc, nebo jako řemeslník, pokud nabízíte své služby."
+      },
+      "browse": {
+        "title": "Prohlédněte si řemeslníky",
+        "description": "Uvidíte obor každého řemeslníka a odkud je."
+      },
+      "compareRates": {
+        "title": "Porovnejte sazby",
+        "description": "Porovnejte hodinové sazby dřív, než se ozvete."
+      }
+    }
+  },
+  "directory": {
+    "title": "Řemeslníci | Local Craftsmen",
+    "heading": "Přehled řemeslníků",
+    "empty": "Zatím tu nejsou žádní řemeslníci. Zkuste to prosím brzy znovu.",
+    "unavailable": "Přehled řemeslníků se nepodařilo načíst.",
+    "unavailableDescription": "Zkuste to prosím za chvíli znovu.",
     "perHour": " / hodinu",
-    "fallbackBio": "{craft, select, painter {Malířské} plumber {Instalatérské} electrician {Elektroinstalační} carpenter {Truhlářské} tiler {Obkladačské} other {Řemeslné}} práce. Lokalita: {location}.",
+    "fallbackBio": "{craft, select, painter {Malířské} plumber {Instalatérské} electrician {Elektroinstalační} carpenter {Truhlářské} tiler {Obkladačské} other {Řemeslné}} práce.",
     "areaWithDistrict": "{district}, {city}",
     "crafts": {
       "painter": "Malíř",

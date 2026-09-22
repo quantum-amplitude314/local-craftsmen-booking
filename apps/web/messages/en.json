@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Local Craftsmen",
-    "description": "Find trusted local craftspeople for your next project."
+    "description": "Find local craftsmen for your next project."
   },
   "shell": {
     "skipToContent": "Skip to content",
@@ -10,14 +10,36 @@
   },
   "home": {
     "eyebrow": "Independent local specialists",
-    "heading": "Trusted work,<br></br>close to home.",
-    "description": "Browse skilled craftspeople in your city, compare hourly rates, and find the right specialist for the job.",
-    "directory": "Craftsmen directory",
-    "empty": "No craftsmen are listed yet. Seed the database to add the sample profiles.",
-    "unavailable": "The directory is unavailable.",
-    "unavailableDescription": "Start and seed PostgreSQL, then run the API to load craftsmen from the local database.",
+    "heading": "Find a craftsman<br></br>near you.",
+    "description": "Browse local craftsmen and compare hourly rates. Free account required.",
+    "findCraftsman": "Find a craftsman",
+    "offerServices": "Offer your services",
+    "signInPrompt": "Already have an account? <link>Sign in</link>",
+    "howItWorks": {
+      "heading": "How it works",
+      "step": "Step {number}",
+      "createAccount": {
+        "title": "Create a free account",
+        "description": "Register as a customer to find help, or as a craftsman to offer your services."
+      },
+      "browse": {
+        "title": "Browse craftsmen",
+        "description": "See each craftsman’s craft and where they are based."
+      },
+      "compareRates": {
+        "title": "Compare rates",
+        "description": "Compare hourly rates before you get in touch."
+      }
+    }
+  },
+  "directory": {
+    "title": "Craftsmen | Local Craftsmen",
+    "heading": "Craftsmen directory",
+    "empty": "No craftsmen are listed yet. Please check back soon.",
+    "unavailable": "We couldn’t load the craftsmen directory.",
+    "unavailableDescription": "Please try again in a moment.",
     "perHour": " / hour",
-    "fallbackBio": "{craft, select, painter {Painting} plumber {Plumbing} electrician {Electrical} carpenter {Carpentry} tiler {Tiling} other {Local}} services. Location: {location}.",
+    "fallbackBio": "{craft, select, painter {Painting} plumber {Plumbing} electrician {Electrical} carpenter {Carpentry} tiler {Tiling} other {Local}} services.",
     "areaWithDistrict": "{district}, {city}",
     "crafts": {
       "painter": "Painter",

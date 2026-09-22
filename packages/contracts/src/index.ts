@@ -38,4 +38,8 @@ export {
 } from "./cities.ts";
 export { idSchema, type TimeRange, timeRangeSchema, userIdSchema } from "./common.ts";
 export { CRAFTS, type Craft, craftSchema } from "./crafts.ts";
-export { craftsmanDetailSchema, craftsmanProfileSchema } from "./craftsmen.ts";
+export {
+  type CraftsmanProfile,
+  craftsmanDetailSchema,
+  craftsmanProfileSchema,
+} from "./craftsmen.ts";

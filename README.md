@@ -2,7 +2,7 @@
 
 Booking platform connecting customers with local craftsmen. Demo PoC project.
 
-Currently implemented: a public craftsmen directory, email/password registration and login,
+Currently implemented: a login-gated craftsmen directory, email/password registration and login,
 and a role-aware account page. Profile editing, availability management, and booking flows are next.
 
 ## Workspace
@@ -71,6 +71,9 @@ With the API running, execute the Bruno collection:
 ```sh
 bun run api:test
 ```
+
+The collection registers a new customer account on each run to call the login-gated craftsmen
+endpoints.
 
 ## Architecture
 

@@ -1,87 +1,18 @@
-import type { Area } from "@local-craftsmen/contracts";
-import { MapPin } from "lucide-react";
-import { getFormatter, getTranslations } from "next-intl/server";
-import { apiClient } from "@/lib/api";
+import { userRoleSchema } from "@local-craftsmen/contracts";
+import { getLocale, getTranslations } from "next-intl/server";
+import { buttonVariants } from "@/components/ui/button";
+import { Link, redirect } from "@/i18n/navigation";
+import { getCurrentUser } from "@/lib/auth";
 
-export const dynamic = "force-dynamic";
-
-async function CraftsmenDirectory() {
-  const [t, tCities, format] = await Promise.all([
-    getTranslations("home"),
-    getTranslations("cities"),
-    getFormatter(),
-  ]);
-
-  const formatArea = ({ city, district }: Area) => {
-    const cityName = city.kind === "maintained" ? tCities(city.id) : city.name;
-    const label = district ? t("areaWithDistrict", { district, city: cityName }) : cityName;
-
-    return label;
-  };
-
-  try {
-    const craftsmen = await apiClient.craftsmen.list({});
-
-    if (craftsmen.length === 0) {
-      return (
-        <p className="prose-text border-border border-t py-10 text-muted-foreground">
-          {t("empty")}
-        </p>
-      );
-    }
-
-    return (
-      <ul className="grid gap-x-8 border-t md:grid-cols-2 lg:grid-cols-3">
-        {craftsmen.map(({ id, name, craft, baseArea, hourlyRate, bio }) => {
-          const location = formatArea(baseArea);
-
-          return (
-            <li key={id} className="min-w-0 border-b py-8">
-              <article className="flex h-full flex-col gap-6">
-                <p className="eyebrow text-primary">{t(`crafts.${craft}`)}</p>
-
-                <div className="flex flex-1 flex-col gap-4">
-                  <h3 className="section-heading wrap-anywhere">{name}</h3>
-
-                  <p className="prose-text min-h-12 text-sm leading-6 text-muted-foreground">
-                    {bio ?? t("fallbackBio", { craft, location })}
-                  </p>
-
-                  <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-4">
-                    <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                      <MapPin aria-hidden="true" className="size-4" />
-                      {location}
-                    </span>
-                    <span className="text-sm font-medium">
-                      {format.number(hourlyRate, {
-                        style: "currency",
-                        currency: "EUR",
-                        maximumFractionDigits: 0,
-                      })}
-                      <span className="font-normal text-muted-foreground">{t("perHour")}</span>
-                    </span>
-                  </div>
-                </div>
-              </article>
-            </li>
-          );
-        })}
-      </ul>
-    );
-  } catch {
-    return (
-      <div className="border-border border-y py-10" aria-live="polite">
-        <p className="font-medium">{t("unavailable")}</p>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
-          {t("unavailableDescription")}
-        </p>
-      </div>
-    );
-  }
-}
+const HOW_IT_WORKS_STEPS = ["createAccount", "browse", "compareRates"] as const;
 
 export default async function Home() {
-  const t = await getTranslations("home");
+  const [user, locale, t] = await Promise.all([
+    getCurrentUser(),
+    getLocale(),
+    getTranslations("home"),
+  ]);
+  if (user) return redirect({ href: "/dashboard", locale });
 
   return (
     <main id="main-content" tabIndex={-1} className="page-shell">
@@ -90,14 +21,48 @@ export default async function Home() {
           <p className="eyebrow mb-6 text-primary">{t("eyebrow")}</p>
           <h1 className="display-heading max-w-3xl">{t.rich("heading", { br: () => <br /> })}</h1>
         </div>
-        <p className="body-lead max-w-md text-muted-foreground lg:pb-1">{t("description")}</p>
+        <div className="flex max-w-md flex-col gap-8 lg:pb-1">
+          <p className="body-lead text-muted-foreground">{t("description")}</p>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-wrap gap-3">
+              <Link href="/register" className={buttonVariants({ size: "lg" })}>
+                {t("findCraftsman")}
+              </Link>
+              <Link
+                href={{ pathname: "/register", query: { role: userRoleSchema.enum.craftsman } }}
+                className={buttonVariants({ variant: "outline", size: "lg" })}
+              >
+                {t("offerServices")}
+              </Link>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              {t.rich("signInPrompt", {
+                link: (chunks) => (
+                  <Link href="/login" className="font-medium text-foreground underline">
+                    {chunks}
+                  </Link>
+                ),
+              })}
+            </p>
+          </div>
+        </div>
       </section>
 
-      <section aria-labelledby="directory-heading" className="pb-(--section-space)">
-        <h2 id="directory-heading" className="section-heading pb-5">
-          {t("directory")}
+      <section aria-labelledby="how-it-works-heading" className="pb-(--section-space)">
+        <h2 id="how-it-works-heading" className="section-heading pb-5">
+          {t("howItWorks.heading")}
         </h2>
-        <CraftsmenDirectory />
+        <ol className="grid gap-x-8 border-t md:grid-cols-3">
+          {HOW_IT_WORKS_STEPS.map((step, index) => (
+            <li key={step} className="flex min-w-0 flex-col gap-3 border-b py-8">
+              <p className="eyebrow text-primary">{t("howItWorks.step", { number: index + 1 })}</p>
+              <h3 className="font-medium">{t(`howItWorks.${step}.title`)}</h3>
+              <p className="prose-text text-sm leading-6 text-muted-foreground">
+                {t(`howItWorks.${step}.description`)}
+              </p>
+            </li>
+          ))}
+        </ol>
       </section>
     </main>
   );

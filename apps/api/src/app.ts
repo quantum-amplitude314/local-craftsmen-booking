@@ -52,6 +52,7 @@ export const createApp = <Bindings extends object>({
   });
 
   app.use("/me/*", requireSession);
+  app.use("/craftsmen/*", requireSession);
 
   app.use("*", async (context, next) => {
     const apiContext = { ...context.get("apiContext"), user: context.get("user") ?? null };
