@@ -1,11 +1,11 @@
 "use server";
 
-import { loginSchema, registrationSchema } from "@local-craftsmen/contracts";
 import { hasLocale } from "next-intl";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { sendAuthRequest } from "@/lib/auth";
-import type { AuthFormState } from "@/lib/auth-form-state";
+import type { AuthError, AuthFormState } from "@/lib/auth-form-state";
+import { validateAuthForm } from "@/lib/auth-form-validation";
 
 const getFormLocale = (formData: FormData) => {
   const requestedLocale = formData.get("locale");
@@ -23,45 +23,30 @@ const authenticate = async ({
   formData: FormData;
   mode: "login" | "register";
 }): Promise<AuthFormState> => {
-  const values = {
-    name: String(formData.get("name") ?? ""),
-    email: String(formData.get("email") ?? "").trim(),
-  };
-  const schema = mode === "register" ? registrationSchema : loginSchema;
-  const result = schema.safeParse({
-    ...values,
-    password: formData.get("password"),
-    role: formData.get("role"),
-  });
-
-  if (!result.success) {
-    const { error } = result;
-    const fieldErrors = Object.fromEntries(
-      error.issues.map(({ path, message }) => [path[0], message]),
-    );
-    const state = { error: "Check the highlighted fields.", fieldErrors, values };
-
-    return state;
-  }
+  const { parsed, state: validationState, values } = validateAuthForm({ formData, mode });
+  if (!parsed.success) return validationState;
 
   try {
     const response = await sendAuthRequest({
       endpoint: mode === "register" ? "sign-up/email" : "sign-in/email",
-      body: result.data,
+      body: parsed.data,
     });
     if (!response.ok) {
-      const error =
-        response.status === 429
-          ? "Too many attempts. Please wait a moment and try again."
-          : mode === "login"
-            ? "Unable to sign in. Check your email and password and try again."
-            : "Unable to create this account. Try another email or sign in if you already have an account.";
+      const { status } = response;
+      const error: AuthError =
+        status === 429
+          ? "tooManyAttempts"
+          : status >= 500
+            ? "serviceUnavailable"
+            : mode === "login"
+              ? "loginFailed"
+              : "registrationFailed";
       const state = { error, values };
 
       return state;
     }
   } catch {
-    const state = { error: "The account service is unavailable. Please try again.", values };
+    const state: AuthFormState = { error: "serviceUnavailable", values };
 
     return state;
   }
@@ -90,12 +75,12 @@ export const logout = async (
   try {
     const response = await sendAuthRequest({ endpoint: "sign-out", body: {} });
     if (!response.ok) {
-      const state = { error: "Unable to sign out. Please try again." };
+      const state: AuthFormState = { error: "logoutFailed" };
 
       return state;
     }
   } catch {
-    const state = { error: "The account service is unavailable. Please try again." };
+    const state: AuthFormState = { error: "serviceUnavailable" };
 
     return state;
   }

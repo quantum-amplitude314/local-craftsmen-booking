@@ -17,6 +17,10 @@ export const contract = {
 export type Contract = typeof contract;
 
 export {
+  type AuthField,
+  type AuthFieldErrors,
+  type AuthValidationError,
+  getAuthFieldErrors,
   loginSchema,
   registrationSchema,
   type SessionUser,

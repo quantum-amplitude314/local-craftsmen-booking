@@ -1,8 +1,8 @@
 "use client";
 
-import { type UserRole, userRoleSchema } from "@local-craftsmen/contracts";
-import { useLocale } from "next-intl";
-import { useActionState, useState } from "react";
+import { type AuthField, type UserRole, userRoleSchema } from "@local-craftsmen/contracts";
+import { useLocale, useTranslations } from "next-intl";
+import { type SubmitEvent, useActionState, useEffect, useRef, useState } from "react";
 import { login, register } from "@/app/auth-actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -18,49 +18,105 @@ import { Input } from "@/components/ui/input";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Link } from "@/i18n/navigation";
 import type { AuthFormState } from "@/lib/auth-form-state";
+import { validateAuthForm } from "@/lib/auth-form-validation";
 
 const initialState: AuthFormState = { error: null };
 
 export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const locale = useLocale();
+  const t = useTranslations("auth");
   const isRegistration = mode === "register";
-  const [role, setRole] = useState<UserRole>("customer");
   const [state, formAction, pending] = useActionState(
     isRegistration ? register : login,
     initialState,
   );
-  const { error, fieldErrors, values } = state;
+  const { values } = state;
+  const [role, setRole] = useState<UserRole>(values?.role ?? "customer");
+  const [clientState, setClientState] = useState<AuthFormState | null>(null);
+  const [editedFields, setEditedFields] = useState<AuthField[]>([]);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { error, fieldErrors } = clientState ?? state;
+  const visibleError = !pending && editedFields.length === 0 ? error : null;
+
+  const getFieldError = (field: AuthField) => {
+    const key = !pending && !editedFields.includes(field) ? fieldErrors?.[field] : undefined;
+    const message = key ? t(`validation.${key}`) : undefined;
+
+    return message;
+  };
+  const nameError = getFieldError("name");
+  const emailError = getFieldError("email");
+  const passwordError = getFieldError("password");
+  const roleError = getFieldError("role");
+
+  useEffect(() => {
+    const { error } = clientState ?? state;
+    if (pending || !error) return;
+    const { current: form } = formRef;
+    const target =
+      form?.querySelector<HTMLElement>('[aria-invalid="true"]') ??
+      form?.querySelector<HTMLElement>("#auth-error");
+    target?.focus();
+  }, [clientState, state, pending]);
+
+  const clearFieldError = (field: AuthField) => {
+    setEditedFields((current) => (current.includes(field) ? current : [...current, field]));
+  };
+
+  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
+    const { currentTarget: form } = event;
+    const { parsed, state: validationState } = validateAuthForm({
+      formData: new FormData(form),
+      mode,
+    });
+    setEditedFields([]);
+    setClientState(parsed.success ? null : validationState);
+    if (!parsed.success) event.preventDefault();
+  };
 
   return (
-    <form action={formAction} className="flex flex-col gap-8" aria-busy={pending}>
+    <form
+      ref={formRef}
+      action={formAction}
+      onSubmit={handleSubmit}
+      noValidate
+      className="flex flex-col gap-8"
+      aria-busy={pending}
+    >
       <input type="hidden" name="locale" value={locale} />
       <FieldGroup>
         {isRegistration ? (
           <>
-            <FieldSet>
+            <FieldSet data-invalid={!!roleError}>
               <FieldLegend variant="label" id="account-role">
-                I want to
+                {t("role")}
               </FieldLegend>
               <ToggleGroup
                 aria-labelledby="account-role"
+                aria-describedby={roleError ? "role-hint role-error" : "role-hint"}
+                aria-invalid={!!roleError}
+                tabIndex={-1}
                 className="flex-wrap"
                 variant="outline"
                 value={[role]}
                 onValueChange={(selected) => {
                   const result = userRoleSchema.safeParse(selected[0]);
-                  if (result.success) setRole(result.data);
+                  if (result.success) {
+                    setRole(result.data);
+                    clearFieldError("role");
+                  }
                 }}
                 disabled={pending}
               >
-                <ToggleGroupItem value="customer">Find a craftsman</ToggleGroupItem>
-                <ToggleGroupItem value="craftsman">Offer my services</ToggleGroupItem>
+                <ToggleGroupItem value="customer">{t("customer")}</ToggleGroupItem>
+                <ToggleGroupItem value="craftsman">{t("craftsman")}</ToggleGroupItem>
               </ToggleGroup>
               <input type="hidden" name="role" value={role} />
-              <FieldDescription>Your account type is set when you register.</FieldDescription>
-              <FieldError>{fieldErrors?.role}</FieldError>
+              <FieldDescription id="role-hint">{t("roleHint")}</FieldDescription>
+              <FieldError id="role-error">{roleError}</FieldError>
             </FieldSet>
-            <Field data-invalid={!!fieldErrors?.name}>
-              <FieldLabel htmlFor="name">Name</FieldLabel>
+            <Field data-invalid={!!nameError}>
+              <FieldLabel htmlFor="name">{t("name")}</FieldLabel>
               <Input
                 id="name"
                 name="name"
@@ -68,15 +124,17 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
                 required
                 maxLength={100}
                 defaultValue={values?.name}
-                aria-invalid={!!fieldErrors?.name}
-                aria-describedby="name-error"
+                readOnly={pending}
+                onChange={() => clearFieldError("name")}
+                aria-invalid={!!nameError}
+                aria-describedby={nameError ? "name-error" : undefined}
               />
-              <FieldError id="name-error">{fieldErrors?.name}</FieldError>
+              <FieldError id="name-error">{nameError}</FieldError>
             </Field>
           </>
         ) : null}
-        <Field data-invalid={!!fieldErrors?.email}>
-          <FieldLabel htmlFor="email">Email</FieldLabel>
+        <Field data-invalid={!!emailError}>
+          <FieldLabel htmlFor="email">{t("email")}</FieldLabel>
           <Input
             id="email"
             name="email"
@@ -84,13 +142,15 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             autoComplete="email"
             required
             defaultValue={values?.email}
-            aria-invalid={!!fieldErrors?.email}
-            aria-describedby="email-error"
+            readOnly={pending}
+            onChange={() => clearFieldError("email")}
+            aria-invalid={!!emailError}
+            aria-describedby={emailError ? "email-error" : undefined}
           />
-          <FieldError id="email-error">{fieldErrors?.email}</FieldError>
+          <FieldError id="email-error">{emailError}</FieldError>
         </Field>
-        <Field data-invalid={!!fieldErrors?.password}>
-          <FieldLabel htmlFor="password">Password</FieldLabel>
+        <Field data-invalid={!!passwordError}>
+          <FieldLabel htmlFor="password">{t("password")}</FieldLabel>
           <Input
             id="password"
             name="password"
@@ -99,25 +159,32 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
             required
             minLength={8}
             maxLength={128}
-            aria-invalid={!!fieldErrors?.password}
-            aria-describedby="password-hint password-error"
+            readOnly={pending}
+            onChange={() => clearFieldError("password")}
+            aria-invalid={!!passwordError}
+            aria-describedby={passwordError ? "password-hint password-error" : "password-hint"}
           />
-          <FieldDescription id="password-hint">Use 8–128 characters.</FieldDescription>
-          <FieldError id="password-error">{fieldErrors?.password}</FieldError>
+          <FieldDescription id="password-hint">{t("passwordHint")}</FieldDescription>
+          <FieldError id="password-error">{passwordError}</FieldError>
         </Field>
       </FieldGroup>
-      <FieldError>{error}</FieldError>
+      <FieldError id="auth-error" tabIndex={-1}>
+        {visibleError ? t(`errors.${visibleError}`) : null}
+      </FieldError>
       <Button type="submit" size="lg" disabled={pending}>
-        {pending ? "Please wait…" : isRegistration ? "Create account" : "Sign in"}
+        {t(pending ? "pending" : isRegistration ? "createAccount" : "signIn")}
       </Button>
       <p className="text-sm text-muted-foreground">
-        {isRegistration ? "Already have an account? " : "New to Local Craftsmen? "}
-        <Link
-          href={isRegistration ? "/login" : "/register"}
-          className="font-medium text-foreground underline underline-offset-4"
-        >
-          {isRegistration ? "Sign in" : "Create an account"}
-        </Link>
+        {t.rich(isRegistration ? "registerPrompt" : "loginPrompt", {
+          link: (chunks) => (
+            <Link
+              href={isRegistration ? "/login" : "/register"}
+              className="font-medium text-foreground underline underline-offset-4"
+            >
+              {chunks}
+            </Link>
+          ),
+        })}
       </p>
     </form>
   );

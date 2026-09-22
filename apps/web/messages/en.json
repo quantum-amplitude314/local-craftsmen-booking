@@ -8,6 +8,84 @@
     "brand": "Local Craftsmen",
     "tagline": "Independent skills. Closer to home."
   },
+  "home": {
+    "eyebrow": "Independent local specialists",
+    "heading": "Trusted work,<br></br>close to home.",
+    "description": "Browse skilled craftspeople in your city, compare hourly rates, and find the right specialist for the job.",
+    "directory": "Craftsmen directory",
+    "empty": "No craftsmen are listed yet. Seed the database to add the sample profiles.",
+    "unavailable": "The directory is unavailable.",
+    "unavailableDescription": "Start and seed PostgreSQL, then run the API to load craftsmen from the local database.",
+    "perHour": " / hour",
+    "fallbackBio": "{craft, select, painter {Painting} plumber {Plumbing} electrician {Electrical} carpenter {Carpentry} tiler {Tiling} other {Local}} services. Location: {city}.",
+    "crafts": {
+      "painter": "Painter",
+      "plumber": "Plumber",
+      "electrician": "Electrician",
+      "carpenter": "Carpenter",
+      "tiler": "Tiler"
+    }
+  },
+  "login": {
+    "title": "Sign in | Local Craftsmen",
+    "heading": "Welcome back",
+    "description": "Sign in to your Local Craftsmen account."
+  },
+  "register": {
+    "title": "Create account | Local Craftsmen",
+    "heading": "Create your account",
+    "description": "Find local help or offer your skills."
+  },
+  "auth": {
+    "role": "I want to",
+    "customer": "Find a craftsman",
+    "craftsman": "Offer my services",
+    "roleHint": "Your account type is set when you register.",
+    "name": "Name",
+    "email": "Email",
+    "password": "Password",
+    "passwordHint": "Use 8–128 characters.",
+    "pending": "Please wait…",
+    "createAccount": "Create account",
+    "signIn": "Sign in",
+    "loginPrompt": "New to Local Craftsmen? <link>Create an account</link>",
+    "registerPrompt": "Already have an account? <link>Sign in</link>",
+    "signOut": "Sign out",
+    "signingOut": "Signing out…",
+    "errors": {
+      "checkFields": "Check the highlighted fields.",
+      "tooManyAttempts": "Too many attempts. Please wait a moment and try again.",
+      "loginFailed": "Unable to sign in. Check your email and password and try again.",
+      "registrationFailed": "Unable to create this account. Try another email or sign in if you already have an account.",
+      "serviceUnavailable": "The account service is unavailable. Please try again.",
+      "logoutFailed": "Unable to sign out. Please try again."
+    },
+    "validation": {
+      "invalidValue": "Enter a valid value.",
+      "emailInvalid": "Enter a valid email address.",
+      "passwordTooShort": "Use at least 8 characters.",
+      "passwordTooLong": "Use no more than 128 characters.",
+      "nameRequired": "Enter your name.",
+      "nameTooLong": "Use no more than 100 characters.",
+      "roleInvalid": "Choose an account type."
+    }
+  },
+  "dashboard": {
+    "title": "My account | Local Craftsmen",
+    "welcome": "Welcome, {name}",
+    "roles": {
+      "craftsman": "Craftsman account",
+      "customer": "Customer account"
+    },
+    "ready": {
+      "craftsman": "Your account is ready. Profile, availability, and booking management are coming next.",
+      "customer": "Your account is ready. You can browse the directory while booking is being added."
+    },
+    "browse": "Browse craftsmen",
+    "unavailable": "Your account is temporarily unavailable",
+    "unavailableDescription": "We couldn’t load your account. Please try again.",
+    "retry": "Try again"
+  },
   "header": {
     "home": "Local Craftsmen home",
     "accountNavigation": "Account",

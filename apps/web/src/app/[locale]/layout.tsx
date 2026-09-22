@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import "../globals.css";
+import { PaletteScript } from "@/components/palette-script";
 import { SiteHeader } from "@/components/site-header";
 import { routing } from "@/i18n/routing";
 import { cn } from "@/lib/utils";
@@ -44,9 +45,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
       className={cn("h-full antialiased", notoSans.variable, fraunces.variable, geistMono.variable)}
     >
       <head>
-        <script>
-          {`document.documentElement.dataset.palette = document.cookie.split("; ").includes("palette=light") ? "light" : "dark";`}
-        </script>
+        <PaletteScript />
       </head>
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>
