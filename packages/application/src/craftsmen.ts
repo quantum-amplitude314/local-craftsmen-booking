@@ -1,37 +1,59 @@
-import type { Craft } from "@local-craftsmen/contracts";
+import { areaCitySchema, type Craft } from "@local-craftsmen/contracts";
 import { availability, craftsmanProfile, type Db, user } from "@local-craftsmen/db";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 const profileColumns = {
   id: craftsmanProfile.userId,
   name: user.name,
   craft: craftsmanProfile.craft,
-  city: craftsmanProfile.city,
+  baseCityId: craftsmanProfile.baseCityId,
+  baseOtherCityName: craftsmanProfile.baseOtherCityName,
+  baseDistrict: craftsmanProfile.baseDistrict,
   hourlyRate: craftsmanProfile.hourlyRate,
   bio: craftsmanProfile.bio,
 };
 
-export const createCraftsmenService = ({ db }: { db: Db }) => {
-  const list = ({ craft, city }: { craft?: Craft | undefined; city?: string | undefined }) => {
-    const filters = [
-      craft ? eq(craftsmanProfile.craft, craft) : undefined,
-      city ? eq(craftsmanProfile.city, city) : undefined,
-    ];
+type ProfileRow = {
+  baseCityId: string | null;
+  baseOtherCityName: string | null;
+  baseDistrict: string | null;
+};
 
-    return db
+const toProfile = <Row extends ProfileRow>({
+  baseCityId,
+  baseOtherCityName,
+  baseDistrict,
+  ...profile
+}: Row) => {
+  const city = areaCitySchema.parse(
+    baseCityId
+      ? { kind: "maintained", id: baseCityId }
+      : { kind: "other", name: baseOtherCityName },
+  );
+  const result = { ...profile, baseArea: { city, district: baseDistrict } };
+
+  return result;
+};
+
+export const createCraftsmenService = ({ db }: { db: Db }) => {
+  const list = async ({ craft }: { craft?: Craft | undefined }) => {
+    const rows = await db
       .select(profileColumns)
       .from(craftsmanProfile)
       .innerJoin(user, eq(user.id, craftsmanProfile.userId))
-      .where(and(...filters));
+      .where(craft ? eq(craftsmanProfile.craft, craft) : undefined);
+    const profiles = rows.map(toProfile);
+
+    return profiles;
   };
 
   const find = async ({ id }: { id: string }) => {
-    const [profile] = await db
+    const [row] = await db
       .select(profileColumns)
       .from(craftsmanProfile)
       .innerJoin(user, eq(user.id, craftsmanProfile.userId))
       .where(eq(craftsmanProfile.userId, id));
-    if (!profile) return null;
+    if (!row) return null;
 
     const ranges = await db
       .select({ id: availability.id, range: availability.range })
@@ -39,7 +61,7 @@ export const createCraftsmenService = ({ db }: { db: Db }) => {
       .where(eq(availability.craftsmanId, id));
 
     const detail = {
-      ...profile,
+      ...toProfile(row),
       availability: ranges.map(({ id: rangeId, range: { start, end } }) => ({
         id: rangeId,
         start: start.toISOString(),

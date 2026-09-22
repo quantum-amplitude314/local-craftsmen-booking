@@ -17,7 +17,8 @@
     "unavailable": "The directory is unavailable.",
     "unavailableDescription": "Start and seed PostgreSQL, then run the API to load craftsmen from the local database.",
     "perHour": " / hour",
-    "fallbackBio": "{craft, select, painter {Painting} plumber {Plumbing} electrician {Electrical} carpenter {Carpentry} tiler {Tiling} other {Local}} services. Location: {city}.",
+    "fallbackBio": "{craft, select, painter {Painting} plumber {Plumbing} electrician {Electrical} carpenter {Carpentry} tiler {Tiling} other {Local}} services. Location: {location}.",
+    "areaWithDistrict": "{district}, {city}",
     "crafts": {
       "painter": "Painter",
       "plumber": "Plumber",
@@ -25,6 +26,11 @@
       "carpenter": "Carpenter",
       "tiler": "Tiler"
     }
+  },
+  "cities": {
+    "prague": "Prague",
+    "pilsen": "Pilsen",
+    "pardubice": "Pardubice"
   },
   "login": {
     "title": "Sign in | Local Craftsmen",

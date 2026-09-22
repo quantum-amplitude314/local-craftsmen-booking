@@ -18,7 +18,8 @@
     "db:up": "podman compose up -d",
     "db:down": "podman compose down",
     "db:migrate": "bun run --cwd packages/db db:migrate",
-    "db:seed": "bun run --cwd packages/db db:seed"
+    "db:seed": "bun run --cwd packages/db db:seed",
+    "db:clear": "bun run --cwd packages/db db:clear"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.13",

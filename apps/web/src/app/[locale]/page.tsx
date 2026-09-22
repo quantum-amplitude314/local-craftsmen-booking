@@ -1,3 +1,4 @@
+import type { Area } from "@local-craftsmen/contracts";
 import { MapPin } from "lucide-react";
 import { getFormatter, getTranslations } from "next-intl/server";
 import { apiClient } from "@/lib/api";
@@ -5,7 +6,18 @@ import { apiClient } from "@/lib/api";
 export const dynamic = "force-dynamic";
 
 async function CraftsmenDirectory() {
-  const [t, format] = await Promise.all([getTranslations("home"), getFormatter()]);
+  const [t, tCities, format] = await Promise.all([
+    getTranslations("home"),
+    getTranslations("cities"),
+    getFormatter(),
+  ]);
+
+  const formatArea = ({ city, district }: Area) => {
+    const cityName = city.kind === "maintained" ? tCities(city.id) : city.name;
+    const label = district ? t("areaWithDistrict", { district, city: cityName }) : cityName;
+
+    return label;
+  };
 
   try {
     const craftsmen = await apiClient.craftsmen.list({});
@@ -20,36 +32,40 @@ async function CraftsmenDirectory() {
 
     return (
       <ul className="grid gap-x-8 border-t md:grid-cols-2 lg:grid-cols-3">
-        {craftsmen.map(({ id, name, craft, city, hourlyRate, bio }) => (
-          <li key={id} className="min-w-0 border-b py-8">
-            <article className="flex h-full flex-col gap-6">
-              <p className="eyebrow text-primary">{t(`crafts.${craft}`)}</p>
+        {craftsmen.map(({ id, name, craft, baseArea, hourlyRate, bio }) => {
+          const location = formatArea(baseArea);
 
-              <div className="flex flex-1 flex-col gap-4">
-                <h3 className="section-heading wrap-anywhere">{name}</h3>
+          return (
+            <li key={id} className="min-w-0 border-b py-8">
+              <article className="flex h-full flex-col gap-6">
+                <p className="eyebrow text-primary">{t(`crafts.${craft}`)}</p>
 
-                <p className="prose-text min-h-12 text-sm leading-6 text-muted-foreground">
-                  {bio ?? t("fallbackBio", { craft, city })}
-                </p>
+                <div className="flex flex-1 flex-col gap-4">
+                  <h3 className="section-heading wrap-anywhere">{name}</h3>
 
-                <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-4">
-                  <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                    <MapPin aria-hidden="true" className="size-4" />
-                    {city}
-                  </span>
-                  <span className="text-sm font-medium">
-                    {format.number(hourlyRate, {
-                      style: "currency",
-                      currency: "EUR",
-                      maximumFractionDigits: 0,
-                    })}
-                    <span className="font-normal text-muted-foreground">{t("perHour")}</span>
-                  </span>
+                  <p className="prose-text min-h-12 text-sm leading-6 text-muted-foreground">
+                    {bio ?? t("fallbackBio", { craft, location })}
+                  </p>
+
+                  <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-4">
+                    <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <MapPin aria-hidden="true" className="size-4" />
+                      {location}
+                    </span>
+                    <span className="text-sm font-medium">
+                      {format.number(hourlyRate, {
+                        style: "currency",
+                        currency: "EUR",
+                        maximumFractionDigits: 0,
+                      })}
+                      <span className="font-normal text-muted-foreground">{t("perHour")}</span>
+                    </span>
+                  </div>
                 </div>
-              </div>
-            </article>
-          </li>
-        ))}
+              </article>
+            </li>
+          );
+        })}
       </ul>
     );
   } catch {

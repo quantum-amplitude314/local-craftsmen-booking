@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   boolean,
+  check,
   index,
   integer,
   pgEnum,
@@ -91,17 +92,32 @@ export const verification = pgTable(
   (table) => [index("verification_identifier_idx").on(table.identifier)],
 );
 
-export const craftsmanProfile = pgTable("craftsman_profile", {
-  userId: text("user_id")
-    .primaryKey()
-    .references(() => user.id, { onDelete: "cascade" }),
-  craft: craftEnum("craft").notNull(),
-  city: text("city").notNull(),
-  hourlyRate: integer("hourly_rate").notNull(),
-  bio: text("bio"),
-  timezone: text("timezone").notNull().default("UTC"),
-  ...timestamps,
+export const city = pgTable("city", {
+  id: text("id").primaryKey(),
 });
+
+export const craftsmanProfile = pgTable(
+  "craftsman_profile",
+  {
+    userId: text("user_id")
+      .primaryKey()
+      .references(() => user.id, { onDelete: "cascade" }),
+    craft: craftEnum("craft").notNull(),
+    baseCityId: text("base_city_id").references(() => city.id),
+    baseOtherCityName: text("base_other_city_name"),
+    baseDistrict: text("base_district"),
+    hourlyRate: integer("hourly_rate").notNull(),
+    bio: text("bio"),
+    timezone: text("timezone").notNull().default("UTC"),
+    ...timestamps,
+  },
+  (table) => [
+    check(
+      "craftsman_profile_base_city",
+      sql`(${table.baseCityId} is null) <> (${table.baseOtherCityName} is null)`,
+    ),
+  ],
+);
 
 export const availability = pgTable(
   "availability",

@@ -28,7 +28,14 @@ export {
   type UserRole,
   userRoleSchema,
 } from "./auth.ts";
-
+export {
+  type Area,
+  areaCitySchema,
+  areaSchema,
+  CITY_IDS,
+  type CityId,
+  cityIdSchema,
+} from "./cities.ts";
 export { idSchema, type TimeRange, timeRangeSchema, userIdSchema } from "./common.ts";
 export { CRAFTS, type Craft, craftSchema } from "./crafts.ts";
 export { craftsmanDetailSchema, craftsmanProfileSchema } from "./craftsmen.ts";

@@ -32,8 +32,16 @@ bun run db:up
 bun run db:seed
 ```
 
-Seeding also applies migrations. Register a new account at `/register` to try authentication;
-the seeded directory profiles have no login credentials.
+Seeding applies migrations and refuses a database that already has them. To start over, clear the
+local database first; this drops all tables and data:
+
+```sh
+bun run db:clear
+bun run db:seed
+```
+
+Register a new account at `/register` to try authentication; the seeded directory profiles have no
+login credentials.
 
 ## Development
 

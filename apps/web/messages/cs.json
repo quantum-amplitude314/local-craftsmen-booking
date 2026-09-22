@@ -17,7 +17,8 @@
     "unavailable": "Přehled řemeslníků není dostupný.",
     "unavailableDescription": "Spusťte PostgreSQL, naplňte databázi ukázkovými daty a spusťte API pro načtení řemeslníků z místní databáze.",
     "perHour": " / hodinu",
-    "fallbackBio": "{craft, select, painter {Malířské} plumber {Instalatérské} electrician {Elektroinstalační} carpenter {Truhlářské} tiler {Obkladačské} other {Řemeslné}} práce. Lokalita: {city}.",
+    "fallbackBio": "{craft, select, painter {Malířské} plumber {Instalatérské} electrician {Elektroinstalační} carpenter {Truhlářské} tiler {Obkladačské} other {Řemeslné}} práce. Lokalita: {location}.",
+    "areaWithDistrict": "{district}, {city}",
     "crafts": {
       "painter": "Malíř",
       "plumber": "Instalatér",
@@ -25,6 +26,11 @@
       "carpenter": "Truhlář",
       "tiler": "Obkladač"
     }
+  },
+  "cities": {
+    "prague": "Praha",
+    "pilsen": "Plzeň",
+    "pardubice": "Pardubice"
   },
   "login": {
     "title": "Přihlášení | Local Craftsmen",

@@ -1,4 +1,4 @@
-import { sql } from "drizzle-orm";
+import { clearDb } from "./clear.ts";
 import { createDb } from "./client.ts";
 import { runMigrations } from "./migrate.ts";
 import { seed } from "./seed.ts";
@@ -9,8 +9,8 @@ export const startTestDb = async () => {
   if (!connectionString) throw new Error("TEST_DATABASE_URL is required to run db tests");
 
   const { db, close } = createDb({ connectionString });
+  await clearDb({ db });
   await runMigrations({ db });
-  await db.execute(sql`truncate "booking", "availability", "craftsman_profile", "user" cascade`);
   await seed({ db });
 
   return { db, stop: close };
