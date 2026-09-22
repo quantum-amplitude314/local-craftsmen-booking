@@ -31,16 +31,11 @@ async function CraftsmenDirectory() {
     }
 
     return (
-      <ol className="grid gap-x-8 border-t md:grid-cols-2 lg:grid-cols-3">
-        {craftsmen.map(({ id, name, craft, city, hourlyRate, bio }, index) => (
+      <ul className="grid gap-x-8 border-t md:grid-cols-2 lg:grid-cols-3">
+        {craftsmen.map(({ id, name, craft, city, hourlyRate, bio }) => (
           <li key={id} className="min-w-0 border-b py-8">
             <article className="flex h-full flex-col gap-6">
-              <div className="flex items-center justify-between gap-4">
-                <p className="eyebrow text-primary">{craftLabels[craft]}</p>
-                <span aria-hidden="true" className="font-mono text-xs text-muted-foreground">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-              </div>
+              <p className="eyebrow text-primary">{craftLabels[craft]}</p>
 
               <div className="flex flex-1 flex-col gap-4">
                 <h3 className="section-heading wrap-anywhere">{name}</h3>
@@ -63,7 +58,7 @@ async function CraftsmenDirectory() {
             </article>
           </li>
         ))}
-      </ol>
+      </ul>
     );
   } catch {
     return (
@@ -96,15 +91,9 @@ export default function Home() {
       </section>
 
       <section aria-labelledby="directory-heading" className="pb-(--section-space)">
-        <div className="flex items-end justify-between gap-6 pb-5">
-          <div>
-            <p className="font-mono text-xs text-muted-foreground">01</p>
-            <h2 id="directory-heading" className="section-heading mt-2">
-              Craftsmen directory
-            </h2>
-          </div>
-          <p className="hidden text-sm text-muted-foreground sm:block">Current local profiles</p>
-        </div>
+        <h2 id="directory-heading" className="section-heading pb-5">
+          Craftsmen directory
+        </h2>
         <CraftsmenDirectory />
       </section>
     </main>
