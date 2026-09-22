@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fraunces, Geist_Mono, Noto_Sans } from "next/font/google";
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import "./globals.css";
 import { SiteHeader } from "@/components/site-header";
 import { cn } from "@/lib/utils";
@@ -20,15 +22,19 @@ const geistMono = Geist_Mono({
   subsets: ["latin", "latin-ext"],
 });
 
-export const metadata: Metadata = {
-  title: "Local Craftsmen",
-  description: "Find trusted local craftspeople for your next project.",
+export const generateMetadata = async (): Promise<Metadata> => {
+  const t = await getTranslations("metadata");
+  const metadata = { title: t("title"), description: t("description") };
+
+  return metadata;
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("shell")]);
+
   return (
     <html
-      lang="en"
+      lang={locale}
       data-palette="dark"
       suppressHydrationWarning
       className={cn("h-full antialiased", notoSans.variable, fraunces.variable, geistMono.variable)}
@@ -39,18 +45,20 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </script>
       </head>
       <body className="flex min-h-full flex-col">
-        <a
-          href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
-        >
-          Skip to content
-        </a>
-        <SiteHeader />
-        {children}
-        <footer className="page-shell mt-auto flex flex-wrap justify-between gap-2 border-t py-6 text-xs text-muted-foreground">
-          <p>Local Craftsmen</p>
-          <p>Independent skills. Closer to home.</p>
-        </footer>
+        <NextIntlClientProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+          >
+            {t("skipToContent")}
+          </a>
+          <SiteHeader />
+          {children}
+          <footer className="page-shell mt-auto flex flex-wrap justify-between gap-2 border-t py-6 text-xs text-muted-foreground">
+            <p>{t("brand")}</p>
+            <p>{t("tagline")}</p>
+          </footer>
+        </NextIntlClientProvider>
       </body>
     </html>
   );

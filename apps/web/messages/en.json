@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "title": "Local Craftsmen",
+    "description": "Find trusted local craftspeople for your next project."
+  },
+  "shell": {
+    "skipToContent": "Skip to content",
+    "brand": "Local Craftsmen",
+    "tagline": "Independent skills. Closer to home."
+  },
+  "header": {
+    "home": "Local Craftsmen home",
+    "accountNavigation": "Account",
+    "myAccount": "My account",
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "togglePalette": "Toggle light and dark theme"
+  }
+}
