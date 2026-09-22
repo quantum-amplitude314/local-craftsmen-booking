@@ -40,6 +40,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
               </FieldLegend>
               <ToggleGroup
                 aria-labelledby="account-role"
+                className="flex-wrap"
                 variant="outline"
                 value={[role]}
                 onValueChange={(selected) => {

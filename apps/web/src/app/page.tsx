@@ -1,6 +1,5 @@
 import type { Craft } from "@local-craftsmen/contracts";
-import { ArrowUpRight, MapPin } from "lucide-react";
-import { SiteHeader } from "@/components/site-header";
+import { MapPin } from "lucide-react";
 import { apiClient } from "@/lib/api";
 
 export const dynamic = "force-dynamic";
@@ -25,43 +24,32 @@ async function CraftsmenDirectory() {
 
     if (craftsmen.length === 0) {
       return (
-        <p className="border-border border-t py-10 text-muted-foreground">
+        <p className="prose-text border-border border-t py-10 text-muted-foreground">
           No craftsmen are listed yet. Seed the database to add the sample profiles.
         </p>
       );
     }
 
     return (
-      <ol className="grid border-border border-t md:grid-cols-2 lg:grid-cols-3">
+      <ol className="grid gap-x-8 border-t md:grid-cols-2 lg:grid-cols-3">
         {craftsmen.map(({ id, name, craft, city, hourlyRate, bio }, index) => (
-          <li
-            key={id}
-            className="group border-border border-b py-7 md:odd:border-r md:px-7 md:first:pl-0 lg:border-r lg:px-7 lg:last:border-r-0 lg:nth-[3n+1]:pl-0"
-          >
-            <article className="flex h-full flex-col gap-10">
-              <div className="flex items-start justify-between gap-4">
-                <span className="font-mono text-xs text-muted-foreground">
+          <li key={id} className="min-w-0 border-b py-8">
+            <article className="flex h-full flex-col gap-6">
+              <div className="flex items-center justify-between gap-4">
+                <p className="eyebrow text-primary">{craftLabels[craft]}</p>
+                <span aria-hidden="true" className="font-mono text-xs text-muted-foreground">
                   {String(index + 1).padStart(2, "0")}
                 </span>
-                <ArrowUpRight
-                  aria-hidden="true"
-                  className="size-5 text-muted-foreground transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-foreground"
-                />
               </div>
 
-              <div className="flex flex-col gap-4">
-                <div>
-                  <p className="mb-2 text-xs font-medium tracking-[0.18em] text-muted-foreground uppercase">
-                    {craftLabels[craft]}
-                  </p>
-                  <h2 className="text-2xl font-medium tracking-tight">{name}</h2>
-                </div>
+              <div className="flex flex-1 flex-col gap-4">
+                <h3 className="section-heading wrap-anywhere">{name}</h3>
 
-                <p className="min-h-12 text-sm leading-6 text-muted-foreground">
+                <p className="prose-text min-h-12 text-sm leading-6 text-muted-foreground">
                   {bio ?? `Available for ${craftLabels[craft].toLowerCase()} work in ${city}.`}
                 </p>
 
-                <div className="flex items-end justify-between gap-4 border-border border-t pt-4">
+                <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-4">
                   <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <MapPin aria-hidden="true" className="size-4" />
                     {city}
@@ -91,40 +79,34 @@ async function CraftsmenDirectory() {
 
 export default function Home() {
   return (
-    <main className="min-h-screen px-5 sm:px-8">
-      <div className="mx-auto max-w-6xl">
-        <SiteHeader />
+    <main id="main-content" tabIndex={-1} className="page-shell">
+      <section className="section-space grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-end lg:gap-12">
+        <div>
+          <p className="eyebrow mb-6 text-primary">Independent local specialists</p>
+          <h1 className="display-heading max-w-3xl">
+            Trusted work,
+            <br />
+            close to home.
+          </h1>
+        </div>
+        <p className="body-lead max-w-md text-muted-foreground lg:pb-1">
+          Browse skilled craftspeople in your city, compare hourly rates, and find the right
+          specialist for the job.
+        </p>
+      </section>
 
-        <section className="grid gap-10 py-16 sm:py-24 lg:grid-cols-[1.5fr_1fr] lg:items-end">
+      <section aria-labelledby="directory-heading" className="pb-(--section-space)">
+        <div className="flex items-end justify-between gap-6 pb-5">
           <div>
-            <p className="mb-5 text-xs font-medium tracking-[0.2em] text-muted-foreground uppercase">
-              Independent local specialists
-            </p>
-            <h1 className="max-w-3xl text-5xl leading-[0.95] font-medium tracking-[-0.055em] sm:text-7xl">
-              Trusted work,
-              <br />
-              close to home.
-            </h1>
+            <p className="font-mono text-xs text-muted-foreground">01</p>
+            <h2 id="directory-heading" className="section-heading mt-2">
+              Craftsmen directory
+            </h2>
           </div>
-          <p className="max-w-md text-base leading-7 text-muted-foreground lg:pb-1">
-            Browse skilled craftspeople in your city, compare hourly rates, and find the right
-            specialist for the job.
-          </p>
-        </section>
-
-        <section aria-labelledby="directory-heading" className="pb-20">
-          <div className="flex items-end justify-between gap-6 pb-5">
-            <div>
-              <p className="font-mono text-xs text-muted-foreground">01</p>
-              <h2 id="directory-heading" className="mt-2 text-xl font-medium tracking-tight">
-                Craftsmen directory
-              </h2>
-            </div>
-            <p className="hidden text-sm text-muted-foreground sm:block">Current local profiles</p>
-          </div>
-          <CraftsmenDirectory />
-        </section>
-      </div>
+          <p className="hidden text-sm text-muted-foreground sm:block">Current local profiles</p>
+        </div>
+        <CraftsmenDirectory />
+      </section>
     </main>
   );
 }
