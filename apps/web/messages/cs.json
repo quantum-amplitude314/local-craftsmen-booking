@@ -58,6 +58,7 @@
       "loginFailed": "Přihlášení se nezdařilo. Zkontrolujte e-mail a heslo a zkuste to znovu.",
       "registrationFailed": "Účet se nepodařilo vytvořit. Zkuste jiný e-mail, nebo se přihlaste, pokud už účet máte.",
       "serviceUnavailable": "Služba pro správu účtu není dostupná. Zkuste to prosím znovu.",
+      "verificationFailed": "Bezpečnostní ověření se nezdařilo. Dokončete ověření znovu a odešlete formulář.",
       "logoutFailed": "Odhlášení se nezdařilo. Zkuste to prosím znovu."
     },
     "validation": {

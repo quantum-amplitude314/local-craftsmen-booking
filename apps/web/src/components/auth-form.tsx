@@ -4,6 +4,7 @@ import { type AuthField, type UserRole, userRoleSchema } from "@local-craftsmen/
 import { useLocale, useTranslations } from "next-intl";
 import { type SubmitEvent, useActionState, useEffect, useRef, useState } from "react";
 import { login, register } from "@/app/auth-actions";
+import { TurnstileWidget } from "@/components/turnstile-widget";
 import { Button } from "@/components/ui/button";
 import {
   Field,
@@ -34,7 +35,16 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
   const [role, setRole] = useState<UserRole>(values?.role ?? "customer");
   const [clientState, setClientState] = useState<AuthFormState | null>(null);
   const [editedFields, setEditedFields] = useState<AuthField[]>([]);
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const [challengeKey, setChallengeKey] = useState(0);
+  const [answeredState, setAnsweredState] = useState(state);
   const formRef = useRef<HTMLFormElement>(null);
+
+  // A Turnstile token is single-use, so every server answer needs a fresh challenge.
+  if (state !== answeredState) {
+    setAnsweredState(state);
+    setChallengeKey((key) => key + 1);
+  }
   const { error, fieldErrors } = clientState ?? state;
   const visibleError = !pending && editedFields.length === 0 ? error : null;
 
@@ -168,10 +178,11 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
           <FieldError id="password-error">{passwordError}</FieldError>
         </Field>
       </FieldGroup>
+      <TurnstileWidget key={challengeKey} onTokenChange={setCaptchaToken} />
       <FieldError id="auth-error" tabIndex={-1}>
         {visibleError ? t(`errors.${visibleError}`) : null}
       </FieldError>
-      <Button type="submit" size="lg" disabled={pending}>
+      <Button type="submit" size="lg" disabled={pending || !captchaToken}>
         {t(pending ? "pending" : isRegistration ? "createAccount" : "signIn")}
       </Button>
       <p className="text-sm text-muted-foreground">

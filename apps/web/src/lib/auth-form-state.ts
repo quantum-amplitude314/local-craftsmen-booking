@@ -6,6 +6,7 @@ export type AuthError =
   | "loginFailed"
   | "registrationFailed"
   | "serviceUnavailable"
+  | "verificationFailed"
   | "logoutFailed";
 
 export type AuthFormState = {

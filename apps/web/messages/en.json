@@ -58,6 +58,7 @@
       "loginFailed": "Unable to sign in. Check your email and password and try again.",
       "registrationFailed": "Unable to create this account. Try another email or sign in if you already have an account.",
       "serviceUnavailable": "The account service is unavailable. Please try again.",
+      "verificationFailed": "Security check failed. Complete the check again and resubmit.",
       "logoutFailed": "Unable to sign out. Please try again."
     },
     "validation": {

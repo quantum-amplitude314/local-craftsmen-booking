@@ -16,6 +16,30 @@ const getFormLocale = (formData: FormData) => {
   return locale;
 };
 
+// Better Auth captcha plugin codes for a missing or rejected Turnstile token.
+const captchaErrorCodes: unknown[] = ["MISSING_RESPONSE", "VERIFICATION_FAILED"];
+
+const readAuthError = async ({
+  response,
+  mode,
+}: {
+  response: Response;
+  mode: "login" | "register";
+}): Promise<AuthError> => {
+  const { status } = response;
+  if (status === 429) return "tooManyAttempts";
+  if (status >= 500) return "serviceUnavailable";
+
+  const body: { code?: unknown } | null = await response.json().catch(() => null);
+  const error = captchaErrorCodes.includes(body?.code)
+    ? "verificationFailed"
+    : mode === "login"
+      ? "loginFailed"
+      : "registrationFailed";
+
+  return error;
+};
+
 const authenticate = async ({
   formData,
   mode,
@@ -26,21 +50,16 @@ const authenticate = async ({
   const { parsed, state: validationState, values } = validateAuthForm({ formData, mode });
   if (!parsed.success) return validationState;
 
+  const captchaToken = formData.get("cf-turnstile-response");
+
   try {
     const response = await sendAuthRequest({
       endpoint: mode === "register" ? "sign-up/email" : "sign-in/email",
       body: parsed.data,
+      captchaToken: typeof captchaToken === "string" ? captchaToken : undefined,
     });
     if (!response.ok) {
-      const { status } = response;
-      const error: AuthError =
-        status === 429
-          ? "tooManyAttempts"
-          : status >= 500
-            ? "serviceUnavailable"
-            : mode === "login"
-              ? "loginFailed"
-              : "registrationFailed";
+      const error = await readAuthError({ response, mode });
       const state = { error, values };
 
       return state;

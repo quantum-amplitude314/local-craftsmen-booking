@@ -11,7 +11,7 @@
     "cf-typegen": "wrangler types --env-file .env.example",
     "typecheck": "bun run cf-typegen && tsc --noEmit",
     "test": "vitest run && bun run test:auth",
-    "test:auth": "bun --env-file=../../packages/db/.env test test/auth.integration.test.ts",
+    "test:auth": "bun --env-file=.env --env-file=../../packages/db/.env test test/auth.integration.test.ts",
     "test:api": "cd bruno && bru run --env local --env-var baseUrl=${API_URL:-http://localhost:3001} --reporter-html ../../../.turbo/bruno-report.html"
   },
   "dependencies": {

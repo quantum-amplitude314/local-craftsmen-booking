@@ -7,6 +7,8 @@ import { createAuth } from "../src/auth.ts";
 const baseUrl = "http://localhost:3001";
 const webOrigin = "http://localhost:3000";
 const password = "correct-horse-battery";
+const { TURNSTILE_SECRET_KEY: turnstileSecretKey, TURNSTILE_TEST_TOKEN: turnstileToken } =
+  process.env;
 
 let app: ReturnType<typeof createApp<Record<string, never>>>;
 let stopDb: () => Promise<void>;
@@ -16,15 +18,18 @@ const call = async ({
   method = "GET",
   body,
   cookie,
+  captchaToken = turnstileToken,
 }: {
   path: string;
   method?: "GET" | "POST";
   body?: Record<string, unknown>;
   cookie?: string;
+  captchaToken?: string;
 }) => {
   const headers = new Headers({ Origin: webOrigin });
   if (body) headers.set("Content-Type", "application/json");
   if (cookie) headers.set("Cookie", cookie);
+  if (captchaToken) headers.set("x-captcha-response", captchaToken);
 
   const request = body
     ? new Request(`${baseUrl}${path}`, { method, headers, body: JSON.stringify(body) })
@@ -65,6 +70,7 @@ beforeAll(async () => {
     secret: "test-secret-with-at-least-32-characters",
     baseURL: baseUrl,
     webOrigin,
+    turnstileSecretKey,
   });
   const craftsmen = createCraftsmenService({ db });
 
@@ -123,6 +129,19 @@ describe("authentication", () => {
     const me = await call({ path: "/me", cookie: readSessionCookie({ response }) });
 
     await expect(me.json()).resolves.toMatchObject({ email, role: "customer" });
+  });
+
+  test("rejects a sign-in without a Turnstile token", async () => {
+    const { email } = await registerUser({ role: "customer" });
+    const response = await call({
+      path: "/auth/sign-in/email",
+      method: "POST",
+      body: { email, password },
+      captchaToken: "",
+    });
+
+    expect(response.status).toBe(400);
+    expect(readSessionCookie({ response })).toBe("");
   });
 
   test("rejects a wrong password", async () => {

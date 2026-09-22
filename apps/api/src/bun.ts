@@ -27,12 +27,14 @@ const {
   BETTER_AUTH_SECRET,
   BETTER_AUTH_URL = "http://localhost:3001",
   WEB_ORIGIN = "http://localhost:3000",
+  TURNSTILE_SECRET_KEY,
 } = process.env;
 const auth = createAuth({
   db: database.db,
   secret: BETTER_AUTH_SECRET,
   baseURL: BETTER_AUTH_URL,
   webOrigin: WEB_ORIGIN,
+  turnstileSecretKey: TURNSTILE_SECRET_KEY,
 });
 const app = createApp<Record<string, never>>({
   createApiContext: () => {

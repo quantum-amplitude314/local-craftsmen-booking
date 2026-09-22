@@ -31,9 +31,11 @@ export const getCurrentUser = cache(async () => {
 export const sendAuthRequest = async ({
   endpoint,
   body,
+  captchaToken,
 }: {
   endpoint: "sign-in/email" | "sign-up/email" | "sign-out";
   body: Record<string, unknown>;
+  captchaToken?: string | undefined;
 }) => {
   const cookieStore = await cookies();
   const response = await fetch(`${apiUrl}/auth/${endpoint}`, {
@@ -42,6 +44,7 @@ export const sendAuthRequest = async ({
       "Content-Type": "application/json",
       Origin: webOrigin,
       Cookie: cookieStore.toString(),
+      ...(captchaToken && { "x-captcha-response": captchaToken }),
     },
     body: JSON.stringify(body),
     cache: "no-store",

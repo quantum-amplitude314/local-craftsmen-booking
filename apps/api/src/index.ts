@@ -5,7 +5,13 @@ import { createAuth } from "./auth.ts";
 
 const app = createApp<Env>({
   createApiContext: ({ bindings }) => {
-    const { HYPERDRIVE: hyperdrive, BETTER_AUTH_SECRET, BETTER_AUTH_URL, WEB_ORIGIN } = bindings;
+    const {
+      HYPERDRIVE: hyperdrive,
+      BETTER_AUTH_SECRET,
+      BETTER_AUTH_URL,
+      WEB_ORIGIN,
+      TURNSTILE_SECRET_KEY,
+    } = bindings;
     const { db } = createDb({
       connectionString: hyperdrive.connectionString,
       fetchTypes: false,
@@ -20,6 +26,7 @@ const app = createApp<Env>({
           secret: BETTER_AUTH_SECRET,
           baseURL: BETTER_AUTH_URL,
           webOrigin: WEB_ORIGIN,
+          turnstileSecretKey: TURNSTILE_SECRET_KEY,
         }),
     };
 
