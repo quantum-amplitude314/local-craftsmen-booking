@@ -32,7 +32,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
     initialState,
   );
   const { values } = state;
-  const [role, setRole] = useState<UserRole>(values?.role ?? "customer");
+  const [role, setRole] = useState<UserRole>(values?.role ?? userRoleSchema.enum.customer);
   const [clientState, setClientState] = useState<AuthFormState | null>(null);
   const [editedFields, setEditedFields] = useState<AuthField[]>([]);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -118,8 +118,11 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
                 }}
                 disabled={pending}
               >
-                <ToggleGroupItem value="customer">{t("customer")}</ToggleGroupItem>
-                <ToggleGroupItem value="craftsman">{t("craftsman")}</ToggleGroupItem>
+                {userRoleSchema.options.map((option) => (
+                  <ToggleGroupItem key={option} value={option}>
+                    {t(option)}
+                  </ToggleGroupItem>
+                ))}
               </ToggleGroup>
               <input type="hidden" name="role" value={role} />
               <FieldDescription id="role-hint">{t("roleHint")}</FieldDescription>

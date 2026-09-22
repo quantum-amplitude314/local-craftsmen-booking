@@ -39,9 +39,9 @@ export const createAuth = ({
     user: {
       additionalFields: {
         role: {
-          type: ["customer", "craftsman"],
+          type: userRoleSchema.options,
           required: false,
-          defaultValue: "customer",
+          defaultValue: userRoleSchema.enum.customer,
           validator: { input: userRoleSchema },
         },
       },

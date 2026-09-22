@@ -1,9 +1,17 @@
+import type { UserRole } from "@local-craftsmen/contracts";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
+import type { ComponentType } from "react";
 import { SignOutButton } from "@/components/sign-out-button";
-import { buttonVariants } from "@/components/ui/button";
-import { Link, redirect } from "@/i18n/navigation";
+import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth";
+import { CraftsmanDashboard } from "./craftsman-dashboard";
+import { CustomerDashboard } from "./customer-dashboard";
+
+const roleDashboards: Record<UserRole, ComponentType> = {
+  customer: CustomerDashboard,
+  craftsman: CraftsmanDashboard,
+};
 
 export const generateMetadata = async (): Promise<Metadata> => {
   const t = await getTranslations("dashboard");
@@ -20,6 +28,7 @@ export default async function DashboardPage() {
   ]);
   if (!user) return redirect({ href: "/login", locale });
   const { name, email, role } = user;
+  const RoleDashboard = roleDashboards[role];
 
   return (
     <main id="main-content" tabIndex={-1} className="page-shell section-space flex flex-col gap-10">
@@ -31,12 +40,7 @@ export default async function DashboardPage() {
         </div>
         <SignOutButton />
       </div>
-      <p className="body-lead max-w-xl text-muted-foreground">{t(`ready.${role}`)}</p>
-      <div>
-        <Link href="/" className={buttonVariants({ variant: "outline", size: "lg" })}>
-          {t("browse")}
-        </Link>
-      </div>
+      <RoleDashboard />
     </main>
   );
 }
