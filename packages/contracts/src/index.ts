@@ -69,17 +69,20 @@ export {
   BREAK_MINUTES,
   durationMinutes,
   isOnScheduleStep,
-  isWithinOneDay,
   SCHEDULE_STEP_MINUTES,
-  SCHEDULE_TIME_ZONE,
   SLOT_MAX_MINUTES,
   SLOT_MIN_MINUTES,
 } from "./schedule.ts";
 export {
+  type AvailabilityDay,
+  availabilityDaySchema,
   type Slot,
   type SlotInput,
   type SlotListing,
   type SlotSearch,
+  type SlotTime,
+  scheduleDateSchema,
+  slotInputSchema,
   slotListingSchema,
   slotSchema,
 } from "./slots.ts";

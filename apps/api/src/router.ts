@@ -44,6 +44,13 @@ export const router = os.router({
 
         return slots.list({ craftsmanId: user.id });
       }),
+      day: os.me.availability.day.handler(({ context, input }) => {
+        const { user, slots } = context;
+        if (!user) throw new ORPCError("UNAUTHORIZED");
+        const { date } = input;
+
+        return execute(() => slots.day({ craftsmanId: user.id, date }));
+      }),
       create: os.me.availability.create.handler(({ context, input }) => {
         const { user, slots } = context;
         if (!user) throw new ORPCError("UNAUTHORIZED");

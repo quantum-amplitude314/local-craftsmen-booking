@@ -98,6 +98,8 @@ export const verification = pgTable(
 export const city = pgTable("city", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
+  /** IANA zone the city's times are shown in, e.g. Europe/Prague. */
+  timeZone: text("time_zone").notNull(),
 });
 
 export const district = pgTable(

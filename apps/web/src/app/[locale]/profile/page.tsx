@@ -1,6 +1,7 @@
 import { userRoleSchema } from "@local-craftsmen/contracts";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { ProfileForm } from "@/components/profile-form";
 import { redirect } from "@/i18n/navigation";
 import { apiClient } from "@/lib/api";
@@ -25,7 +26,8 @@ export default async function ProfilePage() {
   ]);
 
   return (
-    <main id="main-content" tabIndex={-1} className="page-shell section-space flex flex-col gap-10">
+    <main id="main-content" tabIndex={-1} className="page-shell flex flex-col gap-8 py-8 sm:py-10">
+      <PageBreadcrumbs current="profile" />
       <div className="flex max-w-2xl flex-col gap-4">
         <h1 className="page-heading">{t("heading")}</h1>
         <p className="body-lead text-muted-foreground">{t("description")}</p>

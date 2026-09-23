@@ -7,7 +7,6 @@ import { craftsmanRateSchema } from "./rates.ts";
 import {
   durationMinutes,
   isOnScheduleStep,
-  isWithinOneDay,
   SLOT_MAX_MINUTES,
   SLOT_MIN_MINUTES,
 } from "./schedule.ts";
@@ -45,8 +44,7 @@ export const slotInputSchema = timeRangeSchema
       return allowed;
     },
     { message: "A slot lasts 1 to 4 hours", path: ["end"] },
-  )
-  .refine(isWithinOneDay, { message: "A slot stays within one day", path: ["end"] });
+  );
 export type SlotInput = z.infer<typeof slotInputSchema>;
 export const slotSchema = timeRangeSchema.safeExtend({
   id: idSchema,
@@ -64,6 +62,28 @@ export const slotListingSchema = slotSchema.safeExtend({
   }),
 });
 export type SlotListing = z.infer<typeof slotListingSchema>;
+
+/** A calendar date in the schedule time zone, YYYY-MM-DD. */
+export const scheduleDateSchema = z.iso.date();
+
+/** One 15-minute step of a day; `latestEnd` is set only where a new slot may start. */
+export const slotTimeSchema = z.object({
+  start: z.iso.datetime({ offset: true }),
+  state: z.enum(["free", "past", "occupied", "break"]),
+  latestEnd: z.iso.datetime({ offset: true }).nullable(),
+});
+export type SlotTime = z.infer<typeof slotTimeSchema>;
+
+export const availabilityDaySchema = z.object({
+  /** Days and times follow the time zone of the craftsman's base city. */
+  timeZone: z.object({ id: z.string().min(1), cityId: cityIdSchema }),
+  date: scheduleDateSchema,
+  today: scheduleDateSchema,
+  times: z.array(slotTimeSchema),
+  slots: z.array(slotSchema),
+  slotDates: z.array(scheduleDateSchema),
+});
+export type AvailabilityDay = z.infer<typeof availabilityDaySchema>;
 
 export const slotSearchSchema = z
   .object({
@@ -97,6 +117,15 @@ export const ownSlotsContract = {
   list: oc
     .route({ method: "GET", path: "/me/availability", summary: "List your availability slots" })
     .output(z.array(slotSchema)),
+  day: oc
+    .route({
+      method: "GET",
+      path: "/me/availability/day",
+      summary: "Your schedule for one day: time states, where slots may end, and free slots",
+    })
+    .input(z.object({ date: scheduleDateSchema.optional() }))
+    .output(availabilityDaySchema)
+    .errors({ BAD_REQUEST: { message: "Set up your profile first" } }),
   create: oc
     .route({
       method: "POST",

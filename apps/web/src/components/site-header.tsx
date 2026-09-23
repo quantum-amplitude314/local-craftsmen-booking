@@ -14,15 +14,27 @@ async function AccountNavigation() {
   ]);
 
   return user ? (
-    <AccountMenu user={user} />
+    <div className="ml-auto flex items-center gap-2 sm:gap-3">
+      <nav aria-label={t("accountNavigation")}>
+        <Link href="/dashboard" className={buttonVariants({ variant: "ghost", size: "lg" })}>
+          {t("dashboard")}
+        </Link>
+      </nav>
+      <PaletteToggle />
+      <AccountMenu user={user} />
+    </div>
   ) : (
-    <div className="flex items-center gap-2">
-      <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
-        {t("signIn")}
-      </Link>
-      <Link href="/register" className={buttonVariants({ variant: "outline" })}>
-        {t("createAccount")}
-      </Link>
+    <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+      <LocaleSwitcher />
+      <PaletteToggle />
+      <nav aria-label={t("accountNavigation")} className="flex items-center gap-2">
+        <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
+          {t("signIn")}
+        </Link>
+        <Link href="/register" className={buttonVariants({ variant: "outline" })}>
+          {t("createAccount")}
+        </Link>
+      </nav>
     </div>
   );
 }
@@ -31,25 +43,26 @@ export async function SiteHeader() {
   const t = await getTranslations("header");
 
   return (
-    <header className="page-shell flex min-h-24 flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b py-5">
-      <Link href="/" aria-label={t("home")} className="text-sm font-semibold tracking-tight">
+    <header className="dashboard-shell flex min-h-20 flex-wrap items-center gap-x-4 gap-y-2 border-b py-3">
+      <Link
+        href="/"
+        aria-label={t("home")}
+        className="inline-flex min-h-10 items-center text-sm font-semibold tracking-tight"
+      >
         LOCAL <span className="px-1 text-primary">/</span> CRAFT
       </Link>
-      <div className="flex flex-wrap items-center gap-2">
-        <nav aria-label={t("accountNavigation")}>
-          <Suspense
-            fallback={
-              <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
-                {t("myAccount")}
-              </Link>
-            }
+      <Suspense
+        fallback={
+          <Link
+            href="/dashboard"
+            className={buttonVariants({ variant: "outline", size: "lg", className: "ml-auto" })}
           >
-            <AccountNavigation />
-          </Suspense>
-        </nav>
-        <LocaleSwitcher />
-        <PaletteToggle />
-      </div>
+            {t("myAccount")}
+          </Link>
+        }
+      >
+        <AccountNavigation />
+      </Suspense>
     </header>
   );
 }

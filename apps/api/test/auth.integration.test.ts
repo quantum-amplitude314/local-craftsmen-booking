@@ -7,6 +7,7 @@ import {
 } from "@local-craftsmen/application";
 import {
   type Area,
+  availabilityDaySchema,
   bookingSchema,
   type CraftsmanRate,
   craftsmanProfileSchema,
@@ -302,13 +303,12 @@ describe("location-aware slots and booking allocation", () => {
     expect(valid.status).toBe(200);
   });
 
-  test("rejects slots off the grid, outside 1 to 4 hours, or across midnight", async () => {
+  test("rejects slots off the grid, or outside 1 to 4 hours", async () => {
     const areas = [{ cityId: "prague", districtId: null }];
     for (const [start, end] of [
       ["2043-01-01T08:10:00Z", "2043-01-01T09:10:00Z"],
       ["2043-01-01T08:00:00Z", "2043-01-01T08:45:00Z"],
       ["2043-01-01T08:00:00Z", "2043-01-01T12:15:00Z"],
-      ["2043-01-01T22:00:00Z", "2043-01-01T23:30:00Z"],
     ]) {
       const response = await call({
         path: "/me/availability",
@@ -352,6 +352,59 @@ describe("location-aware slots and booking allocation", () => {
     expect(booked.status).toBe(200);
     expect((await createHourAfterEnd(75)).status).toBe(409);
     expect((await createHourAfterEnd(90)).status).toBe(200);
+  });
+
+  test("describes a Prague day: taken times, the break, and where a slot may end", async () => {
+    const slot = await createSlot();
+    const { id, start, end } = slot;
+    const date = start.slice(0, 10);
+    const shifted = (iso: string, minutes: number) =>
+      new Date(Date.parse(iso) + minutes * 60_000).toISOString();
+    const response = await call({
+      path: `/me/availability/day?date=${date}`,
+      cookie: craftsmanCookie,
+    });
+    expect(response.status).toBe(200);
+    const schedule = availabilityDaySchema.parse(await response.json());
+    const { times } = schedule;
+    const at = (iso: string) => times.find((time) => time.start === iso);
+    expect(schedule.timeZone).toEqual({ id: "Europe/Prague", cityId: "pilsen" });
+    expect(schedule.date).toBe(date);
+    expect(times).toHaveLength(96);
+    expect(times[0]?.start).toBe(shifted(`${date}T00:00:00.000Z`, -60));
+    expect(at(start)).toMatchObject({ state: "occupied", latestEnd: null });
+    expect(at(shifted(end, -15))?.state).toBe("occupied");
+    expect(at(end)).toMatchObject({ state: "break", latestEnd: null });
+    expect(at(shifted(end, 15))).toMatchObject({ state: "free", latestEnd: shifted(end, 255) });
+    expect(at(shifted(start, -75))).toMatchObject({ latestEnd: shifted(start, -15) });
+    expect(at(shifted(start, -60))?.latestEnd).toBeNull();
+    expect(schedule.slots.map(({ id }) => id)).toEqual([id]);
+    expect(schedule.slotDates).toContain(date);
+  });
+
+  test("follows daylight saving and defaults to today", async () => {
+    const stepsOn = async (date: string) => {
+      const response = await call({
+        path: `/me/availability/day?date=${date}`,
+        cookie: craftsmanCookie,
+      });
+      const { times } = availabilityDaySchema.parse(await response.json());
+
+      return times.length;
+    };
+    expect(await stepsOn("2040-03-25")).toBe(92);
+    expect(await stepsOn("2040-10-28")).toBe(100);
+
+    const today = await call({ path: "/me/availability/day", cookie: craftsmanCookie });
+    const schedule = availabilityDaySchema.parse(await today.json());
+    expect(schedule.date).toBe(schedule.today);
+    expect(schedule.times.some(({ state }) => state === "past")).toBe(true);
+
+    const invalid = await call({
+      path: "/me/availability/day?date=2040-13-01",
+      cookie: craftsmanCookie,
+    });
+    expect(invalid.status).toBe(400);
   });
 
   test("restricts slot listing/deletion to the owner and cascades coverage deletion", async () => {

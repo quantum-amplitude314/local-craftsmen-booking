@@ -99,7 +99,8 @@
     }
   },
   "dashboard": {
-    "title": "Můj účet | Local Craftsmen",
+    "title": "Nástěnka | Local Craftsmen",
+    "heading": "Nástěnka",
     "welcome": "Vítejte, {name}",
     "roles": {
       "craftsman": "Účet řemeslníka",
@@ -121,7 +122,44 @@
       "availability": "Dostupnost",
       "bookings": "Rezervace"
     },
-    "comingNext": "Připravujeme."
+    "comingNext": "Připravujeme.",
+    "availability": {
+      "rateRequired": "Než zveřejníte volné termíny, doplňte do profilu hodinovou sazbu.",
+      "editProfile": "Upravit profil",
+      "pickStart": "Vyberte začátek.",
+      "pickEnd": "Vyberte konec, 1 až 4 hodiny po začátku.",
+      "startTime": "Začátek",
+      "endTime": "Konec",
+      "startsAt": "Začátek v {time}",
+      "reset": "Vybrat znovu",
+      "timeHint": "Po 15 minutách. Po každém termínu následuje 15minutová přestávka.",
+      "states": {
+        "occupied": "obsazeno",
+        "break": "přestávka",
+        "past": "uplynulo"
+      },
+      "city": "Město",
+      "cityPlaceholder": "Vyberte město",
+      "district": "Čtvrť",
+      "districtPlaceholder": "Celé město",
+      "noMatches": "Nic nenalezeno",
+      "save": "Přidat termín",
+      "saving": "Přidávání…",
+      "saved": "Termín je přidaný.",
+      "daySlots": "Volné termíny, {date}",
+      "noSlots": "V tento den nemáte volné termíny.",
+      "delete": "Smazat",
+      "deleting": "Mazání…",
+      "deleteLabel": "Smazat termín {time}",
+      "errors": {
+        "invalid": "Tento čas nelze použít. Vyberte jiný.",
+        "occupied": "Tento čas se překrývá s jiným termínem nebo rezervací.",
+        "saveFailed": "Termín se nepodařilo přidat. Zkuste to prosím znovu.",
+        "unauthorized": "Pro správu termínů se přihlaste svým účtem řemeslníka.",
+        "deleteFailed": "Termín se nepodařilo smazat. Zkuste to prosím znovu."
+      },
+      "timeZone": "Časy jsou v místním čase – {city} ({zone})."
+    }
   },
   "profile": {
     "heading": "Váš profil",
@@ -174,7 +212,9 @@
     "createAccount": "Vytvořit účet",
     "togglePalette": "Přepnout světlý a tmavý motiv",
     "language": "Jazyk",
-    "dashboard": "Přehled",
+    "dashboard": "Nástěnka",
+    "breadcrumb": "Drobečková navigace",
+    "slots": "Volné termíny",
     "profile": "Profil"
   }
 }

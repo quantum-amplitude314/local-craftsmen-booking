@@ -2,6 +2,7 @@ import type { Area, CraftsmanRate, SlotListing } from "@local-craftsmen/contract
 import { MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
+import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { redirect } from "@/i18n/navigation";
 import { apiClient } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
@@ -125,6 +126,7 @@ export default async function SlotsPage() {
 
   return (
     <main id="main-content" tabIndex={-1} className="page-shell section-space flex flex-col gap-10">
+      <PageBreadcrumbs current="slots" />
       <h1 className="page-heading">
         {t("heading")}
         {slots && slots.length > 0 && (

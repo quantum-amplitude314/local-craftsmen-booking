@@ -5,6 +5,7 @@ import { ChevronDown } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import { startTransition, useActionState } from "react";
 import { logout } from "@/app/auth-actions";
+import { LocaleMenu } from "@/components/locale-switcher";
 import { buttonVariants } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,11 +35,11 @@ export function AccountMenu({ user }: { user: Pick<SessionUser, "name" | "email"
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className={buttonVariants({ variant: "outline" })}>
+      <DropdownMenuTrigger className={buttonVariants({ variant: "outline", size: "lg" })}>
         {t("myAccount")}
         <ChevronDown aria-hidden="true" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-auto min-w-56 max-w-80">
+      <DropdownMenuContent align="end" sideOffset={8} className="w-64 max-w-[calc(100vw-2rem)]">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex flex-col gap-0.5">
             <span className="truncate text-sm text-foreground">{name}</span>
@@ -46,18 +47,20 @@ export function AccountMenu({ user }: { user: Pick<SessionUser, "name" | "email"
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuLinkItem render={<Link href="/dashboard" />}>
-          {t("dashboard")}
-        </DropdownMenuLinkItem>
-        {role === userRoleSchema.enum.craftsman && (
-          <DropdownMenuLinkItem render={<Link href="/profile" />}>
-            {t("profile")}
-          </DropdownMenuLinkItem>
-        )}
+        <DropdownMenuGroup>
+          {role === userRoleSchema.enum.craftsman && (
+            <DropdownMenuLinkItem render={<Link href="/profile" />}>
+              {t("profile")}
+            </DropdownMenuLinkItem>
+          )}
+          <LocaleMenu />
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem closeOnClick={false} disabled={pending} onClick={handleSignOut}>
-          {tAuth(pending ? "signingOut" : "signOut")}
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuItem closeOnClick={false} disabled={pending} onClick={handleSignOut}>
+            {tAuth(pending ? "signingOut" : "signOut")}
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
         {error && (
           <p role="alert" className="max-w-56 px-2 py-1.5 text-xs text-destructive">
             {tAuth(`errors.${error}`)}

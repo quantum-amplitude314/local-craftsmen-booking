@@ -2,6 +2,7 @@
   {
     "id": "prague",
     "name": "Praha",
+    "timeZone": "Europe/Prague",
     "districts": [
       {
         "id": "prague-bechovice",
@@ -456,6 +457,7 @@
   {
     "id": "pilsen",
     "name": "Plzeň",
+    "timeZone": "Europe/Prague",
     "districts": [
       {
         "id": "pilsen-bory",
@@ -502,6 +504,7 @@
   {
     "id": "pardubice",
     "name": "Pardubice",
+    "timeZone": "Europe/Prague",
     "districts": [
       {
         "id": "pardubice-dubina",

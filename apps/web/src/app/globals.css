@@ -115,6 +115,11 @@
   margin-inline: auto;
 }
 
+@utility dashboard-shell {
+  width: min(88rem, calc(100% - var(--page-gutter) * 2));
+  margin-inline: auto;
+}
+
 @utility section-space {
   padding-block: var(--section-space);
 }
@@ -196,7 +201,10 @@
     @apply font-sans;
   }
   button:not(:disabled),
-  [role="button"]:not(:disabled) {
+  [role="button"]:not([aria-disabled="true"]),
+  [role^="menuitem"]:not([data-disabled]),
+  [role="option"]:not([data-disabled]),
+  [role="tab"]:not([data-disabled]) {
     cursor: pointer;
   }
   a:focus-visible {

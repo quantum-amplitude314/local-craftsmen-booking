@@ -45,12 +45,9 @@ export const getProfileValues = (profile: CraftsmanProfile | null) => {
   return values;
 };
 
-export const validateProfileForm = (formData: FormData) => {
-  const text = (name: string) => {
-    const entry = formData.get(name);
-
-    return typeof entry === "string" ? entry.trim() : "";
-  };
+export const validateProfileValues = (input: ProfileValues) => {
+  const text = (field: ProfileField) =>
+    typeof input?.[field] === "string" ? input[field].trim() : "";
   const values: ProfileValues = {
     craft: text("craft"),
     city: text("city"),

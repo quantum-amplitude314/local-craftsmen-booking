@@ -2,17 +2,17 @@
 
 import { userRoleSchema } from "@local-craftsmen/contracts";
 import { ORPCError } from "@orpc/client";
-import { revalidatePath } from "next/cache";
-import { routing } from "@/i18n/routing";
 import { apiClient } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
-import { type ProfileFormState, validateProfileForm } from "@/lib/profile-form";
+import {
+  type ProfileFormState,
+  type ProfileValues,
+  validateProfileValues,
+} from "@/lib/profile-form";
+import { revalidateLocalized } from "@/lib/revalidate";
 
-export const saveProfile = async (
-  _previousState: ProfileFormState,
-  formData: FormData,
-): Promise<ProfileFormState> => {
-  const { parsed, state, values } = validateProfileForm(formData);
+export const saveProfile = async (input: ProfileValues): Promise<ProfileFormState> => {
+  const { parsed, state, values } = validateProfileValues(input);
   if (!parsed.success) return state;
 
   try {
@@ -30,10 +30,7 @@ export const saveProfile = async (
     return failure;
   }
 
-  for (const locale of routing.locales) {
-    const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
-    for (const path of ["/profile", "/dashboard", "/slots"]) revalidatePath(`${prefix}${path}`);
-  }
+  revalidateLocalized(["/profile", "/dashboard", "/slots"]);
   const saved: ProfileFormState = { saved: true, values };
 
   return saved;

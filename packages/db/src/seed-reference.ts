@@ -3,7 +3,7 @@ import locations from "../data/locations.json" with { type: "json" };
 import { createDb, type Db } from "./client.ts";
 import { city, district } from "./schema.ts";
 
-const cities = locations.map(({ id, name }) => ({ id, name }));
+const cities = locations.map(({ id, name, timeZone }) => ({ id, name, timeZone }));
 const districts = locations.flatMap(({ id: cityId, districts }) =>
   districts.map(({ id, name }) => ({ id, cityId, name })),
 );
@@ -13,7 +13,10 @@ export const seedReference = async ({ db }: { db: Db }) => {
   await db
     .insert(city)
     .values(cities)
-    .onConflictDoUpdate({ target: city.id, set: { name: sql`excluded.name` } });
+    .onConflictDoUpdate({
+      target: city.id,
+      set: { name: sql`excluded.name`, timeZone: sql`excluded.time_zone` },
+    });
   await db
     .insert(district)
     .values(districts)

@@ -57,7 +57,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
           </a>
           <SiteHeader />
           {children}
-          <footer className="page-shell mt-auto flex flex-wrap justify-between gap-2 border-t py-6 text-xs text-muted-foreground">
+          <footer className="dashboard-shell mt-auto flex flex-wrap justify-between gap-2 border-t py-6 text-xs text-muted-foreground">
             <p>{t("brand")}</p>
             <p>{t("tagline")}</p>
           </footer>

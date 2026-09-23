@@ -1,26 +1,21 @@
 "use client";
 
-import { hasLocale, useLocale, useTranslations } from "next-intl";
-import { useTransition } from "react";
+import { Menu as MenuPrimitive } from "@base-ui/react/menu";
+import { cn } from "cn";
+import { useTranslations } from "next-intl";
+import { DropdownMenuRadioGroup } from "@/components/ui/dropdown-menu";
+import { toggleVariants } from "@/components/ui/toggle";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { usePathname, useRouter } from "@/i18n/navigation";
-import { routing } from "@/i18n/routing";
+import { useLocaleNavigation } from "@/lib/use-locale-navigation";
+
+const localeOptions = [
+  { value: "en", code: "EN", name: "English" },
+  { value: "cs", code: "CS", name: "Čeština" },
+];
 
 export function LocaleSwitcher() {
-  const locale = useLocale();
+  const { locale, pending, changeLocale } = useLocaleNavigation();
   const t = useTranslations("header");
-  const pathname = usePathname();
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-
-  const changeLocale = ([nextLocale]: string[]) => {
-    if (!hasLocale(routing.locales, nextLocale) || nextLocale === locale) return;
-    const { search, hash } = window.location;
-
-    startTransition(() => {
-      router.replace(`${pathname}${search}${hash}`, { locale: nextLocale, scroll: false });
-    });
-  };
 
   return (
     <ToggleGroup
@@ -29,15 +24,50 @@ export function LocaleSwitcher() {
       variant="outline"
       spacing={0}
       value={[locale]}
-      onValueChange={changeLocale}
+      onValueChange={([value]) => {
+        if (value) changeLocale(value);
+      }}
       disabled={pending}
     >
-      <ToggleGroupItem value="en" lang="en" aria-label="English" title="English">
-        EN
-      </ToggleGroupItem>
-      <ToggleGroupItem value="cs" lang="cs" aria-label="Čeština" title="Čeština">
-        CS
-      </ToggleGroupItem>
+      {localeOptions.map(({ value, code, name }) => (
+        <ToggleGroupItem key={value} value={value} lang={value} aria-label={name} title={name}>
+          {code}
+        </ToggleGroupItem>
+      ))}
     </ToggleGroup>
+  );
+}
+
+/** The header toggle's look as menu radio items, so arrow keys reach it inside the menu. */
+export function LocaleMenu() {
+  const t = useTranslations("header");
+  const { locale, pending, changeLocale } = useLocaleNavigation();
+
+  return (
+    <div className="flex items-center justify-between gap-4 px-2 py-1 text-sm">
+      <span id="locale-menu-label">{t("language")}</span>
+      <DropdownMenuRadioGroup
+        aria-labelledby="locale-menu-label"
+        value={locale}
+        onValueChange={changeLocale}
+        className="flex rounded-md shadow-xs"
+      >
+        {localeOptions.map(({ value, code, name }) => (
+          <MenuPrimitive.RadioItem
+            key={value}
+            value={value}
+            lang={value}
+            aria-label={name}
+            disabled={pending}
+            className={cn(
+              toggleVariants({ variant: "outline", size: "sm" }),
+              "rounded-none border-l-0 px-2 shadow-none first:rounded-l-md first:border-l last:rounded-r-md data-checked:bg-muted data-highlighted:z-10 data-highlighted:ring-[3px] data-highlighted:ring-ring/50",
+            )}
+          >
+            {code}
+          </MenuPrimitive.RadioItem>
+        ))}
+      </DropdownMenuRadioGroup>
+    </div>
   );
 }

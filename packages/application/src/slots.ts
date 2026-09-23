@@ -1,7 +1,9 @@
 import {
   type Area,
+  type AvailabilityDay,
   BREAK_MINUTES,
   cityIdSchema,
+  SLOT_MAX_MINUTES,
   type Slot,
   type SlotInput,
   type SlotListing,
@@ -11,6 +13,7 @@ import {
   availability,
   availabilityArea,
   booking,
+  city,
   craftsmanProfile,
   craftsmanRate,
   type Db,
@@ -20,8 +23,11 @@ import {
 import { and, eq, exists, inArray, isNull, or, sql } from "drizzle-orm";
 import { DomainError } from "./errors.ts";
 import { readRates } from "./rates.ts";
+import { type BlockedRange, buildSlotTimes } from "./slot-times.ts";
 
 const BREAK_MS = BREAK_MINUTES * 60_000;
+const SLOT_MAX_MS = SLOT_MAX_MINUTES * 60_000;
+const activeBookingStatuses: ("pending" | "confirmed")[] = ["pending", "confirmed"];
 const breakInterval = sql.raw(`interval '${BREAK_MINUTES} minutes'`);
 const workRange = sql`tstzrange(lower(${availability.range}), upper(${availability.range}) - ${breakInterval}, '[)')`;
 
@@ -179,6 +185,127 @@ export const createSlotsService = ({ db }: { db: Db }) => {
     return listings;
   };
 
+  const readBaseTimeZone = async ({ craftsmanId }: { craftsmanId: string }) => {
+    const [zone] = await db
+      .select({ id: city.timeZone, cityId: city.id })
+      .from(craftsmanProfile)
+      .innerJoin(city, eq(city.id, craftsmanProfile.baseCityId))
+      .where(eq(craftsmanProfile.userId, craftsmanId));
+    if (!zone) throw new DomainError({ code: "BAD_REQUEST", message: "Set up your profile first" });
+    const { id, cityId } = zone;
+    const timeZone = { id, cityId: cityIdSchema.parse(cityId) };
+
+    return timeZone;
+  };
+
+  /** Resolves a date (default today) in the time zone to the instants its day starts and ends. */
+  const readCalendarDay = async ({
+    date,
+    now,
+    timeZone,
+  }: {
+    date: string | undefined;
+    now: string;
+    timeZone: string;
+  }) => {
+    const [calendarDay] = await db.execute<{
+      today: string;
+      date: string;
+      dayStart: number;
+      dayEnd: number;
+    }>(sql`
+      with requested as (
+        select coalesce(
+          ${date ?? null}::date,
+          (${now}::timestamptz at time zone ${timeZone})::date
+        ) as day
+      )
+      select
+        to_char((${now}::timestamptz at time zone ${timeZone})::date, 'YYYY-MM-DD') as "today",
+        to_char(day, 'YYYY-MM-DD') as "date",
+        (extract(epoch from day::timestamp at time zone ${timeZone}) * 1000)::float8 as "dayStart",
+        (extract(epoch from (day + 1)::timestamp at time zone ${timeZone}) * 1000)::float8 as "dayEnd"
+      from requested
+    `);
+    if (!calendarDay) throw new Error("Calendar day is missing");
+
+    return calendarDay;
+  };
+
+  const day = async ({ craftsmanId, date }: { craftsmanId: string; date?: string | undefined }) => {
+    const now = new Date();
+    const nowIso = now.toISOString();
+    const timeZone = await readBaseTimeZone({ craftsmanId });
+    const calendarDay = await readCalendarDay({ date, now: nowIso, timeZone: timeZone.id });
+    const { dayStart, dayEnd } = calendarDay;
+    const reach = sql`tstzrange(${new Date(dayStart).toISOString()}::timestamptz, ${new Date(dayEnd + SLOT_MAX_MS + BREAK_MS).toISOString()}::timestamptz, '[)')`;
+    const [slotRows, bookingRows, slotDateRows] = await Promise.all([
+      db
+        .select({
+          id: availability.id,
+          craftsmanId: availability.craftsmanId,
+          range: availability.range,
+        })
+        .from(availability)
+        .where(
+          and(eq(availability.craftsmanId, craftsmanId), sql`${availability.range} && ${reach}`),
+        )
+        .orderBy(availability.range),
+      db
+        .select({ range: booking.range })
+        .from(booking)
+        .where(
+          and(
+            eq(booking.craftsmanId, craftsmanId),
+            inArray(booking.status, activeBookingStatuses),
+            sql`tstzrange(lower(${booking.range}), upper(${booking.range}) + ${breakInterval}, '[)') && ${reach}`,
+          ),
+        ),
+      db
+        .selectDistinct({
+          date: sql<string>`to_char(lower(${availability.range}) at time zone ${timeZone.id}, 'YYYY-MM-DD')`,
+        })
+        .from(availability)
+        .where(
+          and(
+            eq(availability.craftsmanId, craftsmanId),
+            sql`upper(${workRange}) > ${nowIso}::timestamptz`,
+          ),
+        )
+        .orderBy(sql`1`),
+    ]);
+    const blocked: BlockedRange[] = [
+      ...slotRows.map(({ range: { start, end } }) => ({
+        start: start.getTime(),
+        workEnd: toWorkEnd(end).getTime(),
+        end: end.getTime(),
+      })),
+      ...bookingRows.map(({ range: { start, end } }) => ({
+        start: start.getTime(),
+        workEnd: end.getTime(),
+        end: end.getTime() + BREAK_MS,
+      })),
+    ];
+    const daySlotRows = slotRows.filter(({ range: { start, end } }) => {
+      const workEnd = toWorkEnd(end).getTime();
+      const freeThatDay = start.getTime() < dayEnd && workEnd > dayStart && workEnd > now.getTime();
+
+      return freeThatDay;
+    });
+    const areasBySlot = await readAreas({ ids: daySlotRows.map(({ id }) => id) });
+    const { today, date: resolvedDate } = calendarDay;
+    const schedule: AvailabilityDay = {
+      timeZone,
+      date: resolvedDate,
+      today,
+      times: buildSlotTimes({ dayStart, dayEnd, blocked, now: now.getTime() }),
+      slots: daySlotRows.map((row) => toSlot({ row, areasBySlot })),
+      slotDates: slotDateRows.map(({ date }) => date),
+    };
+
+    return schedule;
+  };
+
   const create = async ({ craftsmanId, input }: { craftsmanId: string; input: SlotInput }) => {
     const { start, end, areas } = input;
     const storedEnd = toStoredEnd(new Date(end));
@@ -205,7 +332,7 @@ export const createSlotsService = ({ db }: { db: Db }) => {
         .where(
           and(
             eq(booking.craftsmanId, craftsmanId),
-            inArray(booking.status, ["pending", "confirmed"]),
+            inArray(booking.status, activeBookingStatuses),
             sql`tstzrange(lower(${booking.range}), upper(${booking.range}) + ${breakInterval}, '[)') && tstzrange(${start}::timestamptz, ${storedEnd.toISOString()}::timestamptz, '[)')`,
           ),
         )
@@ -255,7 +382,7 @@ export const createSlotsService = ({ db }: { db: Db }) => {
 
     return deleted;
   };
-  const service = { list, search, create, remove };
+  const service = { list, search, day, create, remove };
 
   return service;
 };

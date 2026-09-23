@@ -2,24 +2,10 @@
 
 import { CRAFTS, type Location } from "@local-craftsmen/contracts";
 import { useTranslations } from "next-intl";
-import {
-  type ReactNode,
-  type SubmitEvent,
-  useActionState,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import { saveProfile } from "@/app/profile-actions";
-import { Button } from "@/components/ui/button";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
+import { OptionCombobox } from "@/components/option-combobox";
+import { PendingButton } from "@/components/pending-button";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   InputGroup,
@@ -31,27 +17,21 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { matchesWordStart } from "@/lib/option-filter";
 import {
   type ProfileField,
   type ProfileFormState,
   type ProfileValues,
-  validateProfileForm,
+  validateProfileValues,
 } from "@/lib/profile-form";
+import { useMutation } from "@/lib/use-mutation";
 
 const initialState: ProfileFormState = {};
 const bioMaxLength = 2000;
-
-type Option = { value: string; label: string };
-
-const isSameOption = (option: Option, selected: Option) => option.value === selected.value;
-
-const optionFilter = (selected: Option | null) => (option: Option, query: string) =>
-  query === selected?.label || matchesWordStart({ label: option.label, query });
 
 function FormSection({
   id,
@@ -90,15 +70,19 @@ export function ProfileForm({
   const t = useTranslations("profile");
   const tCrafts = useTranslations("directory.crafts");
   const tCities = useTranslations("cities");
-  const [state, formAction, pending] = useActionState(saveProfile, initialState);
-  const [values, setValues] = useState(state.values ?? initialValues);
+  const { state, run, pending } = useMutation({
+    action: saveProfile,
+    initialState,
+    failureState: { error: "saveFailed" },
+  });
+  const [values, setValues] = useState(initialValues);
   const [clientState, setClientState] = useState<ProfileFormState | null>(null);
   const [editedFields, setEditedFields] = useState<ProfileField[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
   const { error, fieldErrors, saved } = clientState ?? state;
 
   const fieldError = (field: ProfileField) => {
-    const key = !pending && !editedFields.includes(field) ? fieldErrors?.[field] : undefined;
+    const key = !editedFields.includes(field) ? fieldErrors?.[field] : undefined;
     const message = key ? t(`validation.${key}`) : undefined;
 
     return message;
@@ -127,12 +111,12 @@ export function ProfileForm({
     target?.focus();
   }, [clientState, state, pending]);
 
-  const handleSubmit = (event: SubmitEvent<HTMLFormElement>) => {
-    const { currentTarget } = event;
-    const { parsed, state: validationState } = validateProfileForm(new FormData(currentTarget));
+  const handleSave = () => {
+    if (pending) return;
+    const { parsed, state: validationState } = validateProfileValues(values);
     setEditedFields([]);
     setClientState(parsed.success ? null : validationState);
-    if (!parsed.success) event.preventDefault();
+    if (parsed.success) run(values);
   };
 
   const { craft, city, district, bio, rate } = values;
@@ -141,8 +125,6 @@ export function ProfileForm({
   const districtOptions = (locations.find(({ id }) => id === city)?.districts ?? []).map(
     ({ id, name }) => ({ value: id, label: name }),
   );
-  const selectedCity = cityOptions.find(({ value }) => value === city) ?? null;
-  const selectedDistrict = districtOptions.find(({ value }) => value === district) ?? null;
   const describedBy = ({
     hintId,
     errorId,
@@ -167,8 +149,10 @@ export function ProfileForm({
   return (
     <form
       ref={formRef}
-      action={formAction}
-      onSubmit={handleSubmit}
+      onSubmit={(event) => {
+        event.preventDefault();
+        handleSave();
+      }}
       noValidate
       aria-busy={pending}
       className="flex max-w-5xl flex-col border-t"
@@ -200,14 +184,15 @@ export function ProfileForm({
                 <SelectValue placeholder={t("craftPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
-                {craftOptions.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>
-                    {label}
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  {craftOptions.map(({ value, label }) => (
+                    <SelectItem key={value} value={value}>
+                      {label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
-            <input type="hidden" name="craft" value={craft} />
             <FieldError id="profile-craft-error">{craftError}</FieldError>
           </Field>
 
@@ -247,79 +232,41 @@ export function ProfileForm({
               {t("city")}
               {requiredMark}
             </FieldLabel>
-            <Combobox
-              items={cityOptions}
-              value={selectedCity}
+            <OptionCombobox
+              id="profile-city"
+              options={cityOptions}
+              value={city}
               disabled={pending}
-              filter={optionFilter(selectedCity)}
-              isItemEqualToValue={isSameOption}
-              itemToStringLabel={({ label }: Option) => label}
-              onValueChange={(option: Option | null) => {
-                updateField({ field: "city", value: option?.value ?? "" });
-              }}
-            >
-              <ComboboxInput
-                id="profile-city"
-                className="w-full"
-                placeholder={t("cityPlaceholder")}
-                aria-invalid={!!cityError}
-                aria-describedby={describedBy({ errorId: "profile-city-error", error: cityError })}
-              />
-              <ComboboxContent>
-                <ComboboxEmpty>{t("noMatches")}</ComboboxEmpty>
-                <ComboboxList>
-                  {(option: Option) => (
-                    <ComboboxItem key={option.value} value={option}>
-                      {option.label}
-                    </ComboboxItem>
-                  )}
-                </ComboboxList>
-              </ComboboxContent>
-            </Combobox>
-            <input type="hidden" name="city" value={city} />
+              placeholder={t("cityPlaceholder")}
+              emptyLabel={t("noMatches")}
+              invalid={!!cityError}
+              describedBy={describedBy({ errorId: "profile-city-error", error: cityError })}
+              onValueChange={(value) => updateField({ field: "city", value })}
+            />
             <FieldError id="profile-city-error">{cityError}</FieldError>
           </Field>
 
           {districtOptions.length > 0 && (
             <Field data-invalid={!!districtError}>
               <FieldLabel htmlFor="profile-district">{t("district")}</FieldLabel>
-              <Combobox
-                items={districtOptions}
-                value={selectedDistrict}
+              <OptionCombobox
+                id="profile-district"
+                options={districtOptions}
+                value={district}
                 disabled={pending}
-                filter={optionFilter(selectedDistrict)}
-                isItemEqualToValue={isSameOption}
-                itemToStringLabel={({ label }: Option) => label}
-                onValueChange={(option: Option | null) => {
-                  updateField({ field: "district", value: option?.value ?? "" });
-                }}
-              >
-                <ComboboxInput
-                  id="profile-district"
-                  className="w-full"
-                  placeholder={t("districtPlaceholder")}
-                  showClear={!!district}
-                  aria-invalid={!!districtError}
-                  aria-describedby={describedBy({
-                    errorId: "profile-district-error",
-                    error: districtError,
-                  })}
-                />
-                <ComboboxContent>
-                  <ComboboxEmpty>{t("noMatches")}</ComboboxEmpty>
-                  <ComboboxList>
-                    {(option: Option) => (
-                      <ComboboxItem key={option.value} value={option}>
-                        {option.label}
-                      </ComboboxItem>
-                    )}
-                  </ComboboxList>
-                </ComboboxContent>
-              </Combobox>
+                clearable
+                placeholder={t("districtPlaceholder")}
+                emptyLabel={t("noMatches")}
+                invalid={!!districtError}
+                describedBy={describedBy({
+                  errorId: "profile-district-error",
+                  error: districtError,
+                })}
+                onValueChange={(value) => updateField({ field: "district", value })}
+              />
               <FieldError id="profile-district-error">{districtError}</FieldError>
             </Field>
           )}
-          <input type="hidden" name="district" value={district} />
         </div>
       </FormSection>
 
@@ -356,17 +303,31 @@ export function ProfileForm({
         </Field>
       </FormSection>
 
-      <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2 py-8">
-        <FieldError id="profile-error" tabIndex={-1} className="mr-auto">
-          {!pending && editedFields.length === 0 && error ? t(`errors.${error}`) : null}
-        </FieldError>
-        <p role="status" className="mr-auto text-sm text-muted-foreground empty:hidden">
-          {!pending && editedFields.length === 0 && saved ? t("saved") : null}
-        </p>
+      <div className="grid items-center gap-4 py-6 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+        <div className="min-h-6 min-w-0">
+          <FieldError id="profile-error" tabIndex={-1}>
+            {editedFields.length === 0 && error ? t(`errors.${error}`) : null}
+          </FieldError>
+          <p
+            role="status"
+            data-visible={!pending && editedFields.length === 0 && saved}
+            className="text-sm text-primary opacity-0 transition-opacity duration-200 data-[visible=true]:opacity-100"
+          >
+            {!pending && editedFields.length === 0 && saved ? t("saved") : null}
+          </p>
+        </div>
         <p className="text-sm text-muted-foreground">{t("requiredNote")}</p>
-        <Button type="submit" size="lg" disabled={pending}>
-          {t(pending ? "saving" : "save")}
-        </Button>
+        <PendingButton
+          type="submit"
+          size="lg"
+          pending={pending}
+          label={t("save")}
+          pendingLabel={t("saving")}
+          onClick={(event) => {
+            event.preventDefault();
+            handleSave();
+          }}
+        />
       </div>
     </form>
   );
