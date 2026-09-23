@@ -3,7 +3,6 @@
 import { userRoleSchema } from "@local-craftsmen/contracts";
 import { ORPCError } from "@orpc/client";
 import { revalidatePath } from "next/cache";
-import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
 import { apiClient } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
@@ -31,15 +30,9 @@ export const saveProfile = async (
     return failure;
   }
 
-  const requestedLocale = formData.get("locale");
-  const locale = hasLocale(routing.locales, requestedLocale)
-    ? requestedLocale
-    : routing.defaultLocale;
-  const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
-  revalidatePath(`${prefix}/dashboard`);
-  for (const supportedLocale of routing.locales) {
-    const slotsPrefix = supportedLocale === routing.defaultLocale ? "" : `/${supportedLocale}`;
-    revalidatePath(`${slotsPrefix}/slots`);
+  for (const locale of routing.locales) {
+    const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
+    for (const path of ["/profile", "/dashboard", "/slots"]) revalidatePath(`${prefix}${path}`);
   }
   const saved: ProfileFormState = { saved: true, values };
 

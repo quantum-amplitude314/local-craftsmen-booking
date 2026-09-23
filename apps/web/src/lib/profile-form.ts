@@ -1,20 +1,22 @@
 import {
   type CraftsmanProfile,
-  CURRENCIES,
-  type Currency,
+  currencySchema,
   profileInputSchema,
 } from "@local-craftsmen/contracts";
+
+// The form offers CZK only; the API still accepts every supported currency.
+const formCurrency = currencySchema.enum.CZK;
 
 export type ProfileValues = {
   craft: string;
   city: string;
   district: string;
   bio: string;
-  rates: Record<Currency, string>;
+  rate: string;
 };
 
-export type ProfileField = Exclude<keyof ProfileValues, "rates"> | "rates" | `rate.${Currency}`;
-type ValidationError = "invalidValue" | "wholeRate";
+export type ProfileField = keyof ProfileValues;
+type ValidationError = "invalidValue" | "wholeRate" | "craftRequired" | "cityRequired";
 
 export type ProfileFormState = {
   error?: "checkFields" | "saveFailed" | "unauthorized" | "rateInUse";
@@ -23,33 +25,21 @@ export type ProfileFormState = {
   fieldErrors?: Partial<Record<ProfileField, ValidationError>>;
 };
 
-const emptyRates = () =>
-  Object.fromEntries(CURRENCIES.map((currency) => [currency, ""])) as Record<Currency, string>;
-
 export const getProfileValues = (profile: CraftsmanProfile | null) => {
-  const rates = emptyRates();
   if (!profile) {
-    const values: ProfileValues = {
-      craft: "",
-      city: "",
-      district: "",
-      bio: "",
-      rates,
-    };
+    const values: ProfileValues = { craft: "", city: "", district: "", bio: "", rate: "" };
 
     return values;
   }
-  const { craft, baseArea, bio, rates: savedRates } = profile;
+  const { craft, baseArea, bio, rates } = profile;
   const { cityId, districtId } = baseArea;
-  for (const { currency, hourlyRate } of savedRates) {
-    rates[currency] = hourlyRate.replace(/\.0+$/, "");
-  }
+  const savedRate = rates.find(({ currency }) => currency === formCurrency)?.hourlyRate;
   const values: ProfileValues = {
     craft,
     city: cityId,
     district: districtId ?? "",
     bio: bio ?? "",
-    rates,
+    rate: savedRate?.replace(/\.0+$/, "") ?? "",
   };
 
   return values;
@@ -61,20 +51,15 @@ export const validateProfileForm = (formData: FormData) => {
 
     return typeof entry === "string" ? entry.trim() : "";
   };
-  const rates = emptyRates();
-  for (const currency of CURRENCIES) rates[currency] = text(`rate.${currency}`);
   const values: ProfileValues = {
     craft: text("craft"),
     city: text("city"),
     district: text("district"),
     bio: text("bio"),
-    rates,
+    rate: text("rate"),
   };
-  const { craft, city, district, bio } = values;
-  const rateInputs = CURRENCIES.filter((currency) => rates[currency] !== "").map((currency) => ({
-    currency,
-    hourlyRate: rates[currency],
-  }));
+  const { craft, city, district, bio, rate } = values;
+  const rateInputs = rate ? [{ currency: formCurrency, hourlyRate: rate }] : [];
   const parsed = profileInputSchema.safeParse({
     craft,
     baseArea: {
@@ -88,14 +73,13 @@ export const validateProfileForm = (formData: FormData) => {
   if (!parsed.success) {
     for (const { path } of parsed.error.issues) {
       const [field, child] = path;
-      if (field === "rates") {
-        const currency = typeof child === "number" ? rateInputs[child]?.currency : undefined;
-        if (currency) fieldErrors[`rate.${currency}`] = "wholeRate";
-        else fieldErrors.rates = "invalidValue";
-      } else if (field === "baseArea") {
-        const key = child === "districtId" ? "district" : "city";
-        fieldErrors[key] = "invalidValue";
-      } else if (field === "craft" || field === "bio") fieldErrors[field] = "invalidValue";
+      if (field === "rates")
+        fieldErrors.rate = typeof child === "number" ? "wholeRate" : "invalidValue";
+      else if (field === "baseArea") {
+        if (child === "districtId") fieldErrors.district = "invalidValue";
+        else fieldErrors.city = city ? "invalidValue" : "cityRequired";
+      } else if (field === "craft") fieldErrors.craft = craft ? "invalidValue" : "craftRequired";
+      else if (field === "bio") fieldErrors.bio = "invalidValue";
     }
   }
   const state: ProfileFormState = parsed.success

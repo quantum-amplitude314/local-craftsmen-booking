@@ -106,31 +106,37 @@
       "customer": "Customer account"
     },
     "ready": {
-      "craftsman": "Your account is ready. Profile, availability, and booking management are coming next.",
       "customer": "Your account is ready. You can browse available times while booking is being added."
     },
     "browse": "Browse available times",
     "unavailable": "Your account is temporarily unavailable",
     "unavailableDescription": "We couldn’t load your account. Please try again.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "profileSetup": {
+      "heading": "Complete your profile",
+      "description": "Set your craft, where you are based, and an hourly rate before you publish available times.",
+      "action": "Set up profile"
+    },
+    "sections": {
+      "availability": "Availability",
+      "bookings": "Bookings"
+    },
+    "comingNext": "Coming next."
   },
   "profile": {
-    "heading": "Your craftsman profile",
-    "description": "Introduce your services and set the hourly prices customers will see with your available times.",
+    "heading": "Your profile",
+    "description": "This is how customers see you next to your available times.",
     "craft": "Craft",
-    "baseArea": "Where you are based",
-    "baseAreaHint": "Your base location, not the full area you serve.",
+    "baseArea": "Where you're based",
+    "baseAreaHint": "You set the areas you serve on each available time.",
     "city": "City",
     "otherCity": "Other city",
     "otherCityName": "City name",
-    "district": "District or locality (optional)",
-    "bio": "About your services (optional)",
-    "rates": "Hourly rates",
-    "ratesHint": "Set a whole-number price for each currency you accept. Leave a field blank to stop offering that currency. You need at least one price to publish available times. Prices are independent, not converted.",
-    "rateLabel": "{currency} / hour",
+    "district": "District",
+    "bio": "About you",
     "save": "Save profile",
     "saving": "Saving…",
-    "saved": "Your profile and rates have been saved.",
+    "saved": "Profile saved.",
     "errors": {
       "checkFields": "Check the highlighted fields.",
       "saveFailed": "We couldn’t save your profile. Your changes are still here. Please try again.",
@@ -139,8 +145,26 @@
     },
     "validation": {
       "invalidValue": "Enter a valid value or choose an option.",
-      "wholeRate": "Enter a whole-number price from 1 to 9,999,999,999."
-    }
+      "wholeRate": "Enter a whole-number price from 1 to 9,999,999,999.",
+      "craftRequired": "Choose a craft.",
+      "cityRequired": "Choose a city."
+    },
+    "title": "Profile | Local Craftsmen",
+    "rate": "Hourly rate",
+    "rateHint": "You need a price to publish available times.",
+    "rateUnit": "CZK / hour",
+    "bioPlaceholder": "Briefly describe what you do and your experience.",
+    "required": "(required)",
+    "requiredNote": "* required",
+    "bioRemaining": "{count, plural, one {# character left} other {# characters left}}",
+    "sections": {
+      "services": "Services",
+      "servicesHint": "What you offer and your price."
+    },
+    "craftPlaceholder": "Choose a craft",
+    "cityPlaceholder": "Choose a city",
+    "districtPlaceholder": "Choose a district",
+    "noMatches": "No matches."
   },
   "header": {
     "home": "Local Craftsmen home",
@@ -149,6 +173,8 @@
     "signIn": "Sign in",
     "createAccount": "Create account",
     "togglePalette": "Toggle light and dark theme",
-    "language": "Language"
+    "language": "Language",
+    "dashboard": "Overview",
+    "profile": "Profile"
   }
 }

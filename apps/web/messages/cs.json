@@ -106,31 +106,37 @@
       "customer": "Zákaznický účet"
     },
     "ready": {
-      "craftsman": "Váš účet je připravený. Správu profilu, dostupnosti a rezervací přidáme v dalším kroku.",
       "customer": "Váš účet je připravený. Než přidáme rezervace, můžete si prohlédnout volné termíny."
     },
     "browse": "Prohlédnout volné termíny",
     "unavailable": "Váš účet je dočasně nedostupný",
     "unavailableDescription": "Účet se nepodařilo načíst. Zkuste to prosím znovu.",
-    "retry": "Zkusit znovu"
+    "retry": "Zkusit znovu",
+    "profileSetup": {
+      "heading": "Dokončete svůj profil",
+      "description": "Než zveřejníte volné termíny, nastavte své řemeslo, odkud jste a hodinovou sazbu.",
+      "action": "Nastavit profil"
+    },
+    "sections": {
+      "availability": "Dostupnost",
+      "bookings": "Rezervace"
+    },
+    "comingNext": "Připravujeme."
   },
   "profile": {
-    "heading": "Váš profil řemeslníka",
-    "description": "Představte své služby a nastavte hodinové sazby, které zákazníci uvidí u vašich volných termínů.",
+    "heading": "Váš profil",
+    "description": "Takto vás zákazníci uvidí u vašich volných termínů.",
     "craft": "Řemeslo",
-    "baseArea": "Odkud jste",
-    "baseAreaHint": "Místo, kde sídlíte, nikoli celá oblast, ve které pracujete.",
+    "baseArea": "Kde sídlíte",
+    "baseAreaHint": "Oblasti, kde pracujete, nastavíte u každého volného termínu.",
     "city": "Město",
     "otherCity": "Jiné město",
     "otherCityName": "Název města",
-    "district": "Čtvrť nebo lokalita (nepovinné)",
-    "bio": "O vašich službách (nepovinné)",
-    "rates": "Hodinové sazby",
-    "ratesHint": "Zadejte cenu v celých číslech pro každou měnu, kterou přijímáte. Prázdné pole znamená, že tuto měnu nenabízíte. Bez alespoň jedné ceny nemůžete zveřejnit volné termíny. Ceny nastavujete samostatně, nepřepočítávají se.",
-    "rateLabel": "{currency} / hodinu",
+    "district": "Čtvrť",
+    "bio": "O vás",
     "save": "Uložit profil",
     "saving": "Ukládání…",
-    "saved": "Váš profil a sazby byly uloženy.",
+    "saved": "Profil je uložený.",
     "errors": {
       "checkFields": "Zkontrolujte zvýrazněná pole.",
       "saveFailed": "Profil se nepodařilo uložit. Vaše změny zůstaly ve formuláři. Zkuste to prosím znovu.",
@@ -139,8 +145,26 @@
     },
     "validation": {
       "invalidValue": "Zadejte platnou hodnotu nebo vyberte možnost.",
-      "wholeRate": "Zadejte cenu jako celé číslo od 1 do 9 999 999 999."
-    }
+      "wholeRate": "Zadejte cenu jako celé číslo od 1 do 9 999 999 999.",
+      "craftRequired": "Vyberte řemeslo.",
+      "cityRequired": "Vyberte město."
+    },
+    "title": "Profil | Local Craftsmen",
+    "rate": "Hodinová sazba",
+    "rateHint": "Bez ceny nemůžete zveřejnit volné termíny.",
+    "rateUnit": "Kč / hod",
+    "bioPlaceholder": "Krátce popište, co děláte a s čím máte zkušenosti.",
+    "required": "(povinné)",
+    "requiredNote": "* povinné",
+    "bioRemaining": "{count, plural, one {Zbývá # znak} few {Zbývají # znaky} other {Zbývá # znaků}}",
+    "sections": {
+      "services": "Služby",
+      "servicesHint": "Co nabízíte a za kolik."
+    },
+    "craftPlaceholder": "Vyberte řemeslo",
+    "cityPlaceholder": "Vyberte město",
+    "districtPlaceholder": "Vyberte čtvrť",
+    "noMatches": "Nic nenalezeno."
   },
   "header": {
     "home": "Local Craftsmen – úvodní stránka",
@@ -149,6 +173,8 @@
     "signIn": "Přihlásit se",
     "createAccount": "Vytvořit účet",
     "togglePalette": "Přepnout světlý a tmavý motiv",
-    "language": "Jazyk"
+    "language": "Jazyk",
+    "dashboard": "Přehled",
+    "profile": "Profil"
   }
 }

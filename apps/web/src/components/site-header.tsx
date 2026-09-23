@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
+import { AccountMenu } from "@/components/account-menu";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { PaletteToggle } from "@/components/palette-toggle";
 import { buttonVariants } from "@/components/ui/button";
@@ -13,9 +14,7 @@ async function AccountNavigation() {
   ]);
 
   return user ? (
-    <Link href="/dashboard" className={buttonVariants({ variant: "outline" })}>
-      {t("myAccount")}
-    </Link>
+    <AccountMenu user={user} />
   ) : (
     <div className="flex items-center gap-2">
       <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
