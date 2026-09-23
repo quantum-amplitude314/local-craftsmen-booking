@@ -76,11 +76,12 @@ export {
 export {
   type AvailabilityDay,
   availabilityDaySchema,
+  type Quarter,
+  quarterSchema,
   type Slot,
   type SlotInput,
   type SlotListing,
   type SlotSearch,
-  type SlotTime,
   scheduleDateSchema,
   slotInputSchema,
   slotListingSchema,

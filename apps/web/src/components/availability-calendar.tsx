@@ -50,7 +50,7 @@ export function AvailabilityCalendar({
         hasSlots:
           "[&>button]:after:absolute [&>button]:after:bottom-1 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-current",
       }}
-      className="w-full [--cell-size:2.5rem]"
+      className="w-full [--cell-size:2rem] sm:[--cell-size:2.5rem]"
     />
   );
 }

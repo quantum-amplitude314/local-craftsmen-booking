@@ -23,7 +23,7 @@ import {
 import { and, eq, exists, inArray, isNull, or, sql } from "drizzle-orm";
 import { DomainError } from "./errors.ts";
 import { readRates } from "./rates.ts";
-import { type BlockedRange, buildSlotTimes } from "./slot-times.ts";
+import { type BlockedRange, buildQuarters } from "./slot-times.ts";
 
 const BREAK_MS = BREAK_MINUTES * 60_000;
 const SLOT_MAX_MS = SLOT_MAX_MINUTES * 60_000;
@@ -298,7 +298,13 @@ export const createSlotsService = ({ db }: { db: Db }) => {
       timeZone,
       date: resolvedDate,
       today,
-      times: buildSlotTimes({ dayStart, dayEnd, blocked, now: now.getTime() }),
+      quarters: buildQuarters({ from: dayStart, to: dayEnd, blocked, now: now.getTime() }),
+      nextDayQuarters: buildQuarters({
+        from: dayEnd,
+        to: dayEnd + SLOT_MAX_MS,
+        blocked,
+        now: now.getTime(),
+      }),
       slots: daySlotRows.map((row) => toSlot({ row, areasBySlot })),
       slotDates: slotDateRows.map(({ date }) => date),
     };

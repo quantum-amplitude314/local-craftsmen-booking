@@ -1,37 +1,63 @@
 /// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
-import { emptySelection, endsFrom, pickSlotTime } from "./slot-selection";
+import type { Quarter } from "@local-craftsmen/contracts";
+import { pickQuarter, rangeIssue, selectedRange } from "./slot-selection";
 
-describe("slot selection", () => {
-  test("offers ends from 1 hour after the start to the latest end, across midnight", () => {
-    const ends = endsFrom({
-      start: "2026-09-23T21:30:00.000Z",
-      latestEnd: "2026-09-24T00:00:00.000Z",
+const quarterAt = (minutes: number, state: Quarter["state"] = "free"): Quarter => ({
+  start: new Date(Date.UTC(2040, 0, 1, 8, minutes)).toISOString(),
+  end: new Date(Date.UTC(2040, 0, 1, 8, minutes + 15)).toISOString(),
+  state,
+});
+// 08:00–10:00 free, a break at 10:00, then 10:15–11:00 free.
+const quarters = [
+  ...[0, 15, 30, 45, 60, 75, 90, 105].map((minutes) => quarterAt(minutes)),
+  quarterAt(120, "break"),
+  ...[135, 150, 165].map((minutes) => quarterAt(minutes)),
+];
+const at = (index: number) => quarters[index]?.start ?? "";
+
+describe("quarter selection", () => {
+  test("clicking each quarter or only the first and last gives the same range", () => {
+    const stepByStep = [0, 1, 2, 3].reduce(
+      (selection, index) => pickQuarter({ selection, time: at(index), quarters }),
+      null as ReturnType<typeof pickQuarter>,
+    );
+    const firstAndLast = pickQuarter({
+      selection: pickQuarter({ selection: null, time: at(3), quarters }),
+      time: at(0),
+      quarters,
     });
-    expect(ends).toEqual([
-      "2026-09-23T22:30:00.000Z",
-      "2026-09-23T22:45:00.000Z",
-      "2026-09-23T23:00:00.000Z",
-      "2026-09-23T23:15:00.000Z",
-      "2026-09-23T23:30:00.000Z",
-      "2026-09-23T23:45:00.000Z",
-      "2026-09-24T00:00:00.000Z",
-    ]);
+    expect(stepByStep).toEqual({ first: at(0), last: at(3) });
+    expect(firstAndLast).toEqual(stepByStep);
+    const range = selectedRange({ selection: stepByStep, quarters });
+    expect(range).toMatchObject({ start: at(0), end: at(4) });
+    expect(range && rangeIssue({ range })).toBeNull();
   });
 
-  test("picks a start, completes it with a valid end, and clears on the start", () => {
-    const start = "2026-09-23T08:00:00.000Z";
-    const end = "2026-09-23T09:00:00.000Z";
-    const started = pickSlotTime({ selection: emptySelection, time: start, ends: [] });
-    expect(started).toEqual({ start, end: null });
-    const complete = pickSlotTime({ selection: started, time: end, ends: [end] });
-    expect(complete).toEqual({ start, end });
-    expect(pickSlotTime({ selection: complete, time: start, ends: [end] })).toEqual(emptySelection);
+  test("clicking an edge keeps only the other edge, and a lone quarter clears", () => {
+    const selection = { first: at(0), last: at(2) };
+    expect(pickQuarter({ selection, time: at(2), quarters })).toEqual({
+      first: at(0),
+      last: at(0),
+    });
+    expect(pickQuarter({ selection, time: at(0), quarters })).toEqual({
+      first: at(2),
+      last: at(2),
+    });
+    expect(pickQuarter({ selection, time: at(1), quarters })).toBe(selection);
+    expect(pickQuarter({ selection: { first: at(1), last: at(1) }, time: at(1), quarters })).toBe(
+      null,
+    );
   });
 
-  test("restarts from a time that is not a valid end", () => {
-    const selection = { start: "2026-09-23T08:00:00.000Z", end: null };
-    const restarted = pickSlotTime({ selection, time: "2026-09-23T12:00:00.000Z", ends: [] });
-    expect(restarted).toEqual({ start: "2026-09-23T12:00:00.000Z", end: null });
+  test("starts over beyond a break, drops a selection that is no longer free, flags the limits", () => {
+    expect(
+      pickQuarter({ selection: { first: at(0), last: at(0) }, time: at(10), quarters }),
+    ).toEqual({ first: at(10), last: at(10) });
+    expect(selectedRange({ selection: { first: at(6), last: at(9) }, quarters })).toBeNull();
+    const short = selectedRange({ selection: { first: at(0), last: at(1) }, quarters });
+    expect(short && rangeIssue({ range: short })).toBe("tooShort");
+    const long = { start: at(0), end: "2040-01-01T12:15:00.000Z", quarters: new Set<string>() };
+    expect(rangeIssue({ range: long })).toBe("tooLong");
   });
 });

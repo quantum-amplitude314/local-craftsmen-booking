@@ -115,7 +115,7 @@
     "retry": "Try again",
     "profileSetup": {
       "heading": "Complete your profile",
-      "description": "Set your craft, where you are based, and an hourly rate before you publish available times.",
+      "description": "Set your craft, where you are based, and an hourly rate before you offer availability.",
       "action": "Set up profile"
     },
     "sections": {
@@ -124,41 +124,39 @@
     },
     "comingNext": "Coming next.",
     "availability": {
-      "rateRequired": "Add an hourly rate to your profile before you publish available times.",
+      "rateRequired": "Add an hourly rate to your profile before you offer availability.",
       "editProfile": "Edit profile",
-      "pickStart": "Pick a start time.",
-      "pickEnd": "Pick an end time, 1 to 4 hours later.",
-      "startTime": "Start time",
-      "endTime": "End time",
-      "startsAt": "Starts at {time}",
-      "reset": "Start over",
-      "timeHint": "15-minute steps. A 15-minute break follows each slot.",
+      "times": "Quarter-hours",
+      "pickRange": "Click the first and last quarter-hour.",
+      "tooShort": "At least {hours, plural, one {# hour} other {# hours}}.",
+      "tooLong": "At most {hours, plural, one {# hour} other {# hours}}.",
       "states": {
         "occupied": "taken",
-        "break": "break",
-        "past": "past"
+        "break": "break"
       },
       "city": "City",
       "cityPlaceholder": "Choose a city",
       "district": "District",
       "districtPlaceholder": "Whole city",
       "noMatches": "No matches",
-      "save": "Add slot",
+      "save": "Add availability",
       "saving": "Adding…",
-      "saved": "Slot added.",
-      "daySlots": "Free slots, {date}",
-      "noSlots": "No free slots on this day.",
+      "saved": "Availability added.",
+      "daySlots": "Offered availability, {date}",
+      "noSlots": "You aren’t offering any availability on this day.",
+      "showMore": "Show {count} more",
+      "showLess": "Show less",
       "delete": "Delete",
       "deleting": "Deleting…",
-      "deleteLabel": "Delete slot {time}",
+      "deleteLabel": "Delete availability {time}",
       "errors": {
         "invalid": "This time can’t be used. Pick another one.",
-        "occupied": "This time overlaps another slot or booking.",
-        "saveFailed": "We couldn’t add the slot. Please try again.",
-        "unauthorized": "Sign in with your craftsman account to manage slots.",
-        "deleteFailed": "We couldn’t delete the slot. Please try again."
+        "occupied": "This time overlaps other availability or a booking.",
+        "saveFailed": "We couldn’t add the time. Please try again.",
+        "unauthorized": "Sign in with your craftsman account to manage availability.",
+        "deleteFailed": "We couldn’t delete the time. Please try again."
       },
-      "timeZone": "Times are in {city} local time ({zone})."
+      "timeZone": "{city} local time ({zone})."
     }
   },
   "profile": {
@@ -177,7 +175,7 @@
       "checkFields": "Check the highlighted fields.",
       "saveFailed": "We couldn’t save your profile. Your changes are still here. Please try again.",
       "unauthorized": "Sign in with your craftsman account to save this profile.",
-      "rateInUse": "Keep at least one price while you have upcoming available times."
+      "rateInUse": "Keep at least one price while you offer upcoming availability."
     },
     "validation": {
       "invalidValue": "Enter a valid value or choose an option.",
@@ -187,7 +185,7 @@
     },
     "title": "Profile | Local Craftsmen",
     "rate": "Hourly rate",
-    "rateHint": "You need a price to publish available times.",
+    "rateHint": "You need a price to offer availability.",
     "rateUnit": "CZK / hour",
     "bioPlaceholder": "Briefly describe what you do and your experience.",
     "required": "(required)",

@@ -66,20 +66,25 @@ export type SlotListing = z.infer<typeof slotListingSchema>;
 /** A calendar date in the schedule time zone, YYYY-MM-DD. */
 export const scheduleDateSchema = z.iso.date();
 
-/** One 15-minute step of a day; `latestEnd` is set only where a new slot may start. */
-export const slotTimeSchema = z.object({
+/**
+ * One quarter-hour of the schedule. `break` covers the 15 minutes after each slot or booking and
+ * the 15 minutes before one, where a new slot's own break would fall.
+ */
+export const quarterSchema = z.object({
   start: z.iso.datetime({ offset: true }),
+  end: z.iso.datetime({ offset: true }),
   state: z.enum(["free", "past", "occupied", "break"]),
-  latestEnd: z.iso.datetime({ offset: true }).nullable(),
 });
-export type SlotTime = z.infer<typeof slotTimeSchema>;
+export type Quarter = z.infer<typeof quarterSchema>;
 
 export const availabilityDaySchema = z.object({
   /** Days and times follow the time zone of the craftsman's base city. */
   timeZone: z.object({ id: z.string().min(1), cityId: cityIdSchema }),
   date: scheduleDateSchema,
   today: scheduleDateSchema,
-  times: z.array(slotTimeSchema),
+  quarters: z.array(quarterSchema),
+  /** The next day's first 4 hours, so a slot can run past midnight. */
+  nextDayQuarters: z.array(quarterSchema),
   slots: z.array(slotSchema),
   slotDates: z.array(scheduleDateSchema),
 });
@@ -118,7 +123,7 @@ export const ownSlotsContract = {
     .route({
       method: "GET",
       path: "/me/availability/day",
-      summary: "Your schedule for one day: time states, where slots may end, and free slots",
+      summary: "Your schedule for one day: quarter-hour states and free slots",
     })
     .input(z.object({ date: scheduleDateSchema.optional() }))
     .output(availabilityDaySchema)

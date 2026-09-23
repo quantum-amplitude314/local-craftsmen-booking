@@ -115,7 +115,7 @@
     "retry": "Zkusit znovu",
     "profileSetup": {
       "heading": "Dokončete svůj profil",
-      "description": "Než zveřejníte volné termíny, nastavte své řemeslo, odkud jste a hodinovou sazbu.",
+      "description": "Než nabídnete dostupnost, nastavte své řemeslo, odkud jste a hodinovou sazbu.",
       "action": "Nastavit profil"
     },
     "sections": {
@@ -124,49 +124,47 @@
     },
     "comingNext": "Připravujeme.",
     "availability": {
-      "rateRequired": "Než zveřejníte volné termíny, doplňte do profilu hodinovou sazbu.",
+      "rateRequired": "Než nabídnete dostupnost, doplňte do profilu hodinovou sazbu.",
       "editProfile": "Upravit profil",
-      "pickStart": "Vyberte začátek.",
-      "pickEnd": "Vyberte konec, 1 až 4 hodiny po začátku.",
-      "startTime": "Začátek",
-      "endTime": "Konec",
-      "startsAt": "Začátek v {time}",
-      "reset": "Vybrat znovu",
-      "timeHint": "Po 15 minutách. Po každém termínu následuje 15minutová přestávka.",
+      "times": "Čtvrthodiny",
+      "pickRange": "Klikněte na první a poslední čtvrthodinu.",
+      "tooShort": "Alespoň {hours, plural, one {# hodina} few {# hodiny} other {# hodin}}.",
+      "tooLong": "Nejvýš {hours, plural, one {# hodina} few {# hodiny} other {# hodin}}.",
       "states": {
         "occupied": "obsazeno",
-        "break": "přestávka",
-        "past": "uplynulo"
+        "break": "přestávka"
       },
       "city": "Město",
       "cityPlaceholder": "Vyberte město",
       "district": "Čtvrť",
       "districtPlaceholder": "Celé město",
       "noMatches": "Nic nenalezeno",
-      "save": "Přidat termín",
+      "save": "Přidat dostupnost",
       "saving": "Přidávání…",
-      "saved": "Termín je přidaný.",
-      "daySlots": "Volné termíny, {date}",
-      "noSlots": "V tento den nemáte volné termíny.",
+      "saved": "Dostupnost je přidaná.",
+      "daySlots": "Nabízené dostupnosti – {date}",
+      "noSlots": "Na tento den nenabízíte žádnou dostupnost.",
+      "showMore": "Zobrazit další ({count})",
+      "showLess": "Zobrazit méně",
       "delete": "Smazat",
       "deleting": "Mazání…",
-      "deleteLabel": "Smazat termín {time}",
+      "deleteLabel": "Smazat dostupnost {time}",
       "errors": {
         "invalid": "Tento čas nelze použít. Vyberte jiný.",
-        "occupied": "Tento čas se překrývá s jiným termínem nebo rezervací.",
-        "saveFailed": "Termín se nepodařilo přidat. Zkuste to prosím znovu.",
-        "unauthorized": "Pro správu termínů se přihlaste svým účtem řemeslníka.",
-        "deleteFailed": "Termín se nepodařilo smazat. Zkuste to prosím znovu."
+        "occupied": "Tento čas se překrývá s jinou dostupností nebo rezervací.",
+        "saveFailed": "Čas se nepodařilo přidat. Zkuste to prosím znovu.",
+        "unauthorized": "Pro správu dostupnosti se přihlaste svým účtem řemeslníka.",
+        "deleteFailed": "Čas se nepodařilo smazat. Zkuste to prosím znovu."
       },
-      "timeZone": "Časy jsou v místním čase – {city} ({zone})."
+      "timeZone": "Místní čas – {city} ({zone})."
     }
   },
   "profile": {
     "heading": "Váš profil",
-    "description": "Takto vás zákazníci uvidí u vašich volných termínů.",
+    "description": "Takto vás zákazníci uvidí u vaší dostupnosti.",
     "craft": "Řemeslo",
     "baseArea": "Kde sídlíte",
-    "baseAreaHint": "Oblasti, kde pracujete, nastavíte u každého volného termínu.",
+    "baseAreaHint": "Oblasti, kde pracujete, nastavíte u každé dostupnosti.",
     "city": "Město",
     "district": "Čtvrť",
     "bio": "O vás",
@@ -177,7 +175,7 @@
       "checkFields": "Zkontrolujte zvýrazněná pole.",
       "saveFailed": "Profil se nepodařilo uložit. Vaše změny zůstaly ve formuláři. Zkuste to prosím znovu.",
       "unauthorized": "Pro uložení profilu se přihlaste svým účtem řemeslníka.",
-      "rateInUse": "Dokud máte nadcházející volné termíny, ponechte alespoň jednu cenu."
+      "rateInUse": "Dokud nabízíte nadcházející dostupnost, ponechte alespoň jednu cenu."
     },
     "validation": {
       "invalidValue": "Zadejte platnou hodnotu nebo vyberte možnost.",
@@ -187,7 +185,7 @@
     },
     "title": "Profil | Local Craftsmen",
     "rate": "Hodinová sazba",
-    "rateHint": "Bez ceny nemůžete zveřejnit volné termíny.",
+    "rateHint": "Bez ceny nemůžete nabízet dostupnost.",
     "rateUnit": "Kč / hod",
     "bioPlaceholder": "Krátce popište, co děláte a s čím máte zkušenosti.",
     "required": "(povinné)",

@@ -1,71 +1,86 @@
 "use client";
 
-import type { SlotTime } from "@local-craftsmen/contracts";
+import type { Quarter } from "@local-craftsmen/contracts";
 import { cn } from "cn";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 
-export type TimeOption = {
+export type QuarterOption = {
   time: string;
   label: string;
-  state: SlotTime["state"];
-  enabled: boolean;
+  endLabel: string;
+  state: Quarter["state"];
   selected: boolean;
-  inRange: boolean;
+  /** The first or last selected quarter. */
+  edge: boolean;
 };
 
-const optionVariant = ({ selected, inRange }: Pick<TimeOption, "selected" | "inRange">) => {
-  if (selected) return "default";
-  const variant = inRange ? "secondary" : "outline";
+// No transitions or press shift: about a hundred quarters repaint on every click and must stay still.
+const quarterClassName = ({ state, selected, edge }: QuarterOption) =>
+  cn(
+    "relative tabular-nums transition-none active:not-aria-[haspopup]:translate-y-0",
+    edge && "hover:bg-primary",
+    selected &&
+      !edge &&
+      "cursor-default border-primary/40 bg-primary/15 hover:bg-primary/15 dark:bg-primary/15 dark:hover:bg-primary/15",
+    state === "break" && "border-dashed",
+  );
 
-  return variant;
-};
+function QuarterContent({ option }: { option: QuarterOption }) {
+  const t = useTranslations("dashboard.availability");
+  const { time, label, endLabel, state } = option;
 
-function TimeOptionButton({
+  return (
+    <>
+      <time dateTime={time}>{label}</time>
+      {endLabel && <span className="font-normal opacity-60">– {endLabel}</span>}
+      {(state === "break" || state === "occupied") && (
+        <span className="absolute right-3 text-xs font-normal">{t(`states.${state}`)}</span>
+      )}
+    </>
+  );
+}
+
+function QuarterButton({
   option,
-  pending,
   onPick,
 }: {
-  option: TimeOption;
-  pending: boolean;
+  option: QuarterOption;
   onPick: (time: string) => void;
 }) {
-  const t = useTranslations("dashboard.availability");
-  const { time, label, state, enabled, selected } = option;
+  const { time, state, selected, edge } = option;
+  const free = state === "free";
 
   return (
     <Button
       type="button"
-      variant={optionVariant(option)}
+      variant={edge ? "default" : "outline"}
       size="lg"
-      disabled={!enabled || pending}
+      disabled={!free}
       aria-pressed={selected}
-      data-bookable={enabled}
-      className={cn("tabular-nums", state === "break" && "border-dashed")}
+      data-bookable={free || undefined}
+      className={quarterClassName(option)}
       onClick={() => onPick(time)}
     >
-      <time dateTime={time}>{label}</time>
-      {state !== "free" && <span className="sr-only">, {t(`states.${state}`)}</span>}
+      <QuarterContent option={option} />
     </Button>
   );
 }
 
-/** Mounted once per day (keyed by the caller), so it scrolls to the first bookable time only then. */
-function TimeOptions({
+/** Mounted once per day (keyed by the caller), so it scrolls to the first bookable quarter only then. */
+function QuarterList({
   options,
-  pending,
   onPick,
 }: {
-  options: TimeOption[];
-  pending: boolean;
+  options: QuarterOption[];
   onPick: (time: string) => void;
 }) {
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const { current: list } = listRef;
-    const first = list?.querySelector<HTMLElement>('[data-bookable="true"]');
+    const first = list?.querySelector<HTMLElement>("[data-bookable]");
     if (!list) return;
     if (first) list.scrollTo({ top: Math.max(0, first.offsetTop - 8), behavior: "instant" });
     const scroll = (event: WheelEvent) => {
@@ -88,10 +103,10 @@ function TimeOptions({
   return (
     <div
       ref={listRef}
-      className="relative grid h-80 grid-cols-1 content-start gap-2 overflow-y-auto overscroll-contain scroll-smooth p-1 [scrollbar-gutter:stable] motion-reduce:scroll-auto"
+      className="absolute inset-0 grid grid-cols-1 content-start gap-2 overflow-y-auto overscroll-contain scroll-smooth p-1 [scrollbar-gutter:stable] motion-reduce:scroll-auto"
     >
       {options.map((option) => (
-        <TimeOptionButton key={option.time} option={option} pending={pending} onPick={onPick} />
+        <QuarterButton key={option.time} option={option} onPick={onPick} />
       ))}
     </div>
   );
@@ -100,45 +115,23 @@ function TimeOptions({
 export function AvailabilityTimePicker({
   date,
   options,
-  startLabel,
-  choosingEnd,
   pending,
   onPick,
-  onReset,
 }: {
   date: string;
-  options: TimeOption[];
-  startLabel: string | null;
-  choosingEnd: boolean;
+  options: QuarterOption[];
   pending: boolean;
   onPick: (time: string) => void;
-  onReset: () => void;
 }) {
   const t = useTranslations("dashboard.availability");
 
   return (
-    <fieldset className="flex min-w-0 flex-col gap-4" disabled={pending}>
-      <legend className="mb-3 text-sm font-medium">
-        {t(choosingEnd ? "endTime" : "startTime")}
-      </legend>
-      <div className="flex min-h-10 items-center justify-between gap-2">
-        <p className="text-sm text-muted-foreground">
-          {startLabel === null ? t("pickStart") : t("startsAt", { time: startLabel })}
-        </p>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          disabled={!choosingEnd || pending}
-          onClick={onReset}
-        >
-          {t("reset")}
-        </Button>
+    <fieldset className="flex min-w-0 flex-col gap-3" disabled={pending}>
+      <legend className="sr-only">{t("times")}</legend>
+      {/* The list fills the column beside the calendar without adding height of its own. */}
+      <div className="relative min-h-80 flex-1">
+        <QuarterList key={date} options={options} onPick={onPick} />
       </div>
-      <TimeOptions key={date} options={options} pending={pending} onPick={onPick} />
-      <p className="min-h-10 text-xs text-muted-foreground">
-        {t(choosingEnd ? "pickEnd" : "timeHint")}
-      </p>
     </fieldset>
   );
 }

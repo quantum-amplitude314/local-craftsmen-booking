@@ -355,7 +355,7 @@ describe("location-aware slots and booking allocation", () => {
     expect((await createHourAfterEnd(90)).status).toBe(200);
   });
 
-  test("describes a Prague day: taken times, the break, and where a slot may end", async () => {
+  test("describes a Prague day in quarter-hours: taken, and breaks after and before a slot", async () => {
     const slot = await createSlot();
     const { id, start, end } = slot;
     const date = start.slice(0, 10);
@@ -367,39 +367,42 @@ describe("location-aware slots and booking allocation", () => {
     });
     expect(response.status).toBe(200);
     const schedule = availabilityDaySchema.parse(await response.json());
-    const { times } = schedule;
-    const at = (iso: string) => times.find((time) => time.start === iso);
+    const { quarters, nextDayQuarters } = schedule;
+    const stateAt = (iso: string) => quarters.find((quarter) => quarter.start === iso)?.state;
+    const dayStart = shifted(`${date}T00:00:00.000Z`, -60);
     expect(schedule.timeZone).toEqual({ id: "Europe/Prague", cityId: "pilsen" });
     expect(schedule.date).toBe(date);
-    expect(times).toHaveLength(96);
-    expect(times[0]?.start).toBe(shifted(`${date}T00:00:00.000Z`, -60));
-    expect(at(start)).toMatchObject({ state: "occupied", latestEnd: null });
-    expect(at(shifted(end, -15))?.state).toBe("occupied");
-    expect(at(end)).toMatchObject({ state: "break", latestEnd: null });
-    expect(at(shifted(end, 15))).toMatchObject({ state: "free", latestEnd: shifted(end, 255) });
-    expect(at(shifted(start, -75))).toMatchObject({ latestEnd: shifted(start, -15) });
-    expect(at(shifted(start, -60))?.latestEnd).toBeNull();
+    expect(quarters).toHaveLength(96);
+    expect(quarters[0]).toEqual({ start: dayStart, end: shifted(dayStart, 15), state: "free" });
+    expect(stateAt(shifted(start, -30))).toBe("free");
+    expect(stateAt(shifted(start, -15))).toBe("break");
+    expect(stateAt(start)).toBe("occupied");
+    expect(stateAt(shifted(end, -15))).toBe("occupied");
+    expect(stateAt(end)).toBe("break");
+    expect(stateAt(shifted(end, 15))).toBe("free");
+    expect(nextDayQuarters).toHaveLength(16);
+    expect(nextDayQuarters[0]?.start).toBe(shifted(dayStart, 24 * 60));
     expect(schedule.slots.map(({ id }) => id)).toEqual([id]);
     expect(schedule.slotDates).toContain(date);
   });
 
   test("follows daylight saving and defaults to today", async () => {
-    const stepsOn = async (date: string) => {
+    const quartersOn = async (date: string) => {
       const response = await call({
         path: `/me/availability/day?date=${date}`,
         cookie: craftsmanCookie,
       });
-      const { times } = availabilityDaySchema.parse(await response.json());
+      const { quarters } = availabilityDaySchema.parse(await response.json());
 
-      return times.length;
+      return quarters.length;
     };
-    expect(await stepsOn("2040-03-25")).toBe(92);
-    expect(await stepsOn("2040-10-28")).toBe(100);
+    expect(await quartersOn("2040-03-25")).toBe(92);
+    expect(await quartersOn("2040-10-28")).toBe(100);
 
     const today = await call({ path: "/me/availability/day", cookie: craftsmanCookie });
     const schedule = availabilityDaySchema.parse(await today.json());
     expect(schedule.date).toBe(schedule.today);
-    expect(schedule.times.some(({ state }) => state === "past")).toBe(true);
+    expect(schedule.quarters.some(({ state }) => state === "past")).toBe(true);
 
     const invalid = await call({
       path: "/me/availability/day?date=2040-13-01",

@@ -1,37 +1,93 @@
-import { SCHEDULE_STEP_MINUTES, SLOT_MIN_MINUTES } from "@local-craftsmen/contracts";
+import {
+  durationMinutes,
+  type Quarter,
+  SLOT_MAX_MINUTES,
+  SLOT_MIN_MINUTES,
+} from "@local-craftsmen/contracts";
 
-const STEP_MS = SCHEDULE_STEP_MINUTES * 60_000;
-const SLOT_MIN_MS = SLOT_MIN_MINUTES * 60_000;
+/** The first and last selected quarter-hour, by their start times. */
+export type QuarterSelection = { first: string; last: string } | null;
 
-export type SlotSelection = { start: string | null; end: string | null };
+export type SelectedRange = { start: string; end: string; quarters: Set<string> };
 
-export const emptySelection: SlotSelection = { start: null, end: null };
+export type RangeIssue = "tooShort" | "tooLong" | null;
 
-/** Ends on the 15-minute grid, from 1 hour after the start up to the latest end the API allows. */
-export const endsFrom = ({ start, latestEnd }: { start: string; latestEnd: string }) => {
-  const first = Date.parse(start) + SLOT_MIN_MS;
-  const count = (Date.parse(latestEnd) - first) / STEP_MS + 1;
-  const ends = Array.from({ length: Math.max(0, count) }, (_, index) =>
-    new Date(first + index * STEP_MS).toISOString(),
+const indexOf = ({ quarters, time }: { quarters: Quarter[]; time: string }) =>
+  quarters.findIndex(({ start }) => start === time);
+
+/**
+ * The selected quarters as a range, or null once any of them is gone or no longer free — after a
+ * save, a deletion or a day change the selection simply disappears.
+ */
+export const selectedRange = ({
+  selection,
+  quarters,
+}: {
+  selection: QuarterSelection;
+  quarters: Quarter[];
+}) => {
+  if (!selection) return null;
+  const { first, last } = selection;
+  const selected = quarters.slice(
+    indexOf({ quarters, time: first }),
+    indexOf({ quarters, time: last }) + 1,
   );
+  const [firstQuarter] = selected;
+  const lastQuarter = selected.at(-1);
+  const valid =
+    firstQuarter?.start === first &&
+    lastQuarter?.start === last &&
+    selected.every(({ state }) => state === "free");
+  const range: SelectedRange | null =
+    valid && lastQuarter
+      ? {
+          start: firstQuarter.start,
+          end: lastQuarter.end,
+          quarters: new Set(selected.map(({ start }) => start)),
+        }
+      : null;
 
-  return ends;
+  return range;
 };
 
-/** The first pick is the start, a valid end completes the slot, and picking the start again clears it. */
-export const pickSlotTime = ({
+/**
+ * A click stretches the selection to include the quarter, so clicking every quarter or just the
+ * first and last gives the same range. Clicking one edge keeps only the other edge, and clicking a
+ * lone quarter clears it. A click beyond a taken quarter or a break starts a new selection there.
+ */
+export const pickQuarter = ({
   selection,
   time,
-  ends,
+  quarters,
 }: {
-  selection: SlotSelection;
+  selection: QuarterSelection;
   time: string;
-  ends: string[];
+  quarters: Quarter[];
 }) => {
-  const { start } = selection;
-  if (time === start) return emptySelection;
-  const picked: SlotSelection =
-    start !== null && ends.includes(time) ? { start, end: time } : { start: time, end: null };
+  if (!selection) return { first: time, last: time };
+  const { first, last } = selection;
+  const firstIndex = indexOf({ quarters, time: first });
+  const lastIndex = indexOf({ quarters, time: last });
+  const index = indexOf({ quarters, time });
+  if (first === last && time === first) return null;
+  if (time === first) return { first: last, last };
+  if (time === last) return { first, last: first };
+  if (index > firstIndex && index < lastIndex) return selection;
+  const from = Math.min(firstIndex, index);
+  const to = Math.max(lastIndex, index);
+  const reachable = quarters.slice(from, to + 1).every(({ state }) => state === "free");
+  const picked: QuarterSelection = reachable
+    ? { first: quarters[from]?.start ?? time, last: quarters[to]?.start ?? time }
+    : { first: time, last: time };
 
   return picked;
+};
+
+/** Why a range cannot be saved yet; the API enforces the same limits. */
+export const rangeIssue = ({ range }: { range: SelectedRange }) => {
+  const minutes = durationMinutes(range);
+  const issue: RangeIssue =
+    minutes < SLOT_MIN_MINUTES ? "tooShort" : minutes > SLOT_MAX_MINUTES ? "tooLong" : null;
+
+  return issue;
 };
