@@ -1,3 +1,4 @@
+import { oc } from "@orpc/contract";
 import { z } from "zod";
 
 export const CITY_IDS = ["prague", "pilsen", "pardubice"] as const;
@@ -6,15 +7,22 @@ export const cityIdSchema = z.enum(CITY_IDS);
 
 export type CityId = z.infer<typeof cityIdSchema>;
 
-/** A maintained city by identifier, or a free-text city outside the maintained list. */
-export const areaCitySchema = z.discriminatedUnion("kind", [
-  z.object({ kind: z.literal("maintained"), id: cityIdSchema }),
-  z.object({ kind: z.literal("other"), name: z.string() }),
-]);
-
 export const areaSchema = z.object({
-  city: areaCitySchema,
-  district: z.string().nullable(),
+  cityId: cityIdSchema,
+  districtId: z.string().min(1).max(100).nullable(),
 });
 
 export type Area = z.infer<typeof areaSchema>;
+
+export const locationSchema = z.object({
+  id: cityIdSchema,
+  name: z.string(),
+  districts: z.array(z.object({ id: z.string(), name: z.string() })),
+});
+export type Location = z.infer<typeof locationSchema>;
+
+export const locationsContract = {
+  list: oc
+    .route({ method: "GET", path: "/locations", summary: "List maintained cities and districts" })
+    .output(z.array(locationSchema)),
+};

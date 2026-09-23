@@ -1,0 +1,20 @@
+meta {
+  name: read your profile and rates
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/me/profile
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: {{craftsmanSessionCookie}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.rates: isArray
+}

@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
-import { availability, craftsmanProfile } from "./schema.ts";
+import { availability, availabilityArea, craftsmanProfile, craftsmanRate } from "./schema.ts";
 import { seedCraftsmen } from "./seed.ts";
 import { startTestDb } from "./test-db.ts";
 
@@ -49,24 +49,57 @@ describe("availability exclusion constraint", () => {
   });
 });
 
-describe("craftsman base city check", () => {
-  const [maintainedCityCraftsman, , otherCityCraftsman] = seedCraftsmen;
-
-  test("rejects a base area with both a maintained city and an other-city name", async () => {
-    const bothCities = testDb.db
+describe("canonical locations", () => {
+  test("rejects a profile district belonging to a different city", async () => {
+    const wrongCity = testDb.db
       .update(craftsmanProfile)
-      .set({ baseOtherCityName: "Kolín" })
-      .where(eq(craftsmanProfile.userId, maintainedCityCraftsman.id));
+      .set({ baseDistrictId: "pilsen-doubravka" })
+      .where(eq(craftsmanProfile.userId, craftsmanId));
 
-    expect(await readViolatedConstraint(bothCities)).toBe("craftsman_profile_base_city");
+    expect(await readViolatedConstraint(wrongCity)).toBe("profile_district_city_fk");
   });
 
-  test("rejects a base area without any city", async () => {
-    const noCity = testDb.db
-      .update(craftsmanProfile)
-      .set({ baseOtherCityName: null })
-      .where(eq(craftsmanProfile.userId, otherCityCraftsman.id));
+  test("enforces denormalized city consistency and unique whole-city coverage", async () => {
+    const [slot] = await testDb.db
+      .select({ id: availability.id })
+      .from(availability)
+      .where(eq(availability.craftsmanId, craftsmanId));
+    if (!slot) throw new Error("Missing slot");
+    const { id: availabilityId } = slot;
+    const wrongCity = testDb.db
+      .insert(availabilityArea)
+      .values({ availabilityId, cityId: "pilsen", districtId: "prague-liben" });
+    expect(await readViolatedConstraint(wrongCity)).toBe("availability_area_district_city_fk");
+    await testDb.db
+      .insert(availabilityArea)
+      .values({ availabilityId, cityId: "pardubice", districtId: null });
+    const duplicate = testDb.db
+      .insert(availabilityArea)
+      .values({ availabilityId, cityId: "pardubice", districtId: null });
+    expect(await readViolatedConstraint(duplicate)).toBe("availability_area_unique");
+  });
+});
 
-    expect(await readViolatedConstraint(noCity)).toBe("craftsman_profile_base_city");
+describe("craftsman prices", () => {
+  test("stores exact fractional amounts independently of v1 input rules", async () => {
+    const [price] = await testDb.db
+      .insert(craftsmanRate)
+      .values({ craftsmanId, currency: "USD", hourlyRate: "12.50" })
+      .returning({ hourlyRate: craftsmanRate.hourlyRate });
+    expect(price?.hourlyRate).toBe("12.50");
+  });
+
+  test("allows only one price per craftsman and currency", async () => {
+    const duplicate = testDb.db
+      .insert(craftsmanRate)
+      .values({ craftsmanId, currency: "EUR", hourlyRate: "15" });
+    expect(await readViolatedConstraint(duplicate)).toBe("craftsman_rate_craftsman_id_currency_pk");
+  });
+
+  test("rejects nonpositive prices", async () => {
+    const invalid = testDb.db
+      .insert(craftsmanRate)
+      .values({ craftsmanId, currency: "PLN", hourlyRate: "0" });
+    expect(await readViolatedConstraint(invalid)).toBe("craftsman_rate_positive");
   });
 });

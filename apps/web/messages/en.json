@@ -115,6 +115,34 @@
     "unavailableDescription": "We couldn’t load your account. Please try again.",
     "retry": "Try again"
   },
+  "profile": {
+    "heading": "Your craftsman profile",
+    "description": "Introduce your services and set the hourly prices customers will see in the directory.",
+    "craft": "Craft",
+    "baseArea": "Where you are based",
+    "baseAreaHint": "Your base location, not the full area you serve.",
+    "city": "City",
+    "otherCity": "Other city",
+    "otherCityName": "City name",
+    "district": "District or locality (optional)",
+    "bio": "About your services (optional)",
+    "rates": "Hourly rates",
+    "ratesHint": "Set a whole-number price for each currency you accept. Enter at least one rate. Leave a field blank to stop offering that currency. Prices are independent, not converted.",
+    "rateLabel": "{currency} / hour",
+    "save": "Save profile",
+    "saving": "Saving…",
+    "saved": "Your profile and rates have been saved.",
+    "errors": {
+      "checkFields": "Check the highlighted fields.",
+      "saveFailed": "We couldn’t save your profile. Your changes are still here. Please try again.",
+      "unauthorized": "Sign in with your craftsman account to save this profile."
+    },
+    "validation": {
+      "invalidValue": "Enter a valid value or choose an option.",
+      "wholeRate": "Enter a whole-number price from 1 to 9,999,999,999.",
+      "rateRequired": "Enter a price in at least one currency."
+    }
+  },
   "header": {
     "home": "Local Craftsmen home",
     "accountNavigation": "Account",

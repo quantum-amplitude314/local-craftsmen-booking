@@ -1,28 +1,50 @@
 import { oc } from "@orpc/contract";
 import { z } from "zod";
 import { areaSchema } from "./cities.ts";
-import { idSchema, timeRangeSchema, userIdSchema } from "./common.ts";
+import { userIdSchema } from "./common.ts";
 import { craftSchema } from "./crafts.ts";
+import { craftsmanRateSchema, profileRatesInputSchema } from "./rates.ts";
+import { slotSchema, slotSearchSchema } from "./slots.ts";
 
 export const craftsmanProfileSchema = z.object({
   id: userIdSchema,
   name: z.string(),
   craft: craftSchema,
   baseArea: areaSchema,
-  hourlyRate: z.number().int().positive(),
+  rates: z.array(craftsmanRateSchema),
   bio: z.string().nullable(),
 });
 
 export type CraftsmanProfile = z.infer<typeof craftsmanProfileSchema>;
 
+export const profileInputSchema = z.object({
+  craft: craftSchema,
+  baseArea: areaSchema,
+  bio: z.string().trim().max(2000).nullable(),
+  rates: profileRatesInputSchema,
+});
+
+export type ProfileInput = z.infer<typeof profileInputSchema>;
+
+export const ownProfileContract = {
+  get: oc
+    .route({ method: "GET", path: "/me/profile", summary: "Read your craftsman profile" })
+    .output(craftsmanProfileSchema.nullable()),
+  save: oc
+    .route({ method: "PUT", path: "/me/profile", summary: "Save your craftsman profile and rates" })
+    .input(profileInputSchema)
+    .errors({ BAD_REQUEST: { message: "Invalid profile location" } })
+    .output(craftsmanProfileSchema),
+};
+
 export const craftsmanDetailSchema = craftsmanProfileSchema.extend({
-  availability: z.array(timeRangeSchema.and(z.object({ id: idSchema }))),
+  availability: z.array(slotSchema),
 });
 
 export const craftsmenContract = {
   list: oc
     .route({ method: "GET", path: "/craftsmen", summary: "List craftsmen" })
-    .input(z.object({ craft: craftSchema.optional() }))
+    .input(slotSearchSchema)
     .output(z.array(craftsmanProfileSchema)),
   find: oc
     .route({ method: "GET", path: "/craftsmen/{id}", summary: "Craftsman profile" })

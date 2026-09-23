@@ -1,12 +1,10 @@
-import type { Area, CraftsmanProfile } from "@local-craftsmen/contracts";
+import type { Area, CraftsmanProfile, CraftsmanRate } from "@local-craftsmen/contracts";
 import { MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
 import { redirect } from "@/i18n/navigation";
 import { apiClient } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
-
-const RATE_CURRENCIES = ["CZK", "EUR"] as const;
 
 export const generateMetadata = async (): Promise<Metadata> => {
   const t = await getTranslations("directory");
@@ -26,22 +24,31 @@ const loadCraftsmen = async () => {
 };
 
 async function CraftsmenList({ craftsmen }: { craftsmen: CraftsmanProfile[] | null }) {
-  const [t, tCities, format] = await Promise.all([
+  const [t, tCities, format, locations] = await Promise.all([
     getTranslations("directory"),
     getTranslations("cities"),
     getFormatter(),
+    craftsmen ? apiClient.locations.list() : Promise.resolve([]),
   ]);
 
-  const formatArea = ({ city, district }: Area) => {
-    const cityName = city.kind === "maintained" ? tCities(city.id) : city.name;
+  const formatArea = ({ cityId, districtId }: Area) => {
+    const cityName = tCities(cityId);
+    const district = locations
+      .find(({ id }) => id === cityId)
+      ?.districts.find(({ id }) => id === districtId)?.name;
     const label = district ? t("areaWithDistrict", { district, city: cityName }) : cityName;
 
     return label;
   };
 
-  const formatRate = (hourlyRate: number) => {
-    const prices = RATE_CURRENCIES.map((currency) =>
-      format.number(hourlyRate, { style: "currency", currency, maximumFractionDigits: 0 }),
+  const formatRates = (rates: CraftsmanRate[]) => {
+    const prices = rates.map(({ currency, hourlyRate }) =>
+      format.number(Number(hourlyRate), {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2,
+      }),
     );
     const label = prices.join(" · ");
 
@@ -67,7 +74,7 @@ async function CraftsmenList({ craftsmen }: { craftsmen: CraftsmanProfile[] | nu
 
   return (
     <ul className="grid gap-x-8 border-t md:grid-cols-2 lg:grid-cols-3">
-      {craftsmen.map(({ id, name, craft, baseArea, hourlyRate, bio }) => (
+      {craftsmen.map(({ id, name, craft, baseArea, rates, bio }) => (
         <li key={id} className="min-w-0 border-b py-8">
           <article className="flex h-full flex-col gap-6">
             <p className="eyebrow text-primary">{t(`crafts.${craft}`)}</p>
@@ -85,7 +92,7 @@ async function CraftsmenList({ craftsmen }: { craftsmen: CraftsmanProfile[] | nu
                   {formatArea(baseArea)}
                 </span>
                 <span className="text-sm font-medium">
-                  {formatRate(hourlyRate)}
+                  {formatRates(rates)}
                   <span className="font-normal text-muted-foreground">{t("perHour")}</span>
                 </span>
               </div>

@@ -1,0 +1,36 @@
+meta {
+  name: save profile and hourly rates
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/me/profile
+  body: json
+  auth: none
+}
+
+headers {
+  Cookie: {{craftsmanSessionCookie}}
+}
+
+body:json {
+  {
+    "craft": "painter",
+    "baseArea": {
+      "cityId": "prague",
+      "districtId": "prague-liben"
+    },
+    "bio": "Interior painting",
+    "rates": [
+      { "currency": "CZK", "hourlyRate": "250" },
+      { "currency": "EUR", "hourlyRate": "10" }
+    ]
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.rates: isArray
+  res.body.rates[0].currency: eq CZK
+}

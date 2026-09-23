@@ -1,4 +1,9 @@
-import { createCraftsmenService } from "@local-craftsmen/application";
+import {
+  createBookingsService,
+  createCraftsmenService,
+  createLocationsService,
+  createSlotsService,
+} from "@local-craftsmen/application";
 import { createDb } from "@local-craftsmen/db";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
@@ -20,6 +25,9 @@ const app = createApp<Env>({
     });
     const apiContext = {
       craftsmen: createCraftsmenService({ db }),
+      slots: createSlotsService({ db }),
+      bookings: createBookingsService({ db }),
+      locations: createLocationsService({ db }),
       getAuth: () =>
         createAuth({
           db,

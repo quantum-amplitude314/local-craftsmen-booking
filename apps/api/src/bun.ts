@@ -1,4 +1,9 @@
-import { createCraftsmenService } from "@local-craftsmen/application";
+import {
+  createBookingsService,
+  createCraftsmenService,
+  createLocationsService,
+  createSlotsService,
+} from "@local-craftsmen/application";
 import { createDb } from "@local-craftsmen/db";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
@@ -23,6 +28,9 @@ const database = runtime.localCraftsmenDatabase ?? createDb({ connectionString: 
 runtime.localCraftsmenDatabase = database;
 
 const craftsmen = createCraftsmenService({ db: database.db });
+const slots = createSlotsService({ db: database.db });
+const bookings = createBookingsService({ db: database.db });
+const locations = createLocationsService({ db: database.db });
 const {
   BETTER_AUTH_SECRET,
   BETTER_AUTH_URL = "http://localhost:3001",
@@ -38,7 +46,7 @@ const auth = createAuth({
 });
 const app = createApp<Record<string, never>>({
   createApiContext: () => {
-    const apiContext = { craftsmen, getAuth: () => auth };
+    const apiContext = { craftsmen, slots, bookings, locations, getAuth: () => auth };
 
     return apiContext;
   },

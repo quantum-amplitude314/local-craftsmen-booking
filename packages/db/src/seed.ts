@@ -1,9 +1,35 @@
 import { sql } from "drizzle-orm";
 import { createDb, type Db } from "./client.ts";
 import { runMigrations } from "./migrate.ts";
-import { availability, craftsmanProfile, user } from "./schema.ts";
+import {
+  availability,
+  availabilityArea,
+  city,
+  craftsmanProfile,
+  craftsmanRate,
+  district,
+  user,
+} from "./schema.ts";
 
 const hoursFromNow = (hours: number) => new Date(Date.now() + hours * 3_600_000);
+
+export const seedCities = [
+  { id: "prague", name: "Praha" },
+  { id: "pilsen", name: "Plzeň" },
+  { id: "pardubice", name: "Pardubice" },
+] as const;
+
+export const seedDistricts = [
+  { id: "prague-holesovice", cityId: "prague", name: "Holešovice" },
+  { id: "prague-liben", cityId: "prague", name: "Libeň" },
+  { id: "prague-dolni-chabry", cityId: "prague", name: "Dolní Chabry" },
+  { id: "pilsen-doubravka", cityId: "pilsen", name: "Doubravka" },
+  { id: "pilsen-bory", cityId: "pilsen", name: "Bory" },
+  { id: "pilsen-slovany", cityId: "pilsen", name: "Slovany" },
+  { id: "pardubice-polabiny", cityId: "pardubice", name: "Polabiny" },
+  { id: "pardubice-dubina", cityId: "pardubice", name: "Dubina" },
+  { id: "pardubice-rosice", cityId: "pardubice", name: "Rosice" },
+] as const;
 
 export const seedCraftsmen = [
   {
@@ -12,9 +38,11 @@ export const seedCraftsmen = [
     email: "anna@example.com",
     craft: "painter",
     baseCityId: "prague",
-    baseOtherCityName: null,
-    baseDistrict: "Libeň",
-    hourlyRate: 45,
+    baseDistrictId: "prague-liben",
+    rates: [
+      { currency: "CZK", hourlyRate: "250" },
+      { currency: "EUR", hourlyRate: "10" },
+    ],
   },
   {
     id: "seed-painter-2",
@@ -22,19 +50,20 @@ export const seedCraftsmen = [
     email: "ben@example.com",
     craft: "painter",
     baseCityId: "pilsen",
-    baseOtherCityName: null,
-    baseDistrict: null,
-    hourlyRate: 50,
+    baseDistrictId: "pilsen-doubravka",
+    rates: [
+      { currency: "CZK", hourlyRate: "400" },
+      { currency: "EUR", hourlyRate: "18" },
+    ],
   },
   {
     id: "seed-plumber-1",
     name: "Cara Pipe",
     email: "cara@example.com",
     craft: "plumber",
-    baseCityId: null,
-    baseOtherCityName: "Kolín",
-    baseDistrict: null,
-    hourlyRate: 60,
+    baseCityId: "pardubice",
+    baseDistrictId: null,
+    rates: [{ currency: "CZK", hourlyRate: "500" }],
   },
 ] as const;
 
@@ -43,6 +72,8 @@ export const seedCustomers = [
 ] as const;
 
 export const seed = async ({ db }: { db: Db }) => {
+  await db.insert(city).values([...seedCities]);
+  await db.insert(district).values([...seedDistricts]);
   await db.insert(user).values([
     ...seedCraftsmen.map(({ id, name, email }) => ({
       id,
@@ -59,22 +90,42 @@ export const seed = async ({ db }: { db: Db }) => {
   ]);
 
   await db.insert(craftsmanProfile).values(
-    seedCraftsmen.map(({ id, craft, baseCityId, baseOtherCityName, baseDistrict, hourlyRate }) => ({
+    seedCraftsmen.map(({ id, craft, baseCityId, baseDistrictId }) => ({
       userId: id,
       craft,
       baseCityId,
-      baseOtherCityName,
-      baseDistrict,
-      hourlyRate,
+      baseDistrictId,
     })),
   );
 
-  await db.insert(availability).values(
-    seedCraftsmen.map(({ id }) => ({
-      craftsmanId: id,
-      range: { start: hoursFromNow(24), end: hoursFromNow(32) },
-    })),
+  await db.insert(craftsmanRate).values(
+    seedCraftsmen.flatMap(({ id, rates }) =>
+      rates.map(({ currency, hourlyRate }) => ({
+        craftsmanId: id,
+        currency,
+        hourlyRate,
+      })),
+    ),
   );
+
+  const slots = await db
+    .insert(availability)
+    .values(
+      seedCraftsmen.map(({ id }) => ({
+        craftsmanId: id,
+        range: { start: hoursFromNow(24), end: hoursFromNow(32) },
+      })),
+    )
+    .returning({ id: availability.id, craftsmanId: availability.craftsmanId });
+  for (const { id: availabilityId, craftsmanId } of slots) {
+    const profile = seedCraftsmen.find(({ id }) => id === craftsmanId);
+    if (!profile) throw new Error("Missing seeded profile");
+    const { baseCityId } = profile;
+    const districts = baseCityId === "prague" ? ["prague-holesovice", "prague-liben"] : [null];
+    await db
+      .insert(availabilityArea)
+      .values(districts.map((districtId) => ({ availabilityId, cityId: baseCityId, districtId })));
+  }
 };
 
 const hasMigrations = async ({ db }: { db: Db }) => {

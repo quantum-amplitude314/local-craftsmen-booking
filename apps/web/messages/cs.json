@@ -115,6 +115,34 @@
     "unavailableDescription": "Účet se nepodařilo načíst. Zkuste to prosím znovu.",
     "retry": "Zkusit znovu"
   },
+  "profile": {
+    "heading": "Váš profil řemeslníka",
+    "description": "Představte své služby a nastavte hodinové sazby, které zákazníci uvidí v přehledu.",
+    "craft": "Řemeslo",
+    "baseArea": "Odkud jste",
+    "baseAreaHint": "Místo, kde sídlíte, nikoli celá oblast, ve které pracujete.",
+    "city": "Město",
+    "otherCity": "Jiné město",
+    "otherCityName": "Název města",
+    "district": "Čtvrť nebo lokalita (nepovinné)",
+    "bio": "O vašich službách (nepovinné)",
+    "rates": "Hodinové sazby",
+    "ratesHint": "Zadejte cenu v celých číslech pro každou měnu, kterou přijímáte. Vyplňte alespoň jednu sazbu. Prázdné pole znamená, že tuto měnu nenabízíte. Ceny nastavujete samostatně, nepřepočítávají se.",
+    "rateLabel": "{currency} / hodinu",
+    "save": "Uložit profil",
+    "saving": "Ukládání…",
+    "saved": "Váš profil a sazby byly uloženy.",
+    "errors": {
+      "checkFields": "Zkontrolujte zvýrazněná pole.",
+      "saveFailed": "Profil se nepodařilo uložit. Vaše změny zůstaly ve formuláři. Zkuste to prosím znovu.",
+      "unauthorized": "Pro uložení profilu se přihlaste svým účtem řemeslníka."
+    },
+    "validation": {
+      "invalidValue": "Zadejte platnou hodnotu nebo vyberte možnost.",
+      "wholeRate": "Zadejte cenu jako celé číslo od 1 do 9 999 999 999.",
+      "rateRequired": "Zadejte cenu alespoň v jedné měně."
+    }
+  },
   "header": {
     "home": "Local Craftsmen – úvodní stránka",
     "accountNavigation": "Účet",

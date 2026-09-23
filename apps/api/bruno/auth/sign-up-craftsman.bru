@@ -1,0 +1,39 @@
+meta {
+  name: sign up craftsman
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/auth/sign-up/email
+  body: json
+  auth: none
+}
+
+headers {
+  Origin: http://localhost:3000
+  x-captcha-response: {{turnstileToken}}
+}
+
+body:json {
+  {
+    "name": "Bruno Craftsman",
+    "email": "{{craftsmanEmail}}",
+    "password": "correct-horse-battery",
+    "role": "craftsman"
+  }
+}
+
+script:pre-request {
+  bru.setVar("craftsmanEmail", `bruno-craftsman-${Date.now()}@example.com`);
+}
+
+script:post-response {
+  if (res.getStatus() !== 200) return;
+  const setCookie = [res.getHeader("set-cookie")].flat().filter(Boolean);
+  bru.setVar("craftsmanSessionCookie", setCookie.map((header) => header.split(";")[0]).join("; "));
+}
+
+assert {
+  res.status: eq 200
+}

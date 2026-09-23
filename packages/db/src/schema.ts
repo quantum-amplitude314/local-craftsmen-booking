@@ -2,12 +2,16 @@ import { sql } from "drizzle-orm";
 import {
   boolean,
   check,
+  foreignKey,
   index,
-  integer,
+  jsonb,
+  numeric,
   pgEnum,
   pgTable,
+  primaryKey,
   text,
   timestamp,
+  unique,
   uuid,
 } from "drizzle-orm/pg-core";
 import { tstzrange } from "./range.ts";
@@ -26,7 +30,6 @@ export const bookingStatusEnum = pgEnum("booking_status", [
   "cancelled",
   "completed",
 ]);
-export const assignedByEnum = pgEnum("assigned_by", ["lottery", "customer"]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -94,7 +97,23 @@ export const verification = pgTable(
 
 export const city = pgTable("city", {
   id: text("id").primaryKey(),
+  name: text("name").notNull(),
 });
+
+export const district = pgTable(
+  "district",
+  {
+    id: text("id").primaryKey(),
+    cityId: text("city_id")
+      .notNull()
+      .references(() => city.id),
+    name: text("name").notNull(),
+  },
+  (table) => [
+    unique("district_id_city_unique").on(table.id, table.cityId),
+    index("district_city_idx").on(table.cityId),
+  ],
+);
 
 export const craftsmanProfile = pgTable(
   "craftsman_profile",
@@ -103,18 +122,37 @@ export const craftsmanProfile = pgTable(
       .primaryKey()
       .references(() => user.id, { onDelete: "cascade" }),
     craft: craftEnum("craft").notNull(),
-    baseCityId: text("base_city_id").references(() => city.id),
-    baseOtherCityName: text("base_other_city_name"),
-    baseDistrict: text("base_district"),
-    hourlyRate: integer("hourly_rate").notNull(),
+    baseCityId: text("base_city_id")
+      .notNull()
+      .references(() => city.id),
+    baseDistrictId: text("base_district_id"),
     bio: text("bio"),
     timezone: text("timezone").notNull().default("UTC"),
     ...timestamps,
   },
   (table) => [
+    foreignKey({
+      name: "profile_district_city_fk",
+      columns: [table.baseDistrictId, table.baseCityId],
+      foreignColumns: [district.id, district.cityId],
+    }),
+  ],
+);
+
+export const craftsmanRate = pgTable(
+  "craftsman_rate",
+  {
+    craftsmanId: text("craftsman_id")
+      .notNull()
+      .references(() => craftsmanProfile.userId, { onDelete: "cascade" }),
+    currency: text("currency").notNull(),
+    hourlyRate: numeric("hourly_rate", { precision: 12, scale: 2 }).notNull(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.craftsmanId, table.currency] }),
     check(
-      "craftsman_profile_base_city",
-      sql`(${table.baseCityId} is null) <> (${table.baseOtherCityName} is null)`,
+      "craftsman_rate_positive",
+      sql`${table.hourlyRate} > 0 and ${table.hourlyRate} <> 'NaN'::numeric`,
     ),
   ],
 );
@@ -129,7 +167,42 @@ export const availability = pgTable(
     range: tstzrange("range").notNull(),
     ...timestamps,
   },
-  (table) => [index("availability_craftsman_idx").on(table.craftsmanId)],
+  (table) => [
+    index("availability_craftsman_idx").on(table.craftsmanId),
+    check(
+      "availability_valid_range",
+      sql`not isempty(${table.range}) and not lower_inf(${table.range}) and not upper_inf(${table.range}) and isfinite(lower(${table.range})) and isfinite(upper(${table.range})) and lower_inc(${table.range}) and not upper_inc(${table.range})`,
+    ),
+  ],
+);
+
+export const availabilityArea = pgTable(
+  "availability_area",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    availabilityId: uuid("availability_id")
+      .notNull()
+      .references(() => availability.id, { onDelete: "cascade" }),
+    // Intentionally denormalized from district.city_id for city-based slot filtering
+    // without a district join. A composite foreign key enforces consistency.
+    // With no district, this required city identifies whole-city coverage.
+    cityId: text("city_id")
+      .notNull()
+      .references(() => city.id),
+    districtId: text("district_id"),
+  },
+  (table) => [
+    foreignKey({
+      name: "availability_area_district_city_fk",
+      columns: [table.districtId, table.cityId],
+      foreignColumns: [district.id, district.cityId],
+    }),
+    unique("availability_area_unique")
+      .on(table.availabilityId, table.cityId, table.districtId)
+      .nullsNotDistinct(),
+    index("availability_area_city_idx").on(table.cityId, table.availabilityId),
+    index("availability_area_district_idx").on(table.districtId, table.availabilityId),
+  ],
 );
 
 export const booking = pgTable(
@@ -145,14 +218,46 @@ export const booking = pgTable(
     craft: craftEnum("craft").notNull(),
     range: tstzrange("range").notNull(),
     status: bookingStatusEnum("status").notNull().default("pending"),
-    assignedBy: assignedByEnum("assigned_by").notNull(),
+    cityId: text("city_id")
+      .notNull()
+      .references(() => city.id),
+    districtId: text("district_id"),
+    currency: text("currency").notNull(),
+    hourlyRate: numeric("hourly_rate", { precision: 12, scale: 2 }).notNull(),
     ...timestamps,
   },
   (table) => [
+    foreignKey({
+      name: "booking_district_city_fk",
+      columns: [table.districtId, table.cityId],
+      foreignColumns: [district.id, district.cityId],
+    }),
+    check(
+      "booking_valid_range",
+      sql`not isempty(${table.range}) and not lower_inf(${table.range}) and not upper_inf(${table.range}) and isfinite(lower(${table.range})) and isfinite(upper(${table.range})) and lower_inc(${table.range}) and not upper_inc(${table.range})`,
+    ),
+    check(
+      "booking_rate_positive",
+      sql`${table.hourlyRate} > 0 and ${table.hourlyRate} <> 'NaN'::numeric`,
+    ),
     index("booking_customer_idx").on(table.customerId),
     index("booking_craftsman_idx").on(table.craftsmanId),
     index("booking_active_idx")
       .on(table.craftsmanId)
       .where(sql`${table.status} in ('pending', 'confirmed')`),
   ],
+);
+
+// Intentionally no foreign keys: historical snapshots survive operational record deletion.
+export const bookingHistory = pgTable(
+  "booking_history",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    bookingId: uuid("booking_id").notNull(),
+    actorId: text("actor_id").notNull(),
+    event: text("event").notNull(),
+    snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull(),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [index("booking_history_booking_idx").on(table.bookingId, table.recordedAt)],
 );
