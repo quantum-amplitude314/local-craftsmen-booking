@@ -114,9 +114,6 @@ export const slotsContract = {
 };
 
 export const ownSlotsContract = {
-  list: oc
-    .route({ method: "GET", path: "/me/availability", summary: "List your availability slots" })
-    .output(z.array(slotSchema)),
   day: oc
     .route({
       method: "GET",

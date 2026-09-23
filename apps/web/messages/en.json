@@ -168,8 +168,6 @@
     "baseArea": "Where you're based",
     "baseAreaHint": "You set the areas you serve on each available time.",
     "city": "City",
-    "otherCity": "Other city",
-    "otherCityName": "City name",
     "district": "District",
     "bio": "About you",
     "save": "Save profile",

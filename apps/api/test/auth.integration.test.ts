@@ -185,12 +185,13 @@ describe("location-aware slots and booking allocation", () => {
 
   test("guards availability and booking routes by session and role", async () => {
     for (const path of ["/me/availability", "/me/availability/"]) {
-      expect((await call({ path })).status).toBe(401);
-      expect((await call({ path, cookie: customerCookie })).status).toBe(403);
+      expect((await call({ path, method: "POST", body: {} })).status).toBe(401);
       expect((await call({ path, method: "POST", body: {}, cookie: customerCookie })).status).toBe(
         403,
       );
     }
+    expect((await call({ path: "/me/availability/day" })).status).toBe(401);
+    expect((await call({ path: "/me/availability/day", cookie: customerCookie })).status).toBe(403);
     expect((await call({ path: "/slots" })).status).toBe(401);
     expect((await call({ path: "/bookings", method: "POST", body: {} })).status).toBe(401);
     expect(
@@ -407,10 +408,8 @@ describe("location-aware slots and booking allocation", () => {
     expect(invalid.status).toBe(400);
   });
 
-  test("restricts slot listing/deletion to the owner and cascades coverage deletion", async () => {
+  test("restricts slot deletion to the owner and cascades coverage deletion", async () => {
     const { id } = await createSlot();
-    const otherList = await call({ path: "/me/availability", cookie: otherCraftsmanCookie });
-    await expect(otherList.json()).resolves.toEqual([]);
     expect(
       (await call({ path: `/me/availability/${id}`, method: "DELETE", cookie: customerCookie }))
         .status,

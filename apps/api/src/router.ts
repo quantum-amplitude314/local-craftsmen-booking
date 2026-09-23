@@ -38,12 +38,6 @@ const os = implement(contract).$context<ApiContext>();
 export const router = os.router({
   me: {
     availability: {
-      list: os.me.availability.list.handler(({ context }) => {
-        const { user, slots } = context;
-        if (!user) throw new ORPCError("UNAUTHORIZED");
-
-        return slots.list({ craftsmanId: user.id });
-      }),
       day: os.me.availability.day.handler(({ context, input }) => {
         const { user, slots } = context;
         if (!user) throw new ORPCError("UNAUTHORIZED");
