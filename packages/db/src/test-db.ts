@@ -1,7 +1,8 @@
 import { clearDb } from "./clear.ts";
 import { createDb } from "./client.ts";
 import { runMigrations } from "./migrate.ts";
-import { seed } from "./seed.ts";
+import { seedReference } from "./seed-reference.ts";
+import { seedTestData } from "./seed-test.ts";
 
 const connectionString = process.env.TEST_DATABASE_URL;
 
@@ -17,7 +18,8 @@ export const startTestDb = async () => {
   const { db, close } = createDb({ connectionString });
   await clearDb({ db });
   await runMigrations({ db });
-  await seed({ db });
+  await seedReference({ db });
+  await seedTestData({ db });
 
   return { db, stop: close };
 };

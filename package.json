@@ -18,12 +18,14 @@
     "db:up": "podman compose up -d",
     "db:down": "podman compose down",
     "db:migrate": "bun run --cwd packages/db db:migrate",
-    "db:seed": "bun run --cwd packages/db db:seed",
+    "db:seed:reference": "bun run --cwd packages/db db:seed:reference",
+    "db:seed:test": "bun run --cwd packages/db db:seed:test",
     "db:clear": "bun run --cwd packages/db db:clear"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.13",
-    "turbo": "^2.5.0",
-    "typescript": "^5.9.0"
-  }
+    "@biomejs/biome": "2.5.14",
+    "turbo": "^2.11.3",
+    "typescript": "^7.0.2"
+  },
+  "trustedDependencies": []
 }

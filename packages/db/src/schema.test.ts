@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
 import { availability, availabilityArea, craftsmanProfile, craftsmanRate } from "./schema.ts";
-import { seedCraftsmen } from "./seed.ts";
+import { seedCraftsmen } from "./seed-test.ts";
 import { startTestDb } from "./test-db.ts";
 
 const at = (hour: number) => new Date(Date.UTC(2030, 0, 1, hour));
@@ -92,7 +92,7 @@ describe("craftsman prices", () => {
   test("allows only one price per craftsman and currency", async () => {
     const duplicate = testDb.db
       .insert(craftsmanRate)
-      .values({ craftsmanId, currency: "EUR", hourlyRate: "15" });
+      .values({ craftsmanId, currency: "CZK", hourlyRate: "300" });
     expect(await readViolatedConstraint(duplicate)).toBe("craftsman_rate_craftsman_id_currency_pk");
   });
 

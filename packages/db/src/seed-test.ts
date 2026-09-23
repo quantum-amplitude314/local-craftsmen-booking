@@ -1,35 +1,10 @@
-import { sql } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { createDb, type Db } from "./client.ts";
 import { runMigrations } from "./migrate.ts";
-import {
-  availability,
-  availabilityArea,
-  city,
-  craftsmanProfile,
-  craftsmanRate,
-  district,
-  user,
-} from "./schema.ts";
+import { availability, availabilityArea, craftsmanProfile, craftsmanRate, user } from "./schema.ts";
+import { seedReference } from "./seed-reference.ts";
 
 const hoursFromNow = (hours: number) => new Date(Date.now() + hours * 3_600_000);
-
-export const seedCities = [
-  { id: "prague", name: "Praha" },
-  { id: "pilsen", name: "Plzeň" },
-  { id: "pardubice", name: "Pardubice" },
-] as const;
-
-export const seedDistricts = [
-  { id: "prague-holesovice", cityId: "prague", name: "Holešovice" },
-  { id: "prague-liben", cityId: "prague", name: "Libeň" },
-  { id: "prague-dolni-chabry", cityId: "prague", name: "Dolní Chabry" },
-  { id: "pilsen-doubravka", cityId: "pilsen", name: "Doubravka" },
-  { id: "pilsen-bory", cityId: "pilsen", name: "Bory" },
-  { id: "pilsen-slovany", cityId: "pilsen", name: "Slovany" },
-  { id: "pardubice-polabiny", cityId: "pardubice", name: "Polabiny" },
-  { id: "pardubice-dubina", cityId: "pardubice", name: "Dubina" },
-  { id: "pardubice-rosice", cityId: "pardubice", name: "Rosice" },
-] as const;
 
 export const seedCraftsmen = [
   {
@@ -39,10 +14,7 @@ export const seedCraftsmen = [
     craft: "painter",
     baseCityId: "prague",
     baseDistrictId: "prague-liben",
-    rates: [
-      { currency: "CZK", hourlyRate: "250" },
-      { currency: "EUR", hourlyRate: "10" },
-    ],
+    rates: [{ currency: "CZK", hourlyRate: "250" }],
   },
   {
     id: "seed-painter-2",
@@ -51,10 +23,7 @@ export const seedCraftsmen = [
     craft: "painter",
     baseCityId: "pilsen",
     baseDistrictId: "pilsen-doubravka",
-    rates: [
-      { currency: "CZK", hourlyRate: "400" },
-      { currency: "EUR", hourlyRate: "18" },
-    ],
+    rates: [{ currency: "CZK", hourlyRate: "400" }],
   },
   {
     id: "seed-plumber-1",
@@ -71,9 +40,8 @@ export const seedCustomers = [
   { id: "seed-customer-1", name: "Dan Customer", email: "dan@example.com" },
 ] as const;
 
-export const seed = async ({ db }: { db: Db }) => {
-  await db.insert(city).values([...seedCities]);
-  await db.insert(district).values([...seedDistricts]);
+/** Demo craftsmen, a customer, rates and slots for local and test databases. Needs the reference seed first. */
+export const seedTestData = async ({ db }: { db: Db }) => {
   await db.insert(user).values([
     ...seedCraftsmen.map(({ id, name, email }) => ({
       id,
@@ -128,25 +96,30 @@ export const seed = async ({ db }: { db: Db }) => {
   }
 };
 
-const hasMigrations = async ({ db }: { db: Db }) => {
-  const rows = await db.execute(sql`select 1 from pg_namespace where nspname = 'drizzle'`);
-  const migrated = rows.length > 0;
+const hasTestData = async ({ db }: { db: Db }) => {
+  const [firstCraftsman] = seedCraftsmen;
+  const rows = await db.select({ id: user.id }).from(user).where(eq(user.id, firstCraftsman.id));
+  const seeded = rows.length > 0;
 
-  return migrated;
+  return seeded;
 };
 
 if (import.meta.main) {
   const connectionString = process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is required");
-
-  const { db, close } = createDb({ connectionString });
-  if (await hasMigrations({ db })) {
-    await close();
-    throw new Error("Database is not empty. Run `bun run db:clear` first.");
+  if (!["localhost", "127.0.0.1"].includes(new URL(connectionString).hostname)) {
+    throw new Error("db:seed:test only seeds a localhost database");
   }
 
+  const { db, close } = createDb({ connectionString });
   await runMigrations({ db });
-  await seed({ db });
+  await seedReference({ db });
+  if (await hasTestData({ db })) {
+    await close();
+    throw new Error("Test data is already seeded. Run `bun run db:clear` first.");
+  }
+
+  await seedTestData({ db });
   await close();
-  console.log("seeded");
+  console.log("seeded reference and test data");
 }

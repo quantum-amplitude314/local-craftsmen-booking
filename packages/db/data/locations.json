@@ -1,0 +1,540 @@
+[
+  {
+    "id": "prague",
+    "name": "Praha",
+    "districts": [
+      {
+        "id": "prague-bechovice",
+        "name": "Běchovice"
+      },
+      {
+        "id": "prague-benice",
+        "name": "Benice"
+      },
+      {
+        "id": "prague-bohnice",
+        "name": "Bohnice"
+      },
+      {
+        "id": "prague-branik",
+        "name": "Braník"
+      },
+      {
+        "id": "prague-brevnov",
+        "name": "Břevnov"
+      },
+      {
+        "id": "prague-brezineves",
+        "name": "Březiněves"
+      },
+      {
+        "id": "prague-bubenec",
+        "name": "Bubeneč"
+      },
+      {
+        "id": "prague-cakovice",
+        "name": "Čakovice"
+      },
+      {
+        "id": "prague-cerny-most",
+        "name": "Černý Most"
+      },
+      {
+        "id": "prague-cimice",
+        "name": "Čimice"
+      },
+      {
+        "id": "prague-dablice",
+        "name": "Ďáblice"
+      },
+      {
+        "id": "prague-dejvice",
+        "name": "Dejvice"
+      },
+      {
+        "id": "prague-dolni-chabry",
+        "name": "Dolní Chabry"
+      },
+      {
+        "id": "prague-dolni-mecholupy",
+        "name": "Dolní Měcholupy"
+      },
+      {
+        "id": "prague-dolni-pocernice",
+        "name": "Dolní Počernice"
+      },
+      {
+        "id": "prague-dubec",
+        "name": "Dubeč"
+      },
+      {
+        "id": "prague-haje",
+        "name": "Háje"
+      },
+      {
+        "id": "prague-hajek-u-uhrinevsi",
+        "name": "Hájek u Uhříněvsi"
+      },
+      {
+        "id": "prague-hloubetin",
+        "name": "Hloubětín"
+      },
+      {
+        "id": "prague-hlubocepy",
+        "name": "Hlubočepy"
+      },
+      {
+        "id": "prague-hodkovicky",
+        "name": "Hodkovičky"
+      },
+      {
+        "id": "prague-holesovice",
+        "name": "Holešovice"
+      },
+      {
+        "id": "prague-holyne",
+        "name": "Holyně"
+      },
+      {
+        "id": "prague-horni-mecholupy",
+        "name": "Horní Měcholupy"
+      },
+      {
+        "id": "prague-horni-pocernice",
+        "name": "Horní Počernice"
+      },
+      {
+        "id": "prague-hostavice",
+        "name": "Hostavice"
+      },
+      {
+        "id": "prague-hostivar",
+        "name": "Hostivař"
+      },
+      {
+        "id": "prague-hradcany",
+        "name": "Hradčany"
+      },
+      {
+        "id": "prague-hrdlorezy",
+        "name": "Hrdlořezy"
+      },
+      {
+        "id": "prague-chodov",
+        "name": "Chodov"
+      },
+      {
+        "id": "prague-cholupice",
+        "name": "Cholupice"
+      },
+      {
+        "id": "prague-jinonice",
+        "name": "Jinonice"
+      },
+      {
+        "id": "prague-josefov",
+        "name": "Josefov"
+      },
+      {
+        "id": "prague-kamyk",
+        "name": "Kamýk"
+      },
+      {
+        "id": "prague-karlin",
+        "name": "Karlín"
+      },
+      {
+        "id": "prague-kbely",
+        "name": "Kbely"
+      },
+      {
+        "id": "prague-klanovice",
+        "name": "Klánovice"
+      },
+      {
+        "id": "prague-kobylisy",
+        "name": "Kobylisy"
+      },
+      {
+        "id": "prague-kolodeje",
+        "name": "Koloděje"
+      },
+      {
+        "id": "prague-kolovraty",
+        "name": "Kolovraty"
+      },
+      {
+        "id": "prague-komorany",
+        "name": "Komořany"
+      },
+      {
+        "id": "prague-kosire",
+        "name": "Košíře"
+      },
+      {
+        "id": "prague-kralovice",
+        "name": "Královice"
+      },
+      {
+        "id": "prague-krc",
+        "name": "Krč"
+      },
+      {
+        "id": "prague-kreslice",
+        "name": "Křeslice"
+      },
+      {
+        "id": "prague-kunratice",
+        "name": "Kunratice"
+      },
+      {
+        "id": "prague-kyje",
+        "name": "Kyje"
+      },
+      {
+        "id": "prague-lahovice",
+        "name": "Lahovice"
+      },
+      {
+        "id": "prague-letnany",
+        "name": "Letňany"
+      },
+      {
+        "id": "prague-lhotka",
+        "name": "Lhotka"
+      },
+      {
+        "id": "prague-liben",
+        "name": "Libeň"
+      },
+      {
+        "id": "prague-liboc",
+        "name": "Liboc"
+      },
+      {
+        "id": "prague-libus",
+        "name": "Libuš"
+      },
+      {
+        "id": "prague-lipany",
+        "name": "Lipany"
+      },
+      {
+        "id": "prague-lipence",
+        "name": "Lipence"
+      },
+      {
+        "id": "prague-lochkov",
+        "name": "Lochkov"
+      },
+      {
+        "id": "prague-lysolaje",
+        "name": "Lysolaje"
+      },
+      {
+        "id": "prague-mala-chuchle",
+        "name": "Malá Chuchle"
+      },
+      {
+        "id": "prague-mala-strana",
+        "name": "Malá Strana"
+      },
+      {
+        "id": "prague-malesice",
+        "name": "Malešice"
+      },
+      {
+        "id": "prague-michle",
+        "name": "Michle"
+      },
+      {
+        "id": "prague-miskovice",
+        "name": "Miškovice"
+      },
+      {
+        "id": "prague-modrany",
+        "name": "Modřany"
+      },
+      {
+        "id": "prague-motol",
+        "name": "Motol"
+      },
+      {
+        "id": "prague-nebusice",
+        "name": "Nebušice"
+      },
+      {
+        "id": "prague-nedvezi-u-rican",
+        "name": "Nedvězí u Říčan"
+      },
+      {
+        "id": "prague-nove-mesto",
+        "name": "Nové Město"
+      },
+      {
+        "id": "prague-nusle",
+        "name": "Nusle"
+      },
+      {
+        "id": "prague-petrovice",
+        "name": "Petrovice"
+      },
+      {
+        "id": "prague-pisnice",
+        "name": "Písnice"
+      },
+      {
+        "id": "prague-pitkovice",
+        "name": "Pitkovice"
+      },
+      {
+        "id": "prague-podoli",
+        "name": "Podolí"
+      },
+      {
+        "id": "prague-prosek",
+        "name": "Prosek"
+      },
+      {
+        "id": "prague-predni-kopanina",
+        "name": "Přední Kopanina"
+      },
+      {
+        "id": "prague-radlice",
+        "name": "Radlice"
+      },
+      {
+        "id": "prague-radotin",
+        "name": "Radotín"
+      },
+      {
+        "id": "prague-ruzyne",
+        "name": "Ruzyně"
+      },
+      {
+        "id": "prague-reporyje",
+        "name": "Řeporyje"
+      },
+      {
+        "id": "prague-repy",
+        "name": "Řepy"
+      },
+      {
+        "id": "prague-satalice",
+        "name": "Satalice"
+      },
+      {
+        "id": "prague-sedlec",
+        "name": "Sedlec"
+      },
+      {
+        "id": "prague-slivenec",
+        "name": "Slivenec"
+      },
+      {
+        "id": "prague-smichov",
+        "name": "Smíchov"
+      },
+      {
+        "id": "prague-sobin",
+        "name": "Sobín"
+      },
+      {
+        "id": "prague-stare-mesto",
+        "name": "Staré Město"
+      },
+      {
+        "id": "prague-stodulky",
+        "name": "Stodůlky"
+      },
+      {
+        "id": "prague-strasnice",
+        "name": "Strašnice"
+      },
+      {
+        "id": "prague-stresovice",
+        "name": "Střešovice"
+      },
+      {
+        "id": "prague-strizkov",
+        "name": "Střížkov"
+      },
+      {
+        "id": "prague-suchdol",
+        "name": "Suchdol"
+      },
+      {
+        "id": "prague-seberov",
+        "name": "Šeberov"
+      },
+      {
+        "id": "prague-sterboholy",
+        "name": "Štěrboholy"
+      },
+      {
+        "id": "prague-tocna",
+        "name": "Točná"
+      },
+      {
+        "id": "prague-troja",
+        "name": "Troja"
+      },
+      {
+        "id": "prague-trebonice",
+        "name": "Třebonice"
+      },
+      {
+        "id": "prague-treboradice",
+        "name": "Třeboradice"
+      },
+      {
+        "id": "prague-uhrineves",
+        "name": "Uhříněves"
+      },
+      {
+        "id": "prague-ujezd-nad-lesy",
+        "name": "Újezd nad Lesy"
+      },
+      {
+        "id": "prague-ujezd-u-pruhonic",
+        "name": "Újezd u Průhonic"
+      },
+      {
+        "id": "prague-veleslavin",
+        "name": "Veleslavín"
+      },
+      {
+        "id": "prague-velka-chuchle",
+        "name": "Velká Chuchle"
+      },
+      {
+        "id": "prague-vinohrady",
+        "name": "Vinohrady"
+      },
+      {
+        "id": "prague-vinor",
+        "name": "Vinoř"
+      },
+      {
+        "id": "prague-vokovice",
+        "name": "Vokovice"
+      },
+      {
+        "id": "prague-vrsovice",
+        "name": "Vršovice"
+      },
+      {
+        "id": "prague-vysocany",
+        "name": "Vysočany"
+      },
+      {
+        "id": "prague-vysehrad",
+        "name": "Vyšehrad"
+      },
+      {
+        "id": "prague-zabehlice",
+        "name": "Záběhlice"
+      },
+      {
+        "id": "prague-zadni-kopanina",
+        "name": "Zadní Kopanina"
+      },
+      {
+        "id": "prague-zbraslav",
+        "name": "Zbraslav"
+      },
+      {
+        "id": "prague-zlicin",
+        "name": "Zličín"
+      },
+      {
+        "id": "prague-zizkov",
+        "name": "Žižkov"
+      }
+    ]
+  },
+  {
+    "id": "pilsen",
+    "name": "Plzeň",
+    "districts": [
+      {
+        "id": "pilsen-bory",
+        "name": "Bory"
+      },
+      {
+        "id": "pilsen-cernice",
+        "name": "Černice"
+      },
+      {
+        "id": "pilsen-doubravka",
+        "name": "Doubravka"
+      },
+      {
+        "id": "pilsen-krimice",
+        "name": "Křimice"
+      },
+      {
+        "id": "pilsen-lhota",
+        "name": "Lhota"
+      },
+      {
+        "id": "pilsen-litice",
+        "name": "Litice"
+      },
+      {
+        "id": "pilsen-malesice",
+        "name": "Malesice"
+      },
+      {
+        "id": "pilsen-radcice",
+        "name": "Radčice"
+      },
+      {
+        "id": "pilsen-sever",
+        "name": "Sever"
+      },
+      {
+        "id": "pilsen-slovany",
+        "name": "Slovany"
+      }
+    ]
+  },
+  {
+    "id": "pardubice",
+    "name": "Pardubice",
+    "districts": [
+      {
+        "id": "pardubice-dubina",
+        "name": "Dubina"
+      },
+      {
+        "id": "pardubice-dukla",
+        "name": "Dukla"
+      },
+      {
+        "id": "pardubice-hostovice",
+        "name": "Hostovice"
+      },
+      {
+        "id": "pardubice-pardubicky",
+        "name": "Pardubičky"
+      },
+      {
+        "id": "pardubice-polabiny",
+        "name": "Polabiny"
+      },
+      {
+        "id": "pardubice-rosice",
+        "name": "Rosice"
+      },
+      {
+        "id": "pardubice-stred",
+        "name": "Střed"
+      },
+      {
+        "id": "pardubice-svitkov",
+        "name": "Svítkov"
+      }
+    ]
+  }
+]

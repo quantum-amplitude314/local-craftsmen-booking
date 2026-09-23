@@ -13,7 +13,8 @@
     "test": "bun --env-file=.env.test test",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:seed": "bun --env-file=.env.local src/seed.ts",
+    "db:seed:reference": "bun --env-file=.env.local src/seed-reference.ts",
+    "db:seed:test": "bun --env-file=.env.local src/seed-test.ts",
     "db:clear": "bun --env-file=.env.local src/clear.ts"
   },
   "dependencies": {
