@@ -109,8 +109,8 @@ Backend routes:
 
 ```text
 GET    /locations
-GET    /craftsmen?craft=&cityId=&districtId=&start=&end=
 GET    /slots?craft=&cityId=&districtId=&start=&end=
+GET    /craftsmen/{id}
 GET    /me/profile
 PUT    /me/profile
 GET    /me/availability

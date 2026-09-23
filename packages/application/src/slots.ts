@@ -1,7 +1,9 @@
 import {
+  type Area,
   cityIdSchema,
   type Slot,
   type SlotInput,
+  type SlotListing,
   type SlotSearch,
 } from "@local-craftsmen/contracts";
 import {
@@ -11,9 +13,17 @@ import {
   craftsmanProfile,
   type Db,
   district,
+  user,
 } from "@local-craftsmen/db";
 import { and, eq, exists, inArray, isNull, or, sql } from "drizzle-orm";
 import { DomainError } from "./errors.ts";
+import { readRates } from "./rates.ts";
+
+type SlotRow = {
+  id: string;
+  craftsmanId: string;
+  range: { start: Date; end: Date };
+};
 
 export const slotPredicate = ({
   db,
@@ -77,6 +87,38 @@ export const slotPredicate = ({
 };
 
 export const createSlotsService = ({ db }: { db: Db }) => {
+  const readAreas = async ({ ids }: { ids: string[] }) => {
+    const areasBySlot = new Map<string, Area[]>();
+    if (ids.length === 0) return areasBySlot;
+
+    const rows = await db
+      .select()
+      .from(availabilityArea)
+      .where(inArray(availabilityArea.availabilityId, ids))
+      .orderBy(availabilityArea.cityId, availabilityArea.districtId);
+    for (const { availabilityId, cityId, districtId } of rows) {
+      const areas = areasBySlot.get(availabilityId) ?? [];
+      areas.push({ cityId: cityIdSchema.parse(cityId), districtId });
+      areasBySlot.set(availabilityId, areas);
+    }
+
+    return areasBySlot;
+  };
+
+  const toSlot = ({ row, areasBySlot }: { row: SlotRow; areasBySlot: Map<string, Area[]> }) => {
+    const { id, craftsmanId, range } = row;
+    const { start, end } = range;
+    const slot: Slot = {
+      id,
+      craftsmanId,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      areas: areasBySlot.get(id) ?? [],
+    };
+
+    return slot;
+  };
+
   const list = async ({
     input = {},
     craftsmanId,
@@ -89,33 +131,42 @@ export const createSlotsService = ({ db }: { db: Db }) => {
       .from(availability)
       .where(slotPredicate({ db, input, ...(craftsmanId ? { craftsmanId } : {}) }))
       .orderBy(availability.range);
-    if (!rows.length) return [];
-    const areas = await db
-      .select()
-      .from(availabilityArea)
-      .where(
-        inArray(
-          availabilityArea.availabilityId,
-          rows.map(({ id }) => id),
-        ),
-      )
-      .orderBy(availabilityArea.cityId, availabilityArea.districtId);
-    const slots: Slot[] = rows.map(({ id, craftsmanId, range }) => {
-      const { start, end } = range;
-      const slot = {
-        id,
-        craftsmanId,
-        start: start.toISOString(),
-        end: end.toISOString(),
-        areas: areas
-          .filter(({ availabilityId }) => availabilityId === id)
-          .map(({ cityId, districtId }) => ({ cityId: cityIdSchema.parse(cityId), districtId })),
-      };
-
-      return slot;
-    });
+    const areasBySlot = await readAreas({ ids: rows.map(({ id }) => id) });
+    const slots = rows.map((row) => toSlot({ row, areasBySlot }));
 
     return slots;
+  };
+
+  const search = async ({ input }: { input: SlotSearch }) => {
+    const rows = await db
+      .select({
+        id: availability.id,
+        craftsmanId: availability.craftsmanId,
+        range: availability.range,
+        name: user.name,
+        craft: craftsmanProfile.craft,
+      })
+      .from(availability)
+      .innerJoin(craftsmanProfile, eq(craftsmanProfile.userId, availability.craftsmanId))
+      .innerJoin(user, eq(user.id, availability.craftsmanId))
+      .where(slotPredicate({ db, input }))
+      .orderBy(availability.range);
+    const craftsmanIds = [...new Set(rows.map(({ craftsmanId }) => craftsmanId))];
+    const [areasBySlot, ratesByCraftsman] = await Promise.all([
+      readAreas({ ids: rows.map(({ id }) => id) }),
+      readRates({ db, ids: craftsmanIds }),
+    ]);
+    const listings: SlotListing[] = rows.map(({ name, craft, ...row }) => {
+      const { craftsmanId } = row;
+      const listing = {
+        ...toSlot({ row, areasBySlot }),
+        craftsman: { id: craftsmanId, name, craft, rates: ratesByCraftsman.get(craftsmanId) ?? [] },
+      };
+
+      return listing;
+    });
+
+    return listings;
   };
 
   const create = async ({ craftsmanId, input }: { craftsmanId: string; input: SlotInput }) => {
@@ -186,7 +237,7 @@ export const createSlotsService = ({ db }: { db: Db }) => {
 
     return deleted;
   };
-  const service = { list, create, remove };
+  const service = { list, search, create, remove };
 
   return service;
 };

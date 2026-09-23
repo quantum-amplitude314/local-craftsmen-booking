@@ -93,7 +93,7 @@ export const router = os.router({
     list: os.locations.list.handler(({ context }) => context.locations.list()),
   },
   slots: {
-    list: os.slots.list.handler(({ context, input }) => context.slots.list({ input })),
+    list: os.slots.list.handler(({ context, input }) => context.slots.search({ input })),
   },
   bookings: {
     create: os.bookings.create.handler(({ context, input }) => {
@@ -107,7 +107,6 @@ export const router = os.router({
     list: os.crafts.list.handler(() => [...CRAFTS]),
   },
   craftsmen: {
-    list: os.craftsmen.list.handler(({ context, input }) => context.craftsmen.list(input)),
     find: os.craftsmen.find.handler(async ({ context, input }) => {
       const craftsman = await context.craftsmen.find(input);
       if (!craftsman) throw new ORPCError("NOT_FOUND");

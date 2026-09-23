@@ -3,6 +3,7 @@ import { z } from "zod";
 import { areaSchema, cityIdSchema } from "./cities.ts";
 import { idSchema, timeRangeSchema, userIdSchema } from "./common.ts";
 import { craftSchema } from "./crafts.ts";
+import { craftsmanRateSchema } from "./rates.ts";
 
 const coverageSchema = z
   .array(areaSchema)
@@ -35,6 +36,16 @@ export const slotSchema = timeRangeSchema.safeExtend({
 });
 export type Slot = z.infer<typeof slotSchema>;
 
+export const slotListingSchema = slotSchema.safeExtend({
+  craftsman: z.object({
+    id: userIdSchema,
+    name: z.string(),
+    craft: craftSchema,
+    rates: z.array(craftsmanRateSchema),
+  }),
+});
+export type SlotListing = z.infer<typeof slotListingSchema>;
+
 export const slotSearchSchema = z
   .object({
     craft: craftSchema.optional(),
@@ -60,7 +71,7 @@ export const slotsContract = {
       summary: "Search available slots by coverage and time",
     })
     .input(slotSearchSchema)
-    .output(z.array(slotSchema)),
+    .output(z.array(slotListingSchema)),
 };
 
 export const ownSlotsContract = {

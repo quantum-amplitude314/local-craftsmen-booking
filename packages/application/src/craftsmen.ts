@@ -1,13 +1,8 @@
-import {
-  type CraftsmanRate,
-  cityIdSchema,
-  currencySchema,
-  type ProfileInput,
-  type SlotSearch,
-} from "@local-craftsmen/contracts";
-import { availability, craftsmanProfile, craftsmanRate, type Db, user } from "@local-craftsmen/db";
-import { and, eq, exists, inArray } from "drizzle-orm";
-import { createSlotsService, slotPredicate } from "./slots.ts";
+import { cityIdSchema, currencySchema, type ProfileInput } from "@local-craftsmen/contracts";
+import { craftsmanProfile, craftsmanRate, type Db, user } from "@local-craftsmen/db";
+import { eq } from "drizzle-orm";
+import { readRates } from "./rates.ts";
+import { createSlotsService } from "./slots.ts";
 
 const profileColumns = {
   id: craftsmanProfile.userId,
@@ -33,58 +28,6 @@ const toProfile = <Row extends ProfileRow>({ baseCityId, baseDistrictId, ...prof
 };
 
 export const createCraftsmenService = ({ db }: { db: Db }) => {
-  const readRates = async ({ ids }: { ids: string[] }) => {
-    const ratesByCraftsman = new Map<string, CraftsmanRate[]>();
-    if (ids.length === 0) return ratesByCraftsman;
-
-    const rows = await db
-      .select()
-      .from(craftsmanRate)
-      .where(inArray(craftsmanRate.craftsmanId, ids))
-      .orderBy(craftsmanRate.currency);
-    for (const { craftsmanId, currency, hourlyRate } of rows) {
-      const rates = ratesByCraftsman.get(craftsmanId) ?? [];
-      rates.push({ currency: currencySchema.parse(currency), hourlyRate });
-      ratesByCraftsman.set(craftsmanId, rates);
-    }
-
-    return ratesByCraftsman;
-  };
-
-  const list = async (input: SlotSearch) => {
-    const { craft, cityId, districtId, start, end } = input;
-    const filteredBySlot = cityId || districtId || start || end;
-    const rows = await db
-      .select(profileColumns)
-      .from(craftsmanProfile)
-      .innerJoin(user, eq(user.id, craftsmanProfile.userId))
-      .where(
-        and(
-          craft ? eq(craftsmanProfile.craft, craft) : undefined,
-          filteredBySlot
-            ? exists(
-                db
-                  .select({ id: availability.id })
-                  .from(availability)
-                  .where(
-                    and(
-                      eq(availability.craftsmanId, craftsmanProfile.userId),
-                      slotPredicate({ db, input }),
-                    ),
-                  ),
-              )
-            : undefined,
-        ),
-      );
-    const ratesByCraftsman = await readRates({ ids: rows.map(({ id }) => id) });
-    const profiles = rows.map((row) => ({
-      ...toProfile(row),
-      rates: ratesByCraftsman.get(row.id) ?? [],
-    }));
-
-    return profiles;
-  };
-
   const getProfile = async ({ id }: { id: string }) => {
     const [row] = await db
       .select(profileColumns)
@@ -93,7 +36,7 @@ export const createCraftsmenService = ({ db }: { db: Db }) => {
       .where(eq(craftsmanProfile.userId, id));
     if (!row) return null;
 
-    const ratesByCraftsman = await readRates({ ids: [id] });
+    const ratesByCraftsman = await readRates({ db, ids: [id] });
     const profile = { ...toProfile(row), rates: ratesByCraftsman.get(id) ?? [] };
 
     return profile;
@@ -156,7 +99,7 @@ export const createCraftsmenService = ({ db }: { db: Db }) => {
     return detail;
   };
 
-  const service = { list, find, getProfile, saveProfile };
+  const service = { find, getProfile, saveProfile };
 
   return service;
 };

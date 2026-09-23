@@ -229,16 +229,29 @@ describe("location-aware slots and booking allocation", () => {
       cookie: customerCookie,
     });
     expect(await wrongDistrict.json()).not.toContainEqual(expect.objectContaining({ id: slot.id }));
-    const directory = await call({
-      path: `/craftsmen?cityId=prague&start=${slot.start}&end=${slot.end}`,
+    const listing = await call({
+      path: `/slots?cityId=prague&start=${slot.start}&end=${slot.end}`,
       cookie: customerCookie,
     });
-    expect(await directory.json()).toContainEqual(expect.objectContaining({ id: craftsmanId }));
+    expect(await listing.json()).toContainEqual(
+      expect.objectContaining({
+        id: slot.id,
+        craftsman: {
+          id: craftsmanId,
+          name: expect.any(String),
+          craft: profileInput.craft,
+          rates: [
+            { currency: "CZK", hourlyRate: "250.00" },
+            { currency: "EUR", hourlyRate: "10.00" },
+          ],
+        },
+      }),
+    );
     const wrongCity = await call({
-      path: `/craftsmen?cityId=pilsen&start=${slot.start}&end=${slot.end}`,
+      path: `/slots?cityId=pilsen&start=${slot.start}&end=${slot.end}`,
       cookie: customerCookie,
     });
-    expect(await wrongCity.json()).not.toContainEqual(expect.objectContaining({ id: craftsmanId }));
+    expect(await wrongCity.json()).not.toContainEqual(expect.objectContaining({ id: slot.id }));
     const outsideTime = await call({
       path: `/slots?cityId=prague&start=${slot.start}&end=2041-01-01T00:00:00Z`,
       cookie: customerCookie,
@@ -583,25 +596,31 @@ describe("authentication", () => {
   });
 });
 
-describe("craftsmen directory access", () => {
-  test("rejects an anonymous request for the craftsmen list", async () => {
-    const response = await call({ path: "/craftsmen" });
-
-    expect(response.status).toBe(401);
-  });
-
+describe("slot listing and craftsman access", () => {
   test("rejects an anonymous request for a craftsman profile", async () => {
     const response = await call({ path: "/craftsmen/seed-painter" });
 
     expect(response.status).toBe(401);
   });
 
-  test("lists craftsmen for a signed-in user", async () => {
+  test("no longer serves a craftsmen list", async () => {
     const { cookie } = await registerUser({ role: "customer" });
     const response = await call({ path: "/craftsmen", cookie });
 
+    expect(response.status).toBe(404);
+  });
+
+  test("lists seeded slots with their craftsman for a signed-in user", async () => {
+    const { cookie } = await registerUser({ role: "customer" });
+    const response = await call({ path: "/slots?craft=painter", cookie });
+
     expect(response.status).toBe(200);
-    await expect(response.json()).resolves.not.toHaveLength(0);
+    await expect(response.json()).resolves.toContainEqual(
+      expect.objectContaining({
+        craftsmanId: "seed-painter-1",
+        craftsman: expect.objectContaining({ id: "seed-painter-1", craft: "painter" }),
+      }),
+    );
   });
 });
 
@@ -652,17 +671,14 @@ describe("craftsman profile pricing", () => {
       ],
     });
 
-    const directory = await call({ path: "/craftsmen", cookie });
-    const rows = await directory.json();
-    expect(rows).toContainEqual(
-      expect.objectContaining({
-        id,
-        rates: [
-          { currency: "CZK", hourlyRate: "250.00" },
-          { currency: "EUR", hourlyRate: "10.00" },
-        ],
-      }),
-    );
+    const detail = await call({ path: `/craftsmen/${id}`, cookie });
+    await expect(detail.json()).resolves.toMatchObject({
+      id,
+      rates: [
+        { currency: "CZK", hourlyRate: "250.00" },
+        { currency: "EUR", hourlyRate: "10.00" },
+      ],
+    });
     const original = await call({ path: "/craftsmen/seed-painter-1", cookie });
     await expect(original.json()).resolves.toMatchObject({ id: "seed-painter-1", bio: null });
   });

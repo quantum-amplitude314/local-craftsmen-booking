@@ -1,11 +1,11 @@
 meta {
-  name: list craftsmen
+  name: list slots
   type: http
   seq: 1
 }
 
 get {
-  url: {{baseUrl}}/craftsmen?craft=painter
+  url: {{baseUrl}}/slots?craft=painter
   body: none
   auth: none
 }
@@ -19,11 +19,11 @@ params:query {
 }
 
 vars:post-response {
-  craftsmanId: res.body[0]?.id
+  craftsmanId: res.body[0]?.craftsman.id
 }
 
 assert {
   res.status: eq 200
   res.body: isArray
-  res.body[0].craft: eq painter
+  res.body[0].craftsman.craft: eq painter
 }

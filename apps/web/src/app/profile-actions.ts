@@ -36,8 +36,8 @@ export const saveProfile = async (
   const prefix = locale === routing.defaultLocale ? "" : `/${locale}`;
   revalidatePath(`${prefix}/dashboard`);
   for (const supportedLocale of routing.locales) {
-    const directoryPrefix = supportedLocale === routing.defaultLocale ? "" : `/${supportedLocale}`;
-    revalidatePath(`${directoryPrefix}/craftsmen`);
+    const slotsPrefix = supportedLocale === routing.defaultLocale ? "" : `/${supportedLocale}`;
+    revalidatePath(`${slotsPrefix}/slots`);
   }
   const saved: ProfileFormState = { saved: true, values };
 

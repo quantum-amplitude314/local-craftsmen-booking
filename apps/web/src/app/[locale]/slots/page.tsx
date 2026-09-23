@@ -1,4 +1,4 @@
-import type { Area, CraftsmanProfile, CraftsmanRate } from "@local-craftsmen/contracts";
+import type { Area, CraftsmanRate, SlotListing } from "@local-craftsmen/contracts";
 import { MapPin } from "lucide-react";
 import type { Metadata } from "next";
 import { getFormatter, getLocale, getTranslations } from "next-intl/server";
@@ -13,22 +13,22 @@ export const generateMetadata = async (): Promise<Metadata> => {
   return metadata;
 };
 
-const loadCraftsmen = async () => {
+const loadSlots = async () => {
   try {
-    const craftsmen = await apiClient.craftsmen.list({});
+    const slots = await apiClient.slots.list({});
 
-    return craftsmen;
+    return slots;
   } catch {
     return null;
   }
 };
 
-async function CraftsmenList({ craftsmen }: { craftsmen: CraftsmanProfile[] | null }) {
+async function SlotList({ slots }: { slots: SlotListing[] | null }) {
   const [t, tCities, format, locations] = await Promise.all([
     getTranslations("directory"),
     getTranslations("cities"),
     getFormatter(),
-    craftsmen ? apiClient.locations.list() : Promise.resolve([]),
+    slots ? apiClient.locations.list() : Promise.resolve([]),
   ]);
 
   const formatArea = ({ cityId, districtId }: Area) => {
@@ -55,7 +55,19 @@ async function CraftsmenList({ craftsmen }: { craftsmen: CraftsmanProfile[] | nu
     return label;
   };
 
-  if (!craftsmen) {
+  const formatTime = ({ start, end }: { start: string; end: string }) => {
+    const label = format.dateTimeRange(new Date(start), new Date(end), {
+      weekday: "short",
+      day: "numeric",
+      month: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+
+    return label;
+  };
+
+  if (!slots) {
     return (
       <div className="border-border border-y py-10" aria-live="polite">
         <p className="font-medium">{t("unavailable")}</p>
@@ -66,7 +78,7 @@ async function CraftsmenList({ craftsmen }: { craftsmen: CraftsmanProfile[] | nu
     );
   }
 
-  if (craftsmen.length === 0) {
+  if (slots.length === 0) {
     return (
       <p className="prose-text border-border border-t py-10 text-muted-foreground">{t("empty")}</p>
     );
@@ -74,25 +86,23 @@ async function CraftsmenList({ craftsmen }: { craftsmen: CraftsmanProfile[] | nu
 
   return (
     <ul className="grid gap-x-8 border-t md:grid-cols-2 lg:grid-cols-3">
-      {craftsmen.map(({ id, name, craft, baseArea, rates, bio }) => (
+      {slots.map(({ id, start, end, areas, craftsman }) => (
         <li key={id} className="min-w-0 border-b py-8">
           <article className="flex h-full flex-col gap-6">
-            <p className="eyebrow text-primary">{t(`crafts.${craft}`)}</p>
+            <p className="eyebrow text-primary">{t(`crafts.${craftsman.craft}`)}</p>
 
             <div className="flex flex-1 flex-col gap-4">
-              <h2 className="section-heading wrap-anywhere">{name}</h2>
+              <h2 className="section-heading wrap-anywhere">{craftsman.name}</h2>
 
-              <p className="prose-text min-h-12 text-sm leading-6 text-muted-foreground">
-                {bio ?? t("fallbackBio", { craft })}
-              </p>
+              <p className="font-medium">{formatTime({ start, end })}</p>
 
               <div className="mt-auto flex flex-wrap items-end justify-between gap-4 pt-4">
                 <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <MapPin aria-hidden="true" className="size-4" />
-                  {formatArea(baseArea)}
+                  <MapPin aria-hidden="true" className="size-4 shrink-0" />
+                  {areas.map(formatArea).join(" · ")}
                 </span>
                 <span className="text-sm font-medium">
-                  {formatRates(rates)}
+                  {formatRates(craftsman.rates)}
                   <span className="font-normal text-muted-foreground">{t("perHour")}</span>
                 </span>
               </div>
@@ -104,24 +114,24 @@ async function CraftsmenList({ craftsmen }: { craftsmen: CraftsmanProfile[] | nu
   );
 }
 
-export default async function CraftsmenPage() {
+export default async function SlotsPage() {
   const [user, locale, t] = await Promise.all([
     getCurrentUser(),
     getLocale(),
     getTranslations("directory"),
   ]);
   if (!user) return redirect({ href: "/login", locale });
-  const craftsmen = await loadCraftsmen();
+  const slots = await loadSlots();
 
   return (
     <main id="main-content" tabIndex={-1} className="page-shell section-space flex flex-col gap-10">
       <h1 className="page-heading">
         {t("heading")}
-        {craftsmen && craftsmen.length > 0 && (
-          <span className="text-muted-foreground"> · {craftsmen.length}</span>
+        {slots && slots.length > 0 && (
+          <span className="text-muted-foreground"> · {slots.length}</span>
         )}
       </h1>
-      <CraftsmenList craftsmen={craftsmen} />
+      <SlotList slots={slots} />
     </main>
   );
 }

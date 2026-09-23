@@ -4,7 +4,7 @@ import { areaSchema } from "./cities.ts";
 import { userIdSchema } from "./common.ts";
 import { craftSchema } from "./crafts.ts";
 import { craftsmanRateSchema, profileRatesInputSchema } from "./rates.ts";
-import { slotSchema, slotSearchSchema } from "./slots.ts";
+import { slotSchema } from "./slots.ts";
 
 export const craftsmanProfileSchema = z.object({
   id: userIdSchema,
@@ -42,10 +42,6 @@ export const craftsmanDetailSchema = craftsmanProfileSchema.extend({
 });
 
 export const craftsmenContract = {
-  list: oc
-    .route({ method: "GET", path: "/craftsmen", summary: "List craftsmen" })
-    .input(slotSearchSchema)
-    .output(z.array(craftsmanProfileSchema)),
   find: oc
     .route({ method: "GET", path: "/craftsmen/{id}", summary: "Craftsman profile" })
     .input(z.object({ id: userIdSchema }))

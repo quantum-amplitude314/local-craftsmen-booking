@@ -33,13 +33,12 @@
     }
   },
   "directory": {
-    "title": "Craftsmen | Local Craftsmen",
-    "heading": "Craftsmen directory",
-    "empty": "No craftsmen are listed yet. Please check back soon.",
-    "unavailable": "We couldn’t load the craftsmen directory.",
+    "title": "Available times | Local Craftsmen",
+    "heading": "Available times",
+    "empty": "No available times yet. Please check back soon.",
+    "unavailable": "We couldn’t load available times.",
     "unavailableDescription": "Please try again in a moment.",
     "perHour": " / hour",
-    "fallbackBio": "{craft, select, painter {Painting} plumber {Plumbing} electrician {Electrical} carpenter {Carpentry} tiler {Tiling} other {Local}} services.",
     "areaWithDistrict": "{district}, {city}",
     "crafts": {
       "painter": "Painter",
@@ -108,16 +107,16 @@
     },
     "ready": {
       "craftsman": "Your account is ready. Profile, availability, and booking management are coming next.",
-      "customer": "Your account is ready. You can browse the directory while booking is being added."
+      "customer": "Your account is ready. You can browse available times while booking is being added."
     },
-    "browse": "Browse craftsmen",
+    "browse": "Browse available times",
     "unavailable": "Your account is temporarily unavailable",
     "unavailableDescription": "We couldn’t load your account. Please try again.",
     "retry": "Try again"
   },
   "profile": {
     "heading": "Your craftsman profile",
-    "description": "Introduce your services and set the hourly prices customers will see in the directory.",
+    "description": "Introduce your services and set the hourly prices customers will see with your available times.",
     "craft": "Craft",
     "baseArea": "Where you are based",
     "baseAreaHint": "Your base location, not the full area you serve.",

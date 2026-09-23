@@ -9,7 +9,7 @@ export default getRequestConfig(async ({ locale }) => {
     ? requestedLocale
     : routing.defaultLocale;
   const { default: messages } = await import(`../../messages/${resolvedLocale}.json`);
-  const config = { locale: resolvedLocale, messages };
+  const config = { locale: resolvedLocale, messages, timeZone: "Europe/Prague" };
 
   return config;
 });

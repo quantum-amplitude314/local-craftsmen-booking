@@ -64,4 +64,11 @@ export {
   craftsmanRateSchema,
   currencySchema,
 } from "./rates.ts";
-export { type Slot, type SlotInput, type SlotSearch, slotSchema } from "./slots.ts";
+export {
+  type Slot,
+  type SlotInput,
+  type SlotListing,
+  type SlotSearch,
+  slotListingSchema,
+  slotSchema,
+} from "./slots.ts";

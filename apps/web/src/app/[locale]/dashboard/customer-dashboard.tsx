@@ -9,7 +9,7 @@ export async function CustomerDashboard() {
     <>
       <p className="body-lead max-w-xl text-muted-foreground">{t("ready.customer")}</p>
       <div>
-        <Link href="/craftsmen" className={buttonVariants({ variant: "outline", size: "lg" })}>
+        <Link href="/slots" className={buttonVariants({ variant: "outline", size: "lg" })}>
           {t("browse")}
         </Link>
       </div>

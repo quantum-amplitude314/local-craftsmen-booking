@@ -33,13 +33,12 @@
     }
   },
   "directory": {
-    "title": "Řemeslníci | Local Craftsmen",
-    "heading": "Přehled řemeslníků",
-    "empty": "Zatím tu nejsou žádní řemeslníci. Zkuste to prosím brzy znovu.",
-    "unavailable": "Přehled řemeslníků se nepodařilo načíst.",
+    "title": "Volné termíny | Local Craftsmen",
+    "heading": "Volné termíny",
+    "empty": "Zatím tu nejsou žádné volné termíny. Zkuste to prosím brzy znovu.",
+    "unavailable": "Volné termíny se nepodařilo načíst.",
     "unavailableDescription": "Zkuste to prosím za chvíli znovu.",
     "perHour": " / hodinu",
-    "fallbackBio": "{craft, select, painter {Malířské} plumber {Instalatérské} electrician {Elektroinstalační} carpenter {Truhlářské} tiler {Obkladačské} other {Řemeslné}} práce.",
     "areaWithDistrict": "{district}, {city}",
     "crafts": {
       "painter": "Malíř",
@@ -108,16 +107,16 @@
     },
     "ready": {
       "craftsman": "Váš účet je připravený. Správu profilu, dostupnosti a rezervací přidáme v dalším kroku.",
-      "customer": "Váš účet je připravený. Než přidáme rezervace, můžete si prohlédnout přehled řemeslníků."
+      "customer": "Váš účet je připravený. Než přidáme rezervace, můžete si prohlédnout volné termíny."
     },
-    "browse": "Prohlédnout řemeslníky",
+    "browse": "Prohlédnout volné termíny",
     "unavailable": "Váš účet je dočasně nedostupný",
     "unavailableDescription": "Účet se nepodařilo načíst. Zkuste to prosím znovu.",
     "retry": "Zkusit znovu"
   },
   "profile": {
     "heading": "Váš profil řemeslníka",
-    "description": "Představte své služby a nastavte hodinové sazby, které zákazníci uvidí v přehledu.",
+    "description": "Představte své služby a nastavte hodinové sazby, které zákazníci uvidí u vašich volných termínů.",
     "craft": "Řemeslo",
     "baseArea": "Odkud jste",
     "baseAreaHint": "Místo, kde sídlíte, nikoli celá oblast, ve které pracujete.",
