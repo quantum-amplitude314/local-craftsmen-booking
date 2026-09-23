@@ -12,7 +12,7 @@ post {
 
 headers {
   Origin: http://localhost:3000
-  x-captcha-response: XXXX.DUMMY.TOKEN.XXXX
+  x-captcha-response: {{turnstileToken}}
 }
 
 body:json {
@@ -29,6 +29,7 @@ script:pre-request {
 }
 
 script:post-response {
+  if (res.getStatus() !== 200) return;
   const setCookie = [res.getHeader("set-cookie")].flat().filter(Boolean);
   bru.setVar("sessionCookie", setCookie.map((header) => header.split(";")[0]).join("; "));
 }

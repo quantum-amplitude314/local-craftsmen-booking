@@ -28,6 +28,7 @@
         "@types/bun": "latest",
         "@types/node": "^26.6.2",
         "@usebruno/cli": "^2.0.0",
+        "drizzle-orm": "^0.45.2",
         "vitest": "^4.1.0",
         "wrangler": "^4.136.1",
       },
