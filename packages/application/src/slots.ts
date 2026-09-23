@@ -11,6 +11,7 @@ import {
   availabilityArea,
   booking,
   craftsmanProfile,
+  craftsmanRate,
   type Db,
   district,
   user,
@@ -181,6 +182,13 @@ export const createSlotsService = ({ db }: { db: Db }) => {
         .for("update");
       if (!profile)
         throw new DomainError({ code: "BAD_REQUEST", message: "Set up your profile first" });
+      const [rate] = await tx
+        .select({ currency: craftsmanRate.currency })
+        .from(craftsmanRate)
+        .where(eq(craftsmanRate.craftsmanId, craftsmanId))
+        .limit(1);
+      if (!rate)
+        throw new DomainError({ code: "BAD_REQUEST", message: "Set an hourly rate first" });
       const [occupied] = await tx
         .select({ id: booking.id })
         .from(booking)

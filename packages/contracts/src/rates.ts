@@ -23,7 +23,6 @@ export const profileRatesInputSchema = z
       hourlyRate: z.string().regex(/^[1-9]\d{0,9}$/, { error: "wholeRate" }),
     }),
   )
-  .min(1, { error: "rateRequired" })
   .max(CURRENCIES.length, { error: "invalidRates" })
   .refine((rates) => new Set(rates.map(({ currency }) => currency)).size === rates.length, {
     error: "duplicateCurrency",

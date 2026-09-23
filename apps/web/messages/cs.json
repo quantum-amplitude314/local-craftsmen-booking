@@ -126,7 +126,7 @@
     "district": "Čtvrť nebo lokalita (nepovinné)",
     "bio": "O vašich službách (nepovinné)",
     "rates": "Hodinové sazby",
-    "ratesHint": "Zadejte cenu v celých číslech pro každou měnu, kterou přijímáte. Vyplňte alespoň jednu sazbu. Prázdné pole znamená, že tuto měnu nenabízíte. Ceny nastavujete samostatně, nepřepočítávají se.",
+    "ratesHint": "Zadejte cenu v celých číslech pro každou měnu, kterou přijímáte. Prázdné pole znamená, že tuto měnu nenabízíte. Bez alespoň jedné ceny nemůžete zveřejnit volné termíny. Ceny nastavujete samostatně, nepřepočítávají se.",
     "rateLabel": "{currency} / hodinu",
     "save": "Uložit profil",
     "saving": "Ukládání…",
@@ -134,12 +134,12 @@
     "errors": {
       "checkFields": "Zkontrolujte zvýrazněná pole.",
       "saveFailed": "Profil se nepodařilo uložit. Vaše změny zůstaly ve formuláři. Zkuste to prosím znovu.",
-      "unauthorized": "Pro uložení profilu se přihlaste svým účtem řemeslníka."
+      "unauthorized": "Pro uložení profilu se přihlaste svým účtem řemeslníka.",
+      "rateInUse": "Dokud máte nadcházející volné termíny, ponechte alespoň jednu cenu."
     },
     "validation": {
       "invalidValue": "Zadejte platnou hodnotu nebo vyberte možnost.",
-      "wholeRate": "Zadejte cenu jako celé číslo od 1 do 9 999 999 999.",
-      "rateRequired": "Zadejte cenu alespoň v jedné měně."
+      "wholeRate": "Zadejte cenu jako celé číslo od 1 do 9 999 999 999."
     }
   },
   "header": {

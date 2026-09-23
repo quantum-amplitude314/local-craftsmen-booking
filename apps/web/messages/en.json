@@ -126,7 +126,7 @@
     "district": "District or locality (optional)",
     "bio": "About your services (optional)",
     "rates": "Hourly rates",
-    "ratesHint": "Set a whole-number price for each currency you accept. Enter at least one rate. Leave a field blank to stop offering that currency. Prices are independent, not converted.",
+    "ratesHint": "Set a whole-number price for each currency you accept. Leave a field blank to stop offering that currency. You need at least one price to publish available times. Prices are independent, not converted.",
     "rateLabel": "{currency} / hour",
     "save": "Save profile",
     "saving": "Saving…",
@@ -134,12 +134,12 @@
     "errors": {
       "checkFields": "Check the highlighted fields.",
       "saveFailed": "We couldn’t save your profile. Your changes are still here. Please try again.",
-      "unauthorized": "Sign in with your craftsman account to save this profile."
+      "unauthorized": "Sign in with your craftsman account to save this profile.",
+      "rateInUse": "Keep at least one price while you have upcoming available times."
     },
     "validation": {
       "invalidValue": "Enter a valid value or choose an option.",
-      "wholeRate": "Enter a whole-number price from 1 to 9,999,999,999.",
-      "rateRequired": "Enter a price in at least one currency."
+      "wholeRate": "Enter a whole-number price from 1 to 9,999,999,999."
     }
   },
   "header": {

@@ -1,6 +1,7 @@
 import { cityIdSchema, currencySchema, type ProfileInput } from "@local-craftsmen/contracts";
-import { craftsmanProfile, craftsmanRate, type Db, user } from "@local-craftsmen/db";
-import { eq } from "drizzle-orm";
+import { availability, craftsmanProfile, craftsmanRate, type Db, user } from "@local-craftsmen/db";
+import { and, eq, sql } from "drizzle-orm";
+import { DomainError } from "./errors.ts";
 import { readRates } from "./rates.ts";
 import { createSlotsService } from "./slots.ts";
 
@@ -58,13 +59,35 @@ export const createCraftsmenService = ({ db }: { db: Db }) => {
         .insert(craftsmanProfile)
         .values({ userId: id, ...values })
         .onConflictDoUpdate({ target: craftsmanProfile.userId, set: values });
+      if (rates.length === 0) {
+        const [futureSlot] = await tx
+          .select({ id: availability.id })
+          .from(availability)
+          .where(and(eq(availability.craftsmanId, id), sql`upper(${availability.range}) > now()`))
+          .limit(1);
+        if (futureSlot)
+          throw new DomainError({
+            code: "CONFLICT",
+            message: "Keep a rate while you have future slots",
+          });
+      }
       await tx.delete(craftsmanRate).where(eq(craftsmanRate.craftsmanId, id));
-      const savedRates = await tx
-        .insert(craftsmanRate)
-        .values(
-          rates.map(({ currency, hourlyRate }) => ({ craftsmanId: id, currency, hourlyRate })),
-        )
-        .returning({ currency: craftsmanRate.currency, hourlyRate: craftsmanRate.hourlyRate });
+      const savedRates =
+        rates.length === 0
+          ? []
+          : await tx
+              .insert(craftsmanRate)
+              .values(
+                rates.map(({ currency, hourlyRate }) => ({
+                  craftsmanId: id,
+                  currency,
+                  hourlyRate,
+                })),
+              )
+              .returning({
+                currency: craftsmanRate.currency,
+                hourlyRate: craftsmanRate.hourlyRate,
+              });
       const [row] = await tx
         .select(profileColumns)
         .from(craftsmanProfile)

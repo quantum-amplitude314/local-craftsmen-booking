@@ -683,13 +683,69 @@ describe("craftsman profile pricing", () => {
     await expect(original.json()).resolves.toMatchObject({ id: "seed-painter-1", bio: null });
   });
 
+  test("saves a profile without rates, but slots need a rate and the last rate stays while slots exist", async () => {
+    const { cookie } = await registerUser({ role: "craftsman" });
+    const unpriced = await call({
+      path: "/me/profile",
+      method: "PUT",
+      cookie,
+      body: { ...profileInput, rates: [] },
+    });
+    expect(unpriced.status).toBe(200);
+    await expect(unpriced.json()).resolves.toMatchObject({ rates: [] });
+
+    const slotInput = {
+      start: "2041-01-01T08:00:00.000Z",
+      end: "2041-01-01T16:00:00.000Z",
+      areas: [{ cityId: "prague", districtId: null }],
+    };
+    const unpricedSlot = await call({
+      path: "/me/availability",
+      method: "POST",
+      cookie,
+      body: slotInput,
+    });
+    expect(unpricedSlot.status).toBe(400);
+
+    const priced = await call({ path: "/me/profile", method: "PUT", cookie, body: profileInput });
+    expect(priced.status).toBe(200);
+    const created = await call({
+      path: "/me/availability",
+      method: "POST",
+      cookie,
+      body: slotInput,
+    });
+    expect(created.status).toBe(200);
+    const { id: slotId } = slotSchema.parse(await created.json());
+
+    const lastRateRemoval = await call({
+      path: "/me/profile",
+      method: "PUT",
+      cookie,
+      body: { ...profileInput, rates: [] },
+    });
+    expect(lastRateRemoval.status).toBe(409);
+    const unchanged = await call({ path: "/me/profile", cookie });
+    const { rates } = craftsmanProfileSchema.parse(await unchanged.json());
+    expect(rates).toHaveLength(2);
+
+    const removed = await call({ path: `/me/availability/${slotId}`, method: "DELETE", cookie });
+    expect(removed.status).toBe(200);
+    const withoutSlots = await call({
+      path: "/me/profile",
+      method: "PUT",
+      cookie,
+      body: { ...profileInput, rates: [] },
+    });
+    expect(withoutSlots.status).toBe(200);
+  });
+
   test("enforces v1 rate policy at the API without modifying saved prices on rejection", async () => {
     const { cookie } = await registerUser({ role: "craftsman" });
     const saved = await call({ path: "/me/profile", method: "PUT", cookie, body: profileInput });
     expect(saved.status).toBe(200);
     const expected = await saved.json();
     for (const rates of [
-      [],
       [{ currency: "EUR", hourlyRate: "12.50" }],
       [
         { currency: "EUR", hourlyRate: "10" },

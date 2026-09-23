@@ -1,6 +1,7 @@
 "use server";
 
 import { userRoleSchema } from "@local-craftsmen/contracts";
+import { ORPCError } from "@orpc/client";
 import { revalidatePath } from "next/cache";
 import { hasLocale } from "next-intl";
 import { routing } from "@/i18n/routing";
@@ -23,8 +24,9 @@ export const saveProfile = async (
       return failure;
     }
     await apiClient.me.profile.save(parsed.data);
-  } catch {
-    const failure: ProfileFormState = { error: "saveFailed", values };
+  } catch (error) {
+    const rateInUse = error instanceof ORPCError && error.code === "CONFLICT";
+    const failure: ProfileFormState = { error: rateInUse ? "rateInUse" : "saveFailed", values };
 
     return failure;
   }

@@ -33,7 +33,10 @@ export const ownProfileContract = {
   save: oc
     .route({ method: "PUT", path: "/me/profile", summary: "Save your craftsman profile and rates" })
     .input(profileInputSchema)
-    .errors({ BAD_REQUEST: { message: "Invalid profile location" } })
+    .errors({
+      BAD_REQUEST: { message: "Invalid profile location" },
+      CONFLICT: { message: "Keep a rate while you have future slots" },
+    })
     .output(craftsmanProfileSchema),
 };
 

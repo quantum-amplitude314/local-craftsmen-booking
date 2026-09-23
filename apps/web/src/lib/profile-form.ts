@@ -14,10 +14,10 @@ export type ProfileValues = {
 };
 
 export type ProfileField = Exclude<keyof ProfileValues, "rates"> | "rates" | `rate.${Currency}`;
-type ValidationError = "invalidValue" | "wholeRate" | "rateRequired";
+type ValidationError = "invalidValue" | "wholeRate";
 
 export type ProfileFormState = {
-  error?: "checkFields" | "saveFailed" | "unauthorized";
+  error?: "checkFields" | "saveFailed" | "unauthorized" | "rateInUse";
   saved?: boolean;
   values?: ProfileValues;
   fieldErrors?: Partial<Record<ProfileField, ValidationError>>;
@@ -91,7 +91,7 @@ export const validateProfileForm = (formData: FormData) => {
       if (field === "rates") {
         const currency = typeof child === "number" ? rateInputs[child]?.currency : undefined;
         if (currency) fieldErrors[`rate.${currency}`] = "wholeRate";
-        else fieldErrors.rates = "rateRequired";
+        else fieldErrors.rates = "invalidValue";
       } else if (field === "baseArea") {
         const key = child === "districtId" ? "district" : "city";
         fieldErrors[key] = "invalidValue";
