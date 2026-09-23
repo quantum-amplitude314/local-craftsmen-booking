@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { matchesWordStart } from "@/lib/option-filter";
 import {
   type ProfileField,
   type ProfileFormState,
@@ -48,6 +49,9 @@ const bioMaxLength = 2000;
 type Option = { value: string; label: string };
 
 const isSameOption = (option: Option, selected: Option) => option.value === selected.value;
+
+const optionFilter = (selected: Option | null) => (option: Option, query: string) =>
+  query === selected?.label || matchesWordStart({ label: option.label, query });
 
 function FormSection({
   id,
@@ -247,6 +251,7 @@ export function ProfileForm({
               items={cityOptions}
               value={selectedCity}
               disabled={pending}
+              filter={optionFilter(selectedCity)}
               isItemEqualToValue={isSameOption}
               itemToStringLabel={({ label }: Option) => label}
               onValueChange={(option: Option | null) => {
@@ -282,6 +287,7 @@ export function ProfileForm({
                 items={districtOptions}
                 value={selectedDistrict}
                 disabled={pending}
+                filter={optionFilter(selectedDistrict)}
                 isItemEqualToValue={isSameOption}
                 itemToStringLabel={({ label }: Option) => label}
                 onValueChange={(option: Option | null) => {
