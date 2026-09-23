@@ -65,6 +65,17 @@ export {
   currencySchema,
 } from "./rates.ts";
 export {
+  BOOKING_MIN_MINUTES,
+  BREAK_MINUTES,
+  durationMinutes,
+  isOnScheduleStep,
+  isWithinOneDay,
+  SCHEDULE_STEP_MINUTES,
+  SCHEDULE_TIME_ZONE,
+  SLOT_MAX_MINUTES,
+  SLOT_MIN_MINUTES,
+} from "./schedule.ts";
+export {
   type Slot,
   type SlotInput,
   type SlotListing,

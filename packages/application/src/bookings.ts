@@ -13,6 +13,7 @@ import {
 } from "@local-craftsmen/db";
 import { and, eq, inArray } from "drizzle-orm";
 import { DomainError } from "./errors.ts";
+import { toWorkEnd } from "./slots.ts";
 
 const toBooking = ({ range, cityId, districtId, ...row }: typeof booking.$inferSelect) => {
   const { start, end } = range;
@@ -51,13 +52,10 @@ export const createBookingsService = ({ db }: { db: Db }) => {
       if (!slot || !profile)
         throw new DomainError({ code: "CONFLICT", message: "Slot already consumed" });
       const { range } = slot;
+      const workEnd = toWorkEnd(range.end);
       const requestedStart = new Date(start);
       const requestedEnd = new Date(end);
-      if (
-        requestedStart <= new Date() ||
-        requestedStart < range.start ||
-        requestedEnd > range.end
-      ) {
+      if (requestedStart <= new Date() || requestedStart < range.start || requestedEnd > workEnd) {
         throw new DomainError({
           code: "BAD_REQUEST",
           message: "Requested time is outside the slot",
@@ -133,7 +131,7 @@ export const createBookingsService = ({ db }: { db: Db }) => {
             id: slotId,
             craftsmanId,
             start: range.start.toISOString(),
-            end: range.end.toISOString(),
+            end: workEnd.toISOString(),
             areas,
           },
         },

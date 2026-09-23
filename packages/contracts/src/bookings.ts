@@ -4,12 +4,19 @@ import { areaSchema } from "./cities.ts";
 import { idSchema, timeRangeSchema, userIdSchema } from "./common.ts";
 import { craftSchema } from "./crafts.ts";
 import { currencySchema, hourlyRateSchema } from "./rates.ts";
+import { BOOKING_MIN_MINUTES, durationMinutes, isOnScheduleStep } from "./schedule.ts";
 
-export const bookingInputSchema = timeRangeSchema.safeExtend({
-  slotId: idSchema,
-  location: areaSchema,
-  currency: currencySchema,
-});
+export const bookingInputSchema = timeRangeSchema
+  .safeExtend({
+    slotId: idSchema,
+    location: areaSchema,
+    currency: currencySchema,
+  })
+  .refine(isOnScheduleStep, { message: "Use the 15-minute grid", path: ["start"] })
+  .refine((range) => durationMinutes(range) >= BOOKING_MIN_MINUTES, {
+    message: "A booking lasts at least 1 hour",
+    path: ["end"],
+  });
 export type BookingInput = z.infer<typeof bookingInputSchema>;
 export const bookingSchema = timeRangeSchema.safeExtend({
   id: idSchema,

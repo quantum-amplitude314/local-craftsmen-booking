@@ -1,5 +1,6 @@
 import {
   type Area,
+  BREAK_MINUTES,
   cityIdSchema,
   type Slot,
   type SlotInput,
@@ -20,6 +21,14 @@ import { and, eq, exists, inArray, isNull, or, sql } from "drizzle-orm";
 import { DomainError } from "./errors.ts";
 import { readRates } from "./rates.ts";
 
+const BREAK_MS = BREAK_MINUTES * 60_000;
+const breakInterval = sql.raw(`interval '${BREAK_MINUTES} minutes'`);
+const workRange = sql`tstzrange(lower(${availability.range}), upper(${availability.range}) - ${breakInterval}, '[)')`;
+
+/** Stored slot ranges include the break after the working time. */
+export const toStoredEnd = (workEnd: Date) => new Date(workEnd.getTime() + BREAK_MS);
+export const toWorkEnd = (storedEnd: Date) => new Date(storedEnd.getTime() - BREAK_MS);
+
 type SlotRow = {
   id: string;
   craftsmanId: string;
@@ -37,7 +46,7 @@ export const slotPredicate = ({
 }) => {
   const { cityId, districtId, start, end, craft } = input;
   const predicate = and(
-    sql`upper(${availability.range}) > now()`,
+    sql`upper(${workRange}) > now()`,
     districtId && cityId
       ? exists(
           db
@@ -61,7 +70,7 @@ export const slotPredicate = ({
         )
       : undefined,
     start && end
-      ? sql`${availability.range} @> tstzrange(${start}::timestamptz, ${end}::timestamptz, '[)')`
+      ? sql`${workRange} @> tstzrange(${start}::timestamptz, ${end}::timestamptz, '[)')`
       : undefined,
     cityId
       ? exists(
@@ -113,7 +122,7 @@ export const createSlotsService = ({ db }: { db: Db }) => {
       id,
       craftsmanId,
       start: start.toISOString(),
-      end: end.toISOString(),
+      end: toWorkEnd(end).toISOString(),
       areas: areasBySlot.get(id) ?? [],
     };
 
@@ -172,6 +181,7 @@ export const createSlotsService = ({ db }: { db: Db }) => {
 
   const create = async ({ craftsmanId, input }: { craftsmanId: string; input: SlotInput }) => {
     const { start, end, areas } = input;
+    const storedEnd = toStoredEnd(new Date(end));
     if (new Date(start) <= new Date())
       throw new DomainError({ code: "BAD_REQUEST", message: "Slot must start in the future" });
     const slot = await db.transaction(async (tx) => {
@@ -196,14 +206,14 @@ export const createSlotsService = ({ db }: { db: Db }) => {
           and(
             eq(booking.craftsmanId, craftsmanId),
             inArray(booking.status, ["pending", "confirmed"]),
-            sql`${booking.range} && tstzrange(${start}::timestamptz, ${end}::timestamptz, '[)')`,
+            sql`tstzrange(lower(${booking.range}), upper(${booking.range}) + ${breakInterval}, '[)') && tstzrange(${start}::timestamptz, ${storedEnd.toISOString()}::timestamptz, '[)')`,
           ),
         )
         .limit(1);
       if (occupied) throw new DomainError({ code: "CONFLICT", message: "Time overlaps a booking" });
       const [row] = await tx
         .insert(availability)
-        .values({ craftsmanId, range: { start: new Date(start), end: new Date(end) } })
+        .values({ craftsmanId, range: { start: new Date(start), end: storedEnd } })
         .returning({ id: availability.id });
       if (!row) throw new Error("Created slot is missing");
       const { id } = row;

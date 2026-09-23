@@ -130,7 +130,7 @@ describe("location-aware slots and booking allocation", () => {
       cookie: craftsmanCookie,
       body: {
         start: new Date(Date.UTC(2040, 0, day, 8)).toISOString(),
-        end: new Date(Date.UTC(2040, 0, day, 16)).toISOString(),
+        end: new Date(Date.UTC(2040, 0, day, 12)).toISOString(),
         areas,
         craftsmanId: "seed-painter-1",
       },
@@ -285,7 +285,7 @@ describe("location-aware slots and booking allocation", () => {
     });
     expect(duplicate.status).toBe(409);
     const start = "2042-01-01T08:00:00Z";
-    const end = "2042-01-01T16:00:00Z";
+    const end = "2042-01-01T12:00:00Z";
     const invalid = await call({
       path: "/me/availability",
       method: "POST",
@@ -300,6 +300,58 @@ describe("location-aware slots and booking allocation", () => {
       body: { start, end, areas: [{ cityId: "prague", districtId: null }] },
     });
     expect(valid.status).toBe(200);
+  });
+
+  test("rejects slots off the grid, outside 1 to 4 hours, or across midnight", async () => {
+    const areas = [{ cityId: "prague", districtId: null }];
+    for (const [start, end] of [
+      ["2043-01-01T08:10:00Z", "2043-01-01T09:10:00Z"],
+      ["2043-01-01T08:00:00Z", "2043-01-01T08:45:00Z"],
+      ["2043-01-01T08:00:00Z", "2043-01-01T12:15:00Z"],
+      ["2043-01-01T22:00:00Z", "2043-01-01T23:30:00Z"],
+    ]) {
+      const response = await call({
+        path: "/me/availability",
+        method: "POST",
+        cookie: craftsmanCookie,
+        body: { start, end, areas },
+      });
+      expect(response.status).toBe(400);
+    }
+  });
+
+  test("keeps a 15-minute break after every slot and booking", async () => {
+    const { end, areas } = await createSlot();
+    const minutesAfterEnd = (minutes: number) =>
+      new Date(Date.parse(end) + minutes * 60_000).toISOString();
+    const createHourAfterEnd = (minutes: number) =>
+      call({
+        path: "/me/availability",
+        method: "POST",
+        cookie: craftsmanCookie,
+        body: { start: minutesAfterEnd(minutes), end: minutesAfterEnd(minutes + 60), areas },
+      });
+    expect((await createHourAfterEnd(0)).status).toBe(409);
+    const next = await createHourAfterEnd(15);
+    expect(next.status).toBe(200);
+    const nextSlot = slotSchema.parse(await next.json());
+    expect(nextSlot.end).toBe(minutesAfterEnd(75));
+
+    const booked = await call({
+      path: "/bookings",
+      method: "POST",
+      cookie: customerCookie,
+      body: {
+        slotId: nextSlot.id,
+        start: nextSlot.start,
+        end: nextSlot.end,
+        location: { cityId: "prague", districtId: "prague-liben" },
+        currency: "EUR",
+      },
+    });
+    expect(booked.status).toBe(200);
+    expect((await createHourAfterEnd(75)).status).toBe(409);
+    expect((await createHourAfterEnd(90)).status).toBe(200);
   });
 
   test("restricts slot listing/deletion to the owner and cascades coverage deletion", async () => {
@@ -440,7 +492,7 @@ describe("location-aware slots and booking allocation", () => {
 
   test("concurrent requests for different districts and nonoverlapping portions of one slot have exactly one winner", async () => {
     const slot = await createSlot();
-    const requests = Array.from({ length: 8 }, (_, index) => {
+    const requests = Array.from({ length: 4 }, (_, index) => {
       const start = new Date(new Date(slot.start).getTime() + index * 3_600_000).toISOString();
       const end = new Date(new Date(start).getTime() + 3_600_000).toISOString();
 
@@ -462,7 +514,7 @@ describe("location-aware slots and booking allocation", () => {
     });
     const responses = await Promise.all(requests);
     expect(responses.filter(({ status }) => status === 200)).toHaveLength(1);
-    expect(responses.filter(({ status }) => status === 404 || status === 409)).toHaveLength(7);
+    expect(responses.filter(({ status }) => status === 404 || status === 409)).toHaveLength(3);
     expect(
       await database.select().from(availability).where(eq(availability.id, slot.id)),
     ).toHaveLength(0);
@@ -696,7 +748,7 @@ describe("craftsman profile pricing", () => {
 
     const slotInput = {
       start: "2041-01-01T08:00:00.000Z",
-      end: "2041-01-01T16:00:00.000Z",
+      end: "2041-01-01T12:00:00.000Z",
       areas: [{ cityId: "prague", districtId: null }],
     };
     const unpricedSlot = await call({

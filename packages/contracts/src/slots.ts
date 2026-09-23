@@ -4,6 +4,13 @@ import { areaSchema, cityIdSchema } from "./cities.ts";
 import { idSchema, timeRangeSchema, userIdSchema } from "./common.ts";
 import { craftSchema } from "./crafts.ts";
 import { craftsmanRateSchema } from "./rates.ts";
+import {
+  durationMinutes,
+  isOnScheduleStep,
+  isWithinOneDay,
+  SLOT_MAX_MINUTES,
+  SLOT_MIN_MINUTES,
+} from "./schedule.ts";
 
 const coverageSchema = z
   .array(areaSchema)
@@ -27,7 +34,19 @@ const coverageSchema = z
     });
   });
 
-export const slotInputSchema = timeRangeSchema.safeExtend({ areas: coverageSchema });
+export const slotInputSchema = timeRangeSchema
+  .safeExtend({ areas: coverageSchema })
+  .refine(isOnScheduleStep, { message: "Use the 15-minute grid", path: ["start"] })
+  .refine(
+    (range) => {
+      const minutes = durationMinutes(range);
+      const allowed = minutes >= SLOT_MIN_MINUTES && minutes <= SLOT_MAX_MINUTES;
+
+      return allowed;
+    },
+    { message: "A slot lasts 1 to 4 hours", path: ["end"] },
+  )
+  .refine(isWithinOneDay, { message: "A slot stays within one day", path: ["end"] });
 export type SlotInput = z.infer<typeof slotInputSchema>;
 export const slotSchema = timeRangeSchema.safeExtend({
   id: idSchema,

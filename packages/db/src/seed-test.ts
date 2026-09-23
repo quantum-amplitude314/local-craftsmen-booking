@@ -4,7 +4,14 @@ import { runMigrations } from "./migrate.ts";
 import { availability, availabilityArea, craftsmanProfile, craftsmanRate, user } from "./schema.ts";
 import { seedReference } from "./seed-reference.ts";
 
-const hoursFromNow = (hours: number) => new Date(Date.now() + hours * 3_600_000);
+const HOUR_MS = 3_600_000;
+const BREAK_MS = 15 * 60_000;
+const tomorrowAt = (utcHour: number) => {
+  const tomorrow = new Date(Date.now() + 24 * HOUR_MS);
+  const time = new Date(tomorrow.setUTCHours(utcHour, 0, 0, 0));
+
+  return time;
+};
 
 export const seedCraftsmen = [
   {
@@ -81,7 +88,8 @@ export const seedTestData = async ({ db }: { db: Db }) => {
     .values(
       seedCraftsmen.map(({ id }) => ({
         craftsmanId: id,
-        range: { start: hoursFromNow(24), end: hoursFromNow(32) },
+        // 4 hours of work plus the fixed break the API stores after every slot.
+        range: { start: tomorrowAt(7), end: new Date(tomorrowAt(11).getTime() + BREAK_MS) },
       })),
     )
     .returning({ id: availability.id, craftsmanId: availability.craftsmanId });
