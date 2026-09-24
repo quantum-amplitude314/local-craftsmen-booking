@@ -13,6 +13,7 @@ import {
   availability,
   availabilityArea,
   booking,
+  city,
   craftsmanProfile,
   craftsmanRate,
   type Db,
@@ -50,9 +51,23 @@ export const slotPredicate = ({
   input: SlotSearch;
   craftsmanId?: string;
 }) => {
-  const { cityId, districtId, start, end, craft } = input;
+  const { cityId, districtId, date, start, end, craft } = input;
   const predicate = and(
     sql`upper(${workRange}) > now()`,
+    date
+      ? exists(
+          db
+            .select({ id: availabilityArea.id })
+            .from(availabilityArea)
+            .innerJoin(city, eq(city.id, availabilityArea.cityId))
+            .where(
+              and(
+                eq(availabilityArea.availabilityId, availability.id),
+                sql`to_char(lower(${availability.range}) at time zone ${city.timeZone}, 'YYYY-MM-DD') = ${date}`,
+              ),
+            ),
+        )
+      : undefined,
     districtId && cityId
       ? exists(
           db

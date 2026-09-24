@@ -7,9 +7,10 @@ export const createLocationsService = ({ db }: { db: Db }) => {
       db.select().from(city).orderBy(city.name),
       db.select().from(district).orderBy(district.name),
     ]);
-    const locations: Location[] = cities.map(({ id, name }) => ({
+    const locations: Location[] = cities.map(({ id, name, timeZone }) => ({
       id: cityIdSchema.parse(id),
       name,
+      timeZone,
       districts: districts
         .filter(({ cityId }) => cityId === id)
         .map(({ id, name }) => ({ id, name })),

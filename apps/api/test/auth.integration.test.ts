@@ -12,6 +12,7 @@ import {
   type CraftsmanRate,
   craftsmanBookingSchema,
   craftsmanProfileSchema,
+  ownBookingSchema,
   sessionUserSchema,
   slotSchema,
 } from "@local-craftsmen/contracts";
@@ -25,14 +26,19 @@ import {
 } from "@local-craftsmen/db";
 import { startTestDb } from "@local-craftsmen/db/test-db";
 import { eq } from "drizzle-orm";
+import { z } from "zod";
 import { createApp } from "../src/app.ts";
 import { createAuth } from "../src/auth.ts";
+import { apiEnvSchema } from "../src/env.ts";
 
 const baseUrl = "http://localhost:3001";
 const webOrigin = "http://localhost:3000";
 const password = "correct-horse-battery";
+const testEnvSchema = apiEnvSchema
+  .pick({ TURNSTILE_SECRET_KEY: true })
+  .extend({ TURNSTILE_TEST_TOKEN: z.string().min(1) });
 const { TURNSTILE_SECRET_KEY: turnstileSecretKey, TURNSTILE_TEST_TOKEN: turnstileToken } =
-  process.env;
+  testEnvSchema.parse(process.env);
 
 let app: ReturnType<typeof createApp<Record<string, never>>>;
 let stopDb: () => Promise<void>;
@@ -263,6 +269,26 @@ describe("location-aware slots and booking allocation", () => {
       cookie: customerCookie,
     });
     expect(await outsideTime.json()).not.toContainEqual(expect.objectContaining({ id: slot.id }));
+  });
+
+  test("matches a date on the slot city's clock", async () => {
+    const response = await call({
+      path: "/me/availability",
+      method: "POST",
+      cookie: craftsmanCookie,
+      body: {
+        start: "2040-02-01T23:00:00.000Z",
+        end: "2040-02-02T00:00:00.000Z",
+        areas: [{ cityId: "prague", districtId: "prague-liben" }],
+      },
+    });
+    expect(response.status).toBe(200);
+    const slot = slotSchema.parse(await response.json());
+    const localDay = await call({ path: "/slots?date=2040-02-02", cookie: customerCookie });
+    const utcDay = await call({ path: "/slots?date=2040-02-01", cookie: customerCookie });
+
+    expect(await localDay.json()).toContainEqual(expect.objectContaining({ id: slot.id }));
+    expect(await utcDay.json()).not.toContainEqual(expect.objectContaining({ id: slot.id }));
   });
 
   test("supports city-wide coverage with a nullable district, without accepting mismatched district filters", async () => {
@@ -584,12 +610,24 @@ describe("location-aware slots and booking allocation", () => {
         areas: expect.arrayContaining([expect.objectContaining({ districtName: "Libeň" })]),
       },
     });
+    // Each side of a job is shown the other side's name.
     const own = await call({ path: "/me/bookings", cookie: customerCookie });
-    expect(bookingSchema.array().parse(await own.json())).toContainEqual(booked);
+    expect(ownBookingSchema.array().parse(await own.json())).toContainEqual({
+      ...booked,
+      partyName: "Test craftsman",
+    });
     const provider = await call({ path: "/me/bookings", cookie: craftsmanCookie });
-    expect(bookingSchema.array().parse(await provider.json())).toContainEqual(booked);
+    expect(ownBookingSchema.array().parse(await provider.json())).toContainEqual({
+      ...booked,
+      partyName: "Test customer",
+    });
     const unrelated = await call({ path: "/me/bookings", cookie: otherCustomerCookie });
-    expect(bookingSchema.array().parse(await unrelated.json())).not.toContainEqual(booked);
+    expect(
+      ownBookingSchema
+        .array()
+        .parse(await unrelated.json())
+        .map(({ id }) => id),
+    ).not.toContain(booked.id);
     const overlap = await call({
       path: "/me/availability",
       method: "POST",
@@ -689,6 +727,91 @@ describe("location-aware slots and booking allocation", () => {
       cookie: craftsmanCookie,
     });
     expect(tooWide.status).toBe(400);
+  });
+
+  test("moves a job through its lifecycle, and only for the party entitled to ask", async () => {
+    const book = async () => {
+      const { id: slotId, start, end } = await createSlot();
+      const response = await call({
+        path: "/bookings",
+        method: "POST",
+        cookie: customerCookie,
+        body: {
+          slotId,
+          start,
+          end,
+          location: { cityId: "prague", districtId: "prague-liben" },
+          currency: "EUR",
+        },
+      });
+      expect(response.status).toBe(200);
+      const booked = bookingSchema.parse(await response.json());
+
+      return booked;
+    };
+    const ask = async ({
+      id,
+      transition,
+      cookie,
+    }: {
+      id: string;
+      transition: string;
+      cookie: string;
+    }) => await call({ path: `/me/bookings/${id}/${transition}`, method: "POST", cookie });
+
+    const job = await book();
+    expect(job.status).toBe("pending");
+    // A job is only ever between its two parties, and confirming is the craftsman's word.
+    expect(
+      (await ask({ id: job.id, transition: "confirm", cookie: otherCustomerCookie })).status,
+    ).toBe(404);
+    expect((await ask({ id: job.id, transition: "confirm", cookie: customerCookie })).status).toBe(
+      409,
+    );
+    expect(
+      (await ask({ id: job.id, transition: "complete", cookie: craftsmanCookie })).status,
+    ).toBe(409);
+
+    const confirmed = await ask({ id: job.id, transition: "confirm", cookie: craftsmanCookie });
+    expect(confirmed.status).toBe(200);
+    expect(bookingSchema.parse(await confirmed.json())).toMatchObject({
+      id: job.id,
+      status: "confirmed",
+      location: { cityName: "Praha", districtName: "Libeň", timeZone: "Europe/Prague" },
+    });
+    // The work still lies ahead, so there is nothing to call finished yet.
+    expect(
+      (await ask({ id: job.id, transition: "complete", cookie: craftsmanCookie })).status,
+    ).toBe(409);
+    const lastMonth = Date.now() - 30 * 86_400_000;
+    await database
+      .update(booking)
+      .set({ range: { start: new Date(lastMonth), end: new Date(lastMonth + 3_600_000) } })
+      .where(eq(booking.id, job.id));
+    const completed = await ask({ id: job.id, transition: "complete", cookie: craftsmanCookie });
+    expect(completed.status).toBe(200);
+    expect(bookingSchema.parse(await completed.json()).status).toBe("completed");
+    expect((await ask({ id: job.id, transition: "cancel", cookie: customerCookie })).status).toBe(
+      409,
+    );
+
+    const dropped = await book();
+    const cancelled = await ask({ id: dropped.id, transition: "cancel", cookie: customerCookie });
+    expect(cancelled.status).toBe(200);
+    expect(bookingSchema.parse(await cancelled.json()).status).toBe("cancelled");
+    const history = await database
+      .select()
+      .from(bookingHistory)
+      .where(eq(bookingHistory.bookingId, dropped.id))
+      .orderBy(bookingHistory.recordedAt);
+    expect(history.map(({ event }) => event)).toEqual(["created", "cancelled"]);
+    expect(history.at(-1)).toMatchObject({
+      actorId: customerId,
+      snapshot: { previousStatus: "pending", by: "customer" },
+    });
+    expect(
+      (await ask({ id: crypto.randomUUID(), transition: "cancel", cookie: customerCookie })).status,
+    ).toBe(404);
   });
 
   test("returns the job city's zone, not the craftsman's base zone, for bookings in multiple cities", async () => {

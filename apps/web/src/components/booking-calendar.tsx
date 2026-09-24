@@ -1,9 +1,13 @@
 "use client";
 
-import type { CraftsmanBooking } from "@local-craftsmen/contracts";
+import type { BookingTransition, CraftsmanBooking } from "@local-craftsmen/contracts";
 import { useLocale, useTranslations } from "next-intl";
+import { useState } from "react";
+import { advanceBooking, type BookingActionState } from "@/app/booking-actions";
+import { PendingButton } from "@/components/pending-button";
 import { ScheduleCalendar } from "@/components/schedule-calendar";
 import { Badge } from "@/components/ui/badge";
+import { FieldError } from "@/components/ui/field";
 import {
   Item,
   ItemActions,
@@ -12,18 +16,36 @@ import {
   ItemGroup,
   ItemTitle,
 } from "@/components/ui/item";
-import type { BookingCardModel } from "@/lib/booking-calendar-model";
+import type { BookingCardModel, ViewerClock } from "@/lib/booking-calendar-model";
 import { formattingLocale } from "@/lib/intl-locale";
 import { useBookingCalendar } from "@/lib/use-booking-calendar";
+import { useMutation } from "@/lib/use-mutation";
 import { useScheduleParams } from "@/lib/use-schedule-params";
 
+const initialState: BookingActionState = {};
+
 function BookingCard({
+  id,
   timeLabel,
   customerName,
   placeLabel,
   statusLabel,
   statusVariant,
+  actions,
 }: BookingCardModel) {
+  const t = useTranslations("dashboard.bookings");
+  const [asked, setAsked] = useState<BookingTransition | null>(null);
+  const { state, pending, run } = useMutation({
+    action: advanceBooking,
+    initialState,
+    failureState: { error: "advanceFailed" },
+  });
+  const { error } = state;
+  const ask = (transition: BookingTransition) => {
+    setAsked(transition);
+    run({ id, transition });
+  };
+
   return (
     <Item role="listitem" size="sm" className="border-primary/20 bg-primary/10">
       <ItemContent className="min-w-0">
@@ -32,8 +54,21 @@ function BookingCard({
         <ItemDescription>{placeLabel}</ItemDescription>
       </ItemContent>
       <ItemActions>
+        {actions.map(({ transition, label, pendingLabel }) => (
+          <PendingButton
+            key={transition}
+            variant={transition === "cancel" ? "ghost" : "outline"}
+            size="xs"
+            pending={pending && asked === transition}
+            disabled={pending}
+            label={label}
+            pendingLabel={pendingLabel}
+            onClick={() => ask(transition)}
+          />
+        ))}
         <Badge variant={statusVariant}>{statusLabel}</Badge>
       </ItemActions>
+      {error && <FieldError className="w-full">{t(`errors.${error}`)}</FieldError>}
     </Item>
   );
 }
@@ -45,7 +80,7 @@ export function BookingCalendar({
 }: {
   bookings: CraftsmanBooking[];
   day: string;
-  clock: { timeZone: string; today: string };
+  clock: ViewerClock;
 }) {
   const t = useTranslations("dashboard.bookings");
   const cityName = useTranslations("cities");
@@ -56,7 +91,13 @@ export function BookingCalendar({
     day,
     clock,
     locale: formattingLocale(locale),
-    text: { cityName, status: (status) => t(`status.${status}`), empty: t("noBookings") },
+    text: {
+      cityName,
+      status: (status) => t(`status.${status}`),
+      action: (transition) => t(`actions.${transition}`),
+      actionPending: (transition) => t(`actions.${transition}Pending`),
+      empty: t("noBookings"),
+    },
   });
 
   return (

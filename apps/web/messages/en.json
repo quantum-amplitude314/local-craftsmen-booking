@@ -11,7 +11,7 @@
   "home": {
     "eyebrow": "Independent local specialists",
     "heading": "Find a craftsman<br></br>near you.",
-    "description": "Browse local craftsmen and compare hourly rates. Free account required.",
+    "description": "Browse available times from local craftsmen, compare hourly rates, and book a visit. Free account required.",
     "findCraftsman": "Find a craftsman",
     "offerServices": "Offer your services",
     "signInPrompt": "Already have an account? <link>Sign in</link>",
@@ -23,12 +23,12 @@
         "description": "Register as a customer to find help, or as a craftsman to offer your services."
       },
       "browse": {
-        "title": "Browse craftsmen",
-        "description": "See each craftsman’s craft and where they are based."
+        "title": "Choose an available time",
+        "description": "Filter by craft, place, and date, then compare craftsmen and their hourly rates."
       },
-      "compareRates": {
-        "title": "Compare rates",
-        "description": "Compare hourly rates before you get in touch."
+      "book": {
+        "title": "Book the visit",
+        "description": "Choose the start, length, and job location. Follow confirmation and status from your dashboard."
       }
     }
   },
@@ -36,6 +36,7 @@
     "title": "Available times | Local Craftsmen",
     "heading": "Available times",
     "empty": "No available times yet. Please check back soon.",
+    "emptyFiltered": "No available times match these filters.",
     "unavailable": "We couldn’t load available times.",
     "unavailableDescription": "Please try again in a moment.",
     "perHour": " / hour",
@@ -46,6 +47,33 @@
       "electrician": "Electrician",
       "carpenter": "Carpenter",
       "tiler": "Tiler"
+    },
+    "wholeCity": "All of {city}",
+    "zoneNote": "{city} local time ({zone})",
+    "filters": {
+      "legend": "Filter available times",
+      "any": "Any",
+      "craft": "Craft",
+      "city": "City",
+      "district": "District",
+      "cityFirst": "Choose a city first",
+      "date": "Date",
+      "clear": "Clear filters"
+    },
+    "book": {
+      "action": "Book",
+      "booking": "Booking…",
+      "start": "Start",
+      "length": "Length",
+      "where": "Where",
+      "currency": "Currency",
+      "total": "Total",
+      "errors": {
+        "taken": "This time has just been taken. Reload to see what is still free.",
+        "invalid": "Check the chosen time and place.",
+        "failed": "The booking could not be made. Please try again.",
+        "unauthorized": "Sign in as a customer to book."
+      }
     }
   },
   "cities": {
@@ -162,6 +190,23 @@
         "confirmed": "Confirmed",
         "completed": "Completed",
         "cancelled": "Cancelled"
+      },
+      "actions": {
+        "confirm": "Confirm",
+        "confirmPending": "Confirming",
+        "cancel": "Cancel",
+        "cancelPending": "Cancelling",
+        "complete": "Mark done",
+        "completePending": "Marking"
+      },
+      "noneBooked": "You have not booked anyone yet.",
+      "noUpcoming": "Nothing booked ahead.",
+      "showPast": "Show {count} past {count, plural, one {job} other {jobs}}",
+      "hidePast": "Hide past jobs",
+      "errors": {
+        "refused": "This job has moved on. Reload to see where it stands.",
+        "advanceFailed": "That did not go through. Try again.",
+        "unauthorized": "Sign in again to change this job."
       }
     }
   },
@@ -205,6 +250,28 @@
     "cityPlaceholder": "Choose a city",
     "districtPlaceholder": "Choose a district",
     "noMatches": "No matches."
+  },
+  "craftsman": {
+    "title": "Craftsman | Local Craftsmen",
+    "breadcrumbFallback": "Craftsman",
+    "basedIn": "Based in",
+    "rate": "Hourly rate",
+    "perHour": " / hour",
+    "noRate": "Rate unavailable",
+    "noBio": "No introduction provided.",
+    "availability": "Available times",
+    "empty": "This craftsman has no available times right now.",
+    "unavailable": "We couldn’t load this craftsman.",
+    "unavailableDescription": "Please try again in a moment.",
+    "wholeCity": "All of {city}",
+    "zoneNote": "{city} local time ({zone})",
+    "crafts": {
+      "painter": "Painter",
+      "plumber": "Plumber",
+      "electrician": "Electrician",
+      "carpenter": "Carpenter",
+      "tiler": "Tiler"
+    }
   },
   "header": {
     "home": "Local Craftsmen home",

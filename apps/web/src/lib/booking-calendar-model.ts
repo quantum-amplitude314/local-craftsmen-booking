@@ -1,5 +1,16 @@
-import type { Booking, CityId, CraftsmanBooking } from "@local-craftsmen/contracts";
+import type {
+  Booking,
+  BookingTransition,
+  CityId,
+  CraftsmanBooking,
+} from "@local-craftsmen/contracts";
 import { prepareScheduleCalendar, type ScheduleCalendarModel } from "@/lib/schedule-calendar-model";
+
+export type BookingActionModel = {
+  transition: BookingTransition;
+  label: string;
+  pendingLabel: string;
+};
 
 export type BookingCardModel = {
   id: string;
@@ -8,7 +19,11 @@ export type BookingCardModel = {
   placeLabel: string;
   statusLabel: string;
   statusVariant: "default" | "secondary" | "outline";
+  actions: BookingActionModel[];
 };
+
+/** The clock the grid is drawn on: where the reader is, and when the page was built. */
+export type ViewerClock = { timeZone: string; today: string; now: string };
 
 export type BookingCalendarModel = {
   calendar: ScheduleCalendarModel;
@@ -19,6 +34,8 @@ export type BookingCalendarModel = {
 export type BookingCalendarText = {
   cityName: (id: CityId) => string;
   status: (status: Booking["status"]) => string;
+  action: (transition: BookingTransition) => string;
+  actionPending: (transition: BookingTransition) => string;
   empty: string;
 };
 
@@ -28,6 +45,15 @@ const statusVariants: Record<Booking["status"], BookingCardModel["statusVariant"
   completed: "secondary",
   cancelled: "secondary",
 };
+
+/** What the craftsman may do with a job as it stands; finished work is only ever reported late. */
+const offeredTransitions: Record<Booking["status"], BookingTransition[]> = {
+  pending: ["confirm", "cancel"],
+  confirmed: ["complete", "cancel"],
+  completed: [],
+  cancelled: [],
+};
+const needsFinishedWork: BookingTransition[] = ["complete"];
 
 /** The calendar date a moment falls on for whoever is reading the grid. */
 export const dayReader = (timeZone: string) => {
@@ -59,6 +85,7 @@ export const prepareBookingCalendar = ({
   bookings,
   day,
   today,
+  now,
   timeZone,
   locale,
   text,
@@ -66,11 +93,25 @@ export const prepareBookingCalendar = ({
   bookings: CraftsmanBooking[];
   day: string;
   today: string;
+  now: string;
   timeZone: string;
   locale: string;
   text: BookingCalendarText;
 }) => {
-  const { cityName, status: statusLabel } = text;
+  const { cityName, status: statusLabel, action, actionPending } = text;
+  const thisMoment = new Date(now);
+  const offer = ({ status, end }: { status: Booking["status"]; end: string }) => {
+    const done = new Date(end) <= thisMoment;
+    const actions: BookingActionModel[] = offeredTransitions[status]
+      .filter((transition) => done || !needsFinishedWork.includes(transition))
+      .map((transition) => ({
+        transition,
+        label: action(transition),
+        pendingLabel: actionPending(transition),
+      }));
+
+    return actions;
+  };
   const dayOf = dayReader(timeZone);
   const timeFormats = new Map<string, Intl.DateTimeFormat>();
   const formatTimeIn = (zone: string) => {
@@ -102,6 +143,7 @@ export const prepareBookingCalendar = ({
       placeLabel: [cityName(location.cityId), location.districtName].filter(Boolean).join(" · "),
       statusLabel: statusLabel(status),
       statusVariant: statusVariants[status],
+      actions: offer({ status, end }),
     })),
   };
 

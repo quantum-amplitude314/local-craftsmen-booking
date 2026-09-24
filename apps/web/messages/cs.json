@@ -11,7 +11,7 @@
   "home": {
     "eyebrow": "Nezávislí řemeslníci ve vašem okolí",
     "heading": "Najděte řemeslníka<br></br>ve svém okolí.",
-    "description": "Prohlédněte si místní řemeslníky a porovnejte hodinové sazby. Stačí bezplatný účet.",
+    "description": "Prohlédněte si volné termíny místních řemeslníků, porovnejte hodinové sazby a objednejte návštěvu. Stačí bezplatný účet.",
     "findCraftsman": "Najít řemeslníka",
     "offerServices": "Nabídnout své služby",
     "signInPrompt": "Už máte účet? <link>Přihlaste se</link>",
@@ -23,12 +23,12 @@
         "description": "Zaregistrujte se jako zákazník, pokud hledáte pomoc, nebo jako řemeslník, pokud nabízíte své služby."
       },
       "browse": {
-        "title": "Prohlédněte si řemeslníky",
-        "description": "Uvidíte obor každého řemeslníka a odkud je."
+        "title": "Vyberte volný termín",
+        "description": "Filtrujte podle řemesla, místa a data a porovnejte řemeslníky i jejich hodinové sazby."
       },
-      "compareRates": {
-        "title": "Porovnejte sazby",
-        "description": "Porovnejte hodinové sazby dřív, než se ozvete."
+      "book": {
+        "title": "Objednejte návštěvu",
+        "description": "Vyberte začátek, délku a místo zakázky. Potvrzení a stav najdete na nástěnce."
       }
     }
   },
@@ -36,6 +36,7 @@
     "title": "Volné termíny | Local Craftsmen",
     "heading": "Volné termíny",
     "empty": "Zatím tu nejsou žádné volné termíny. Zkuste to prosím brzy znovu.",
+    "emptyFiltered": "Těmto filtrům neodpovídají žádné volné termíny.",
     "unavailable": "Volné termíny se nepodařilo načíst.",
     "unavailableDescription": "Zkuste to prosím za chvíli znovu.",
     "perHour": " / hodinu",
@@ -46,6 +47,33 @@
       "electrician": "Elektrikář",
       "carpenter": "Truhlář",
       "tiler": "Obkladač"
+    },
+    "wholeCity": "Celé {city}",
+    "zoneNote": "Místní čas – {city} ({zone})",
+    "filters": {
+      "legend": "Filtrovat volné termíny",
+      "any": "Vše",
+      "craft": "Řemeslo",
+      "city": "Město",
+      "district": "Čtvrť",
+      "cityFirst": "Nejdřív vyberte město",
+      "date": "Datum",
+      "clear": "Vymazat filtry"
+    },
+    "book": {
+      "action": "Objednat",
+      "booking": "Objednávám…",
+      "start": "Začátek",
+      "length": "Délka",
+      "where": "Kde",
+      "currency": "Měna",
+      "total": "Celkem",
+      "errors": {
+        "taken": "Tento termín byl právě obsazen. Načtěte stránku znovu.",
+        "invalid": "Zkontrolujte vybraný čas a místo.",
+        "failed": "Objednávku se nepodařilo vytvořit. Zkuste to prosím znovu.",
+        "unauthorized": "Pro objednání se přihlaste jako zákazník."
+      }
     }
   },
   "cities": {
@@ -162,6 +190,23 @@
         "confirmed": "Potvrzeno",
         "completed": "Dokončeno",
         "cancelled": "Zrušeno"
+      },
+      "actions": {
+        "confirm": "Potvrdit",
+        "confirmPending": "Potvrzuji",
+        "cancel": "Zrušit",
+        "cancelPending": "Ruším",
+        "complete": "Hotovo",
+        "completePending": "Ukládám"
+      },
+      "noneBooked": "Zatím jste si nikoho neobjednali.",
+      "noUpcoming": "Nic naplánovaného.",
+      "showPast": "Zobrazit {count, plural, one {# minulou zakázku} few {# minulé zakázky} other {# minulých zakázek}}",
+      "hidePast": "Skrýt minulé zakázky",
+      "errors": {
+        "refused": "Zakázka se mezitím změnila. Načtěte stránku znovu.",
+        "advanceFailed": "Nepodařilo se to. Zkuste to znovu.",
+        "unauthorized": "Pro změnu zakázky se znovu přihlaste."
       }
     }
   },
@@ -205,6 +250,28 @@
     "cityPlaceholder": "Vyberte město",
     "districtPlaceholder": "Vyberte čtvrť",
     "noMatches": "Nic nenalezeno."
+  },
+  "craftsman": {
+    "title": "Řemeslník | Local Craftsmen",
+    "breadcrumbFallback": "Řemeslník",
+    "basedIn": "Působí v",
+    "rate": "Hodinová sazba",
+    "perHour": " / hodinu",
+    "noRate": "Sazba není uvedena",
+    "noBio": "Řemeslník zatím nepřidal žádné představení.",
+    "availability": "Volné termíny",
+    "empty": "Tento řemeslník teď nemá žádné volné termíny.",
+    "unavailable": "Profil řemeslníka se nepodařilo načíst.",
+    "unavailableDescription": "Zkuste to prosím za chvíli znovu.",
+    "wholeCity": "Celé {city}",
+    "zoneNote": "Místní čas – {city} ({zone})",
+    "crafts": {
+      "painter": "Malíř",
+      "plumber": "Instalatér",
+      "electrician": "Elektrikář",
+      "carpenter": "Truhlář",
+      "tiler": "Obkladač"
+    }
   },
   "header": {
     "home": "Local Craftsmen – úvodní stránka",

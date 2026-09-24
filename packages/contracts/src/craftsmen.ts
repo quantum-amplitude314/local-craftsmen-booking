@@ -43,6 +43,7 @@ export const ownProfileContract = {
 export const craftsmanDetailSchema = craftsmanProfileSchema.extend({
   availability: z.array(slotSchema),
 });
+export type CraftsmanDetail = z.infer<typeof craftsmanDetailSchema>;
 
 export const craftsmenContract = {
   find: oc

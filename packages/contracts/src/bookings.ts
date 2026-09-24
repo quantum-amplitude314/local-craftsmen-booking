@@ -29,9 +29,18 @@ export const bookingSchema = timeRangeSchema.safeExtend({
   hourlyRate: hourlyRateSchema,
 });
 export type Booking = z.infer<typeof bookingSchema>;
+export type BookingStatus = Booking["status"];
+
+/** What either party can ask of a job, named after the act rather than the resulting status. */
+export const bookingTransitionSchema = z.enum(["confirm", "cancel", "complete"]);
+export type BookingTransition = z.infer<typeof bookingTransitionSchema>;
 
 export const craftsmanBookingSchema = bookingSchema.safeExtend({ customerName: z.string() });
 export type CraftsmanBooking = z.infer<typeof craftsmanBookingSchema>;
+
+/** A job as one of its two parties sees it: the name shown is always the other side's. */
+export const ownBookingSchema = bookingSchema.safeExtend({ partyName: z.string() });
+export type OwnBooking = z.infer<typeof ownBookingSchema>;
 
 /** A month plus a day of padding on each side, the widest window a calendar page needs. */
 const BOOKING_WINDOW_MAX_MS = 62 * 24 * 60 * 60 * 1000;
@@ -54,7 +63,7 @@ export const bookingsContract = {
 export const ownBookingsContract = {
   list: oc
     .route({ method: "GET", path: "/me/bookings", summary: "List your bookings" })
-    .output(z.array(bookingSchema)),
+    .output(z.array(ownBookingSchema)),
   range: oc
     .route({
       method: "GET",
@@ -72,4 +81,16 @@ export const ownBookingsContract = {
       ),
     )
     .output(z.array(craftsmanBookingSchema)),
+  advance: oc
+    .route({
+      method: "POST",
+      path: "/me/bookings/{id}/{transition}",
+      summary: "Confirm, cancel or complete one of your jobs",
+    })
+    .input(z.object({ id: idSchema, transition: bookingTransitionSchema }))
+    .output(bookingSchema)
+    .errors({
+      NOT_FOUND: { message: "Booking not found" },
+      CONFLICT: { message: "The job is not in a state for that" },
+    }),
 };

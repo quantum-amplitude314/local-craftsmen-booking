@@ -4,7 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
-const HOW_IT_WORKS_STEPS = ["createAccount", "browse", "compareRates"] as const;
+const HOW_IT_WORKS_STEPS = ["createAccount", "browse", "book"] as const;
 
 export default async function Home() {
   const [user, locale, t] = await Promise.all([

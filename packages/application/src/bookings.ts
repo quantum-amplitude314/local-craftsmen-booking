@@ -1,8 +1,11 @@
 import {
   type BookingInput,
+  type BookingStatus,
+  type BookingTransition,
   bookingSchema,
   type CraftsmanBooking,
   type JobLocation,
+  type OwnBooking,
   type SessionUser,
 } from "@local-craftsmen/contracts";
 import {
@@ -25,6 +28,21 @@ const jobPlaceColumns = {
   cityName: city.name,
   districtName: district.name,
   timeZone: city.timeZone,
+};
+
+type Party = "craftsman" | "customer";
+
+/**
+ * Every lifecycle rule in one table: who may ask, which statuses accept the request, and what the
+ * job becomes. Completion also waits for the job to be over, which no status can express.
+ */
+const transitions: Record<
+  BookingTransition,
+  { by: Party | "either"; from: BookingStatus[]; to: BookingStatus; afterWork?: true }
+> = {
+  confirm: { by: "craftsman", from: ["pending"], to: "confirmed" },
+  cancel: { by: "either", from: ["pending", "confirmed"], to: "cancelled" },
+  complete: { by: "craftsman", from: ["confirmed"], to: "completed", afterWork: true },
 };
 
 const toBooking = ({
@@ -162,17 +180,23 @@ export const createBookingsService = ({ db }: { db: Db }) => {
     return result;
   };
 
+  /** Your own jobs, each carrying the name of whoever is on the other side of it. */
   const list = async ({ user: account }: { user: SessionUser }) => {
     const { id, role } = account;
-    const ownerColumn = role === "craftsman" ? booking.craftsmanId : booking.customerId;
+    const mine = role === "craftsman" ? booking.craftsmanId : booking.customerId;
+    const theirs = role === "craftsman" ? booking.customerId : booking.craftsmanId;
     const rows = await db
-      .select({ row: booking, place: jobPlaceColumns })
+      .select({ row: booking, place: jobPlaceColumns, partyName: user.name })
       .from(booking)
+      .innerJoin(user, eq(user.id, theirs))
       .innerJoin(city, eq(city.id, booking.cityId))
       .leftJoin(district, eq(district.id, booking.districtId))
-      .where(eq(ownerColumn, id))
+      .where(eq(mine, id))
       .orderBy(booking.range, booking.id);
-    const bookings = rows.map(toBooking);
+    const bookings: OwnBooking[] = rows.map(({ row, place, partyName }) => ({
+      ...toBooking({ row, place }),
+      partyName,
+    }));
 
     return bookings;
   };
@@ -209,7 +233,57 @@ export const createBookingsService = ({ db }: { db: Db }) => {
 
     return bookings;
   };
-  const service = { create, list, range };
+  /** Moves one job along its lifecycle for the party asking, and records who asked. */
+  const advance = async ({
+    actor,
+    id,
+    transition,
+  }: {
+    actor: SessionUser;
+    id: string;
+    transition: BookingTransition;
+  }) => {
+    const { by, from, to, afterWork } = transitions[transition];
+    const result = await db.transaction(async (tx) => {
+      const [current] = await tx.select().from(booking).where(eq(booking.id, id)).for("update");
+      // An outsider is told the same thing as someone naming a job that never existed.
+      if (!current) throw new DomainError({ code: "NOT_FOUND", message: "Booking not found" });
+      const { craftsmanId, customerId, status, range, cityId, districtId } = current;
+      const parties: Record<Party, string> = { craftsman: craftsmanId, customer: customerId };
+      const party = (Object.keys(parties) as Party[]).find((name) => parties[name] === actor.id);
+      if (!party) throw new DomainError({ code: "NOT_FOUND", message: "Booking not found" });
+      if (by !== "either" && by !== party)
+        throw new DomainError({ code: "CONFLICT", message: `Only the ${by} can do that` });
+      if (!from.includes(status))
+        throw new DomainError({ code: "CONFLICT", message: `A ${status} job cannot be ${to}` });
+      if (afterWork && range.end > new Date())
+        throw new DomainError({ code: "CONFLICT", message: "The job is not over yet" });
+      const [updated] = await tx
+        .update(booking)
+        .set({ status: to, updatedAt: new Date() })
+        .where(eq(booking.id, id))
+        .returning();
+      if (!updated) throw new Error("Updated booking is missing");
+      const [place] = await tx
+        .select(jobPlaceColumns)
+        .from(city)
+        .leftJoin(district, and(eq(district.cityId, city.id), eq(district.id, districtId ?? "")))
+        .where(eq(city.id, cityId));
+      if (!place) throw new DomainError({ code: "BAD_REQUEST", message: "Unknown job city" });
+      const advanced = toBooking({ row: updated, place });
+      await tx.insert(bookingHistory).values({
+        bookingId: advanced.id,
+        actorId: actor.id,
+        event: to,
+        snapshot: { booking: advanced, previousStatus: status, by: party },
+      });
+
+      return advanced;
+    });
+
+    return result;
+  };
+  const service = { create, list, range, advance };
 
   return service;
 };

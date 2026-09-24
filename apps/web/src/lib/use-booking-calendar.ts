@@ -6,13 +6,14 @@ import {
   type BookingCalendarText,
   dayReader,
   prepareBookingCalendar,
+  type ViewerClock,
 } from "@/lib/booking-calendar-model";
 
-const readViewerClock = () => {
+const readViewerZone = () => {
   const { timeZone } = Intl.DateTimeFormat().resolvedOptions();
-  const clock = { timeZone, today: dayReader(timeZone)(new Date()) };
+  const zone = { timeZone, today: dayReader(timeZone)(new Date()) };
 
-  return clock;
+  return zone;
 };
 
 /**
@@ -29,17 +30,18 @@ export const useBookingCalendar = ({
 }: {
   bookings: CraftsmanBooking[];
   day: string;
-  clock: { timeZone: string; today: string };
+  clock: ViewerClock;
   locale: string;
   text: BookingCalendarText;
 }) => {
-  const [{ timeZone, today }, correctClock] = useState(clock);
+  const { now, ...viewerZone } = clock;
+  const [{ timeZone, today }, correctZone] = useState(viewerZone);
   useLayoutEffect(() => {
-    const viewer = readViewerClock();
-    if (viewer.timeZone !== timeZone || viewer.today !== today) correctClock(viewer);
+    const viewer = readViewerZone();
+    if (viewer.timeZone !== timeZone || viewer.today !== today) correctZone(viewer);
   }, [timeZone, today]);
 
-  const model = prepareBookingCalendar({ bookings, day, today, timeZone, locale, text });
+  const model = prepareBookingCalendar({ bookings, day, today, now, timeZone, locale, text });
 
   return model;
 };

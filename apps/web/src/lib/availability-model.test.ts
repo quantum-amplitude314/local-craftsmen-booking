@@ -23,8 +23,18 @@ const scheduleIn = ({ cityId, zoneId }: { cityId: CityId; zoneId: string }) => {
 };
 
 const locations: Location[] = [
-  { id: "prague", name: "Praha", districts: [{ id: "prague-liben", name: "Libeň" }] },
-  { id: "pilsen", name: "Plzeň", districts: [{ id: "pilsen-doubravka", name: "Doubravka" }] },
+  {
+    id: "prague",
+    name: "Praha",
+    timeZone: "Europe/Prague",
+    districts: [{ id: "prague-liben", name: "Libeň" }],
+  },
+  {
+    id: "pilsen",
+    name: "Plzeň",
+    timeZone: "Europe/Prague",
+    districts: [{ id: "pilsen-doubravka", name: "Doubravka" }],
+  },
 ];
 
 const cityNames: Record<string, string> = { prague: "Prague", pilsen: "Pilsen" };

@@ -36,7 +36,9 @@ const job = ({
 
 const text = {
   cityName: (id: string) => (id === "prague" ? "Prague" : "Pardubice"),
-  status: () => "Confirmed",
+  status: (status: string) => status,
+  action: (transition: string) => transition,
+  actionPending: (transition: string) => `${transition}…`,
   empty: "No jobs on this day.",
 };
 
@@ -44,15 +46,18 @@ const prepare = ({
   bookings,
   day,
   timeZone,
+  now = "2040-06-30T12:00:00.000Z",
 }: {
   bookings: CraftsmanBooking[];
   day: string;
   timeZone: string;
+  now?: string;
 }) =>
   prepareBookingCalendar({
     bookings,
     day,
     today: "2040-07-01",
+    now,
     timeZone,
     locale: "en-GB",
     text,
@@ -103,5 +108,48 @@ describe("prepareBookingCalendar", () => {
 
     expect(cards.map(({ timeLabel }) => timeLabel)).toEqual(["08:00 – 10:00", "09:00 – 10:00"]);
     expect(cards[1]?.placeLabel).toBe("Pardubice · Libeň");
+  });
+
+  test("offers only what the job's status and its end allow", () => {
+    const transitionsOffered = ({
+      status,
+      now,
+    }: {
+      status: CraftsmanBooking["status"];
+      now: string;
+    }) => {
+      const { cards } = prepare({
+        bookings: [
+          {
+            ...job({
+              id: "one",
+              start: "2040-07-01T06:00:00.000Z",
+              end: "2040-07-01T08:00:00.000Z",
+            }),
+            status,
+          },
+        ],
+        day: "2040-07-01",
+        timeZone: "Europe/Prague",
+        now,
+      });
+
+      return cards[0]?.actions.map(({ transition }) => transition);
+    };
+    const beforeWork = "2040-07-01T05:00:00.000Z";
+    const afterWork = "2040-07-01T09:00:00.000Z";
+
+    expect(transitionsOffered({ status: "pending", now: beforeWork })).toEqual([
+      "confirm",
+      "cancel",
+    ]);
+    // Work that has not happened yet cannot be reported as done.
+    expect(transitionsOffered({ status: "confirmed", now: beforeWork })).toEqual(["cancel"]);
+    expect(transitionsOffered({ status: "confirmed", now: afterWork })).toEqual([
+      "complete",
+      "cancel",
+    ]);
+    expect(transitionsOffered({ status: "completed", now: afterWork })).toEqual([]);
+    expect(transitionsOffered({ status: "cancelled", now: afterWork })).toEqual([]);
   });
 });

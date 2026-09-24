@@ -104,6 +104,9 @@ export const slotSearchSchema = z
     craft: craftSchema.optional(),
     cityId: cityIdSchema.optional(),
     districtId: z.string().min(1).optional(),
+    /** The slot starts on this calendar date, read in the time zone of the city it is worked in. */
+    date: scheduleDateSchema.optional(),
+    /** A window the slot must cover entirely, for customers who already know their hours. */
     start: z.iso.datetime({ offset: true }).optional(),
     end: z.iso.datetime({ offset: true }).optional(),
   })

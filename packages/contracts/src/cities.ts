@@ -25,6 +25,8 @@ export type JobLocation = z.infer<typeof jobLocationSchema>;
 export const locationSchema = z.object({
   id: cityIdSchema,
   name: z.string(),
+  /** Work in this city is read on this clock, whoever is looking. */
+  timeZone: z.string().min(1),
   districts: z.array(z.object({ id: z.string(), name: z.string() })),
 });
 export type Location = z.infer<typeof locationSchema>;
