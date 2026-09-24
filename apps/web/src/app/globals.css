@@ -10,7 +10,6 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-noto-sans);
-  --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-fraunces);
   --font-prose: var(--font-fraunces);
   --color-sidebar-ring: var(--sidebar-ring);
@@ -163,6 +162,19 @@
   text-wrap: balance;
 }
 
+@utility subsection-heading {
+  font-family: var(--font-heading);
+  font-optical-sizing: auto;
+  font-variation-settings:
+    "SOFT" 25,
+    "WONK" 1;
+  font-size: 1.25rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
 @utility prose-text {
   font-family: var(--font-prose);
   font-optical-sizing: auto;
@@ -182,8 +194,9 @@
 }
 
 @utility eyebrow {
-  font-family: var(--font-geist-mono);
+  font-family: var(--font-noto-sans);
   font-size: 0.75rem;
+  font-weight: 500;
   line-height: 1.5;
   letter-spacing: 0.12em;
   text-transform: uppercase;

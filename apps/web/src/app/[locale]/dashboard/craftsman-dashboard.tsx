@@ -2,6 +2,7 @@ import { getTranslations } from "next-intl/server";
 import { AddAvailabilityButton } from "@/components/add-availability-button";
 import { AvailabilitySection } from "@/components/availability-section";
 import { BookingCalendar } from "@/components/booking-calendar";
+import { BookingHistoryButton } from "@/components/booking-history-button";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { apiClient } from "@/lib/api";
@@ -66,9 +67,12 @@ export async function CraftsmanDashboard({ day, cityId, jobDay }: ScheduleParams
         className="flex w-full min-w-0 max-w-172 flex-1 flex-col gap-6 border-t pt-6"
         aria-labelledby="bookings-heading"
       >
-        <h2 id="bookings-heading" className="section-heading">
-          {t("sections.bookings")}
-        </h2>
+        <div className="flex min-w-0 items-center justify-between gap-4">
+          <h2 id="bookings-heading" className="section-heading">
+            {t("sections.bookings")}
+          </h2>
+          <BookingHistoryButton />
+        </div>
         <BookingCalendar {...bookings} />
       </section>
     </div>

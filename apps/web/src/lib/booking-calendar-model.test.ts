@@ -39,6 +39,8 @@ const text = {
   status: (status: string) => status,
   action: (transition: string) => transition,
   actionPending: (transition: string) => `${transition}…`,
+  price: ({ hours, rate, total }: { hours: string; rate: string; total: string }) =>
+    `${hours} · ${rate} · ${total}`,
   empty: "No jobs on this day.",
 };
 
@@ -111,13 +113,7 @@ describe("prepareBookingCalendar", () => {
   });
 
   test("offers only what the job's status and its end allow", () => {
-    const transitionsOffered = ({
-      status,
-      now,
-    }: {
-      status: CraftsmanBooking["status"];
-      now: string;
-    }) => {
+    const offered = ({ status, now }: { status: CraftsmanBooking["status"]; now: string }) => {
       const { cards } = prepare({
         bookings: [
           {
@@ -133,23 +129,36 @@ describe("prepareBookingCalendar", () => {
         timeZone: "Europe/Prague",
         now,
       });
+      const [card] = cards;
 
-      return cards[0]?.actions.map(({ transition }) => transition);
+      return {
+        forward: card?.actions.map(({ transition }) => transition),
+        cancellable: card?.cancellable,
+      };
     };
     const beforeWork = "2040-07-01T05:00:00.000Z";
     const afterWork = "2040-07-01T09:00:00.000Z";
 
-    expect(transitionsOffered({ status: "pending", now: beforeWork })).toEqual([
-      "confirm",
-      "cancel",
-    ]);
+    expect(offered({ status: "pending", now: beforeWork })).toEqual({
+      forward: ["confirm"],
+      cancellable: true,
+    });
     // Work that has not happened yet cannot be reported as done.
-    expect(transitionsOffered({ status: "confirmed", now: beforeWork })).toEqual(["cancel"]);
-    expect(transitionsOffered({ status: "confirmed", now: afterWork })).toEqual([
-      "complete",
-      "cancel",
-    ]);
-    expect(transitionsOffered({ status: "completed", now: afterWork })).toEqual([]);
-    expect(transitionsOffered({ status: "cancelled", now: afterWork })).toEqual([]);
+    expect(offered({ status: "confirmed", now: beforeWork })).toEqual({
+      forward: [],
+      cancellable: true,
+    });
+    expect(offered({ status: "confirmed", now: afterWork })).toEqual({
+      forward: ["complete"],
+      cancellable: true,
+    });
+    expect(offered({ status: "completed", now: afterWork })).toEqual({
+      forward: [],
+      cancellable: false,
+    });
+    expect(offered({ status: "cancelled", now: afterWork })).toEqual({
+      forward: [],
+      cancellable: false,
+    });
   });
 });

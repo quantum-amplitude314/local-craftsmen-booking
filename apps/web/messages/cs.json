@@ -147,7 +147,7 @@
     },
     "sections": {
       "availability": "Dostupnost",
-      "bookings": "Rezervace"
+      "bookings": "Aktivní rezervace"
     },
     "timeZone": "Místní čas – {city} ({zone}).",
     "availability": {
@@ -185,6 +185,20 @@
     },
     "bookings": {
       "noBookings": "V tento den nemáte žádné zakázky.",
+      "cancelDialog": {
+        "open": "Zrušit rezervaci",
+        "title": "Zrušit tuto rezervaci?",
+        "description": "{customer}, {time}. Tuto akci nelze vrátit.",
+        "keep": "Ponechat rezervaci",
+        "confirm": "Zrušit rezervaci"
+      },
+      "history": {
+        "open": "Historie",
+        "title": "Historie rezervací",
+        "description": "Každá změna rezervace se už ukládá. Přehled dokončených a zrušených zakázek přijde v další verzi.",
+        "close": "Zavřít"
+      },
+      "price": "{hours} · {rate} / hod. · celkem {total}",
       "status": {
         "pending": "Čeká",
         "confirmed": "Potvrzeno",

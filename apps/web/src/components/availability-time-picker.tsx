@@ -106,11 +106,14 @@ export function AvailabilityTimePicker({
   date,
   options,
   pending,
+  changing,
   onPick,
 }: {
   date: string;
   options: QuarterOption[];
   pending: boolean;
+  /** A new day is on its way: the quarters shown belong to the old one. */
+  changing: boolean;
   onPick: (time: string) => void;
 }) {
   const t = useTranslations("dashboard.availability");
@@ -118,8 +121,13 @@ export function AvailabilityTimePicker({
   return (
     <fieldset className="flex min-w-0 flex-col gap-3" disabled={pending}>
       <legend className="sr-only">{t("times")}</legend>
-      {/* The list fills the column beside the calendar without adding height of its own. */}
-      <div className="relative min-h-80 flex-1">
+      {/* The list fills the column beside the calendar without adding height of its own. Stale
+          quarters stop taking clicks at once but fade only on a slow answer. */}
+      <div
+        aria-busy={changing}
+        data-changing={changing || undefined}
+        className="relative min-h-80 flex-1 transition-opacity data-changing:pointer-events-none data-changing:opacity-60 data-changing:delay-300"
+      >
         <QuarterList key={date} options={options} onPick={onPick} />
       </div>
     </fieldset>

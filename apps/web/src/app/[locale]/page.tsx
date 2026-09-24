@@ -56,8 +56,8 @@ export default async function Home() {
           {HOW_IT_WORKS_STEPS.map((step, index) => (
             <li key={step} className="flex min-w-0 flex-col gap-3 border-b py-8">
               <p className="eyebrow text-primary">{t("howItWorks.step", { number: index + 1 })}</p>
-              <h3 className="font-medium">{t(`howItWorks.${step}.title`)}</h3>
-              <p className="prose-text text-sm leading-6 text-muted-foreground">
+              <h3 className="subsection-heading">{t(`howItWorks.${step}.title`)}</h3>
+              <p className="prose-text text-base leading-[1.7] text-muted-foreground">
                 {t(`howItWorks.${step}.description`)}
               </p>
             </li>

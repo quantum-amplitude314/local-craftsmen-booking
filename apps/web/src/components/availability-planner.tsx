@@ -48,7 +48,8 @@ export function AvailabilityPlanner({ availability }: { availability: Availabili
         <AvailabilityTimePicker
           date={date}
           options={options}
-          pending={pending || changing}
+          pending={pending}
+          changing={changing}
           onPick={pick}
         />
       </div>

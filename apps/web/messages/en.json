@@ -147,7 +147,7 @@
     },
     "sections": {
       "availability": "Availability",
-      "bookings": "Bookings"
+      "bookings": "Active bookings"
     },
     "timeZone": "{city} local time ({zone}).",
     "availability": {
@@ -185,6 +185,20 @@
     },
     "bookings": {
       "noBookings": "No jobs on this day.",
+      "cancelDialog": {
+        "open": "Cancel booking",
+        "title": "Cancel this booking?",
+        "description": "{customer}, {time}. This cannot be undone.",
+        "keep": "Keep booking",
+        "confirm": "Cancel booking"
+      },
+      "history": {
+        "open": "History",
+        "title": "Booking history",
+        "description": "Every change to a booking is already recorded. A view of completed and cancelled jobs comes in the next version.",
+        "close": "Close"
+      },
+      "price": "{hours} · {rate} / hour · {total} in total",
       "status": {
         "pending": "Pending",
         "confirmed": "Confirmed",

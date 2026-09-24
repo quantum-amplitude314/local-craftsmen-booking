@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Geist_Mono, Noto_Sans } from "next/font/google";
+import { Fraunces, Noto_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations } from "next-intl/server";
@@ -20,11 +20,6 @@ const notoSans = Noto_Sans({
   variable: "--font-noto-sans",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin", "latin-ext"],
-});
-
 export const generateMetadata = async (): Promise<Metadata> => {
   const t = await getTranslations("metadata");
   const metadata = { title: t("title"), description: t("description") };
@@ -42,7 +37,7 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
       lang={locale}
       data-palette="dark"
       suppressHydrationWarning
-      className={cn("h-full antialiased", notoSans.variable, fraunces.variable, geistMono.variable)}
+      className={cn("h-full antialiased", notoSans.variable, fraunces.variable)}
     >
       <head>
         <PaletteScript />

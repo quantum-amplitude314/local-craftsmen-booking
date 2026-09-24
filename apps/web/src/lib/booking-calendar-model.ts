@@ -3,6 +3,7 @@ import type {
   BookingTransition,
   CityId,
   CraftsmanBooking,
+  Currency,
 } from "@local-craftsmen/contracts";
 import { prepareScheduleCalendar, type ScheduleCalendarModel } from "@/lib/schedule-calendar-model";
 
@@ -17,8 +18,11 @@ export type BookingCardModel = {
   timeLabel: string;
   customerName: string;
   placeLabel: string;
+  priceLabel: string;
   statusLabel: string;
   statusVariant: "default" | "secondary" | "outline";
+  cancellable: boolean;
+  /** The steps forward; cancelling is offered apart, behind a confirmation. */
   actions: BookingActionModel[];
 };
 
@@ -36,6 +40,7 @@ export type BookingCalendarText = {
   status: (status: Booking["status"]) => string;
   action: (transition: BookingTransition) => string;
   actionPending: (transition: BookingTransition) => string;
+  price: (parts: { hours: string; rate: string; total: string }) => string;
   empty: string;
 };
 
@@ -46,13 +51,14 @@ const statusVariants: Record<Booking["status"], BookingCardModel["statusVariant"
   cancelled: "secondary",
 };
 
-/** What the craftsman may do with a job as it stands; finished work is only ever reported late. */
-const offeredTransitions: Record<Booking["status"], BookingTransition[]> = {
-  pending: ["confirm", "cancel"],
-  confirmed: ["complete", "cancel"],
+/** The step forward the craftsman may take with a job; finished work is only ever reported late. */
+const forwardTransitions: Record<Booking["status"], BookingTransition[]> = {
+  pending: ["confirm"],
+  confirmed: ["complete"],
   completed: [],
   cancelled: [],
 };
+const cancellableStatuses: Booking["status"][] = ["pending", "confirmed"];
 const needsFinishedWork: BookingTransition[] = ["complete"];
 
 /** The calendar date a moment falls on for whoever is reading the grid. */
@@ -98,11 +104,11 @@ export const prepareBookingCalendar = ({
   locale: string;
   text: BookingCalendarText;
 }) => {
-  const { cityName, status: statusLabel, action, actionPending } = text;
+  const { cityName, status: statusLabel, action, actionPending, price } = text;
   const thisMoment = new Date(now);
   const offer = ({ status, end }: { status: Booking["status"]; end: string }) => {
     const done = new Date(end) <= thisMoment;
-    const actions: BookingActionModel[] = offeredTransitions[status]
+    const actions: BookingActionModel[] = forwardTransitions[status]
       .filter((transition) => done || !needsFinishedWork.includes(transition))
       .map((transition) => ({
         transition,
@@ -128,6 +134,39 @@ export const prepareBookingCalendar = ({
 
     return format;
   };
+  const hours = new Intl.NumberFormat(locale, {
+    style: "unit",
+    unit: "hour",
+    unitDisplay: "short",
+    maximumFractionDigits: 2,
+  });
+  const money = new Map<Currency, Intl.NumberFormat>();
+  const moneyIn = (currency: Currency) => {
+    const known = money.get(currency);
+    if (known) return known;
+
+    const format = new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    });
+    money.set(currency, format);
+
+    return format;
+  };
+  const priceOf = ({ start, end, currency, hourlyRate }: CraftsmanBooking) => {
+    const worked = (new Date(end).getTime() - new Date(start).getTime()) / 3_600_000;
+    const rate = Number(hourlyRate);
+    const format = moneyIn(currency);
+    const label = price({
+      hours: hours.format(worked),
+      rate: format.format(rate),
+      total: format.format(rate * worked),
+    });
+
+    return label;
+  };
   const onSelectedDay = bookings.filter(({ start }) => dayOf(new Date(start)) === day);
   const model: BookingCalendarModel = {
     calendar: prepareScheduleCalendar({
@@ -136,15 +175,22 @@ export const prepareBookingCalendar = ({
       markedDates: [...new Set(bookings.map(({ start }) => dayOf(new Date(start))))],
     }),
     emptyMessage: onSelectedDay.length === 0 ? text.empty : null,
-    cards: onSelectedDay.map(({ id, start, end, customerName, location, status }) => ({
-      id,
-      timeLabel: formatJobHours({ start, end, format: formatTimeIn(location.timeZone) }),
-      customerName,
-      placeLabel: [cityName(location.cityId), location.districtName].filter(Boolean).join(" · "),
-      statusLabel: statusLabel(status),
-      statusVariant: statusVariants[status],
-      actions: offer({ status, end }),
-    })),
+    cards: onSelectedDay.map((booking) => {
+      const { id, start, end, customerName, location, status } = booking;
+      const card: BookingCardModel = {
+        id,
+        timeLabel: formatJobHours({ start, end, format: formatTimeIn(location.timeZone) }),
+        customerName,
+        placeLabel: [cityName(location.cityId), location.districtName].filter(Boolean).join(" · "),
+        priceLabel: priceOf(booking),
+        statusLabel: statusLabel(status),
+        statusVariant: statusVariants[status],
+        cancellable: cancellableStatuses.includes(status),
+        actions: offer({ status, end }),
+      };
+
+      return card;
+    }),
   };
 
   return model;
