@@ -1,7 +1,7 @@
 /// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
 import type { Quarter } from "@local-craftsmen/contracts";
-import { pickQuarter, rangeIssue, selectedRange } from "./slot-selection";
+import { draftStatus, pickQuarter, selectedRange } from "./slot-selection";
 
 const quarterAt = (minutes: number, state: Quarter["state"] = "free"): Quarter => ({
   start: new Date(Date.UTC(2040, 0, 1, 8, minutes)).toISOString(),
@@ -31,7 +31,7 @@ describe("quarter selection", () => {
     expect(firstAndLast).toEqual(stepByStep);
     const range = selectedRange({ selection: stepByStep, quarters });
     expect(range).toMatchObject({ start: at(0), end: at(4) });
-    expect(range && rangeIssue({ range })).toBeNull();
+    expect(draftStatus({ range })).toBe("ready");
   });
 
   test("clicking an edge keeps only the other edge, and a lone quarter clears", () => {
@@ -56,8 +56,9 @@ describe("quarter selection", () => {
     ).toEqual({ first: at(10), last: at(10) });
     expect(selectedRange({ selection: { first: at(6), last: at(9) }, quarters })).toBeNull();
     const short = selectedRange({ selection: { first: at(0), last: at(1) }, quarters });
-    expect(short && rangeIssue({ range: short })).toBe("tooShort");
+    expect(draftStatus({ range: short })).toBe("tooShort");
     const long = { start: at(0), end: "2040-01-01T12:15:00.000Z", quarters: new Set<string>() };
-    expect(rangeIssue({ range: long })).toBe("tooLong");
+    expect(draftStatus({ range: long })).toBe("tooLong");
+    expect(draftStatus({ range: null })).toBe("pickRange");
   });
 });

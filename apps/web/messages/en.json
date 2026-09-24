@@ -100,7 +100,6 @@
   },
   "dashboard": {
     "title": "Dashboard | Local Craftsmen",
-    "heading": "Dashboard",
     "welcome": "Welcome, {name}",
     "roles": {
       "craftsman": "Craftsman account",
@@ -122,7 +121,7 @@
       "availability": "Availability",
       "bookings": "Bookings"
     },
-    "comingNext": "Coming next.",
+    "timeZone": "{city} local time ({zone}).",
     "availability": {
       "rateRequired": "Add an hourly rate to your profile before you offer availability.",
       "editProfile": "Edit profile",
@@ -142,7 +141,6 @@
       "save": "Add availability",
       "saving": "Adding…",
       "saved": "Availability added.",
-      "daySlots": "Offered availability, {date}",
       "noSlots": "You aren’t offering any availability on this day.",
       "showMore": "Show {count} more",
       "showLess": "Show less",
@@ -155,8 +153,16 @@
         "saveFailed": "We couldn’t add the time. Please try again.",
         "unauthorized": "Sign in with your craftsman account to manage availability.",
         "deleteFailed": "We couldn’t delete the time. Please try again."
-      },
-      "timeZone": "{city} local time ({zone})."
+      }
+    },
+    "bookings": {
+      "noBookings": "No jobs on this day.",
+      "status": {
+        "pending": "Pending",
+        "confirmed": "Confirmed",
+        "completed": "Completed",
+        "cancelled": "Cancelled"
+      }
     }
   },
   "profile": {

@@ -6,8 +6,9 @@
       "!**/node_modules",
       "!**/dist",
       "!**/.next",
+      "!**/.open-next",
+      "!**/.wrangler",
       "!**/.turbo",
-      "!**/test-results",
       "!apps/api/worker-configuration.d.ts",
       "!archive",
       "!docs"

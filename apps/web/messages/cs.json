@@ -100,7 +100,6 @@
   },
   "dashboard": {
     "title": "Nástěnka | Local Craftsmen",
-    "heading": "Nástěnka",
     "welcome": "Vítejte, {name}",
     "roles": {
       "craftsman": "Účet řemeslníka",
@@ -122,7 +121,7 @@
       "availability": "Dostupnost",
       "bookings": "Rezervace"
     },
-    "comingNext": "Připravujeme.",
+    "timeZone": "Místní čas – {city} ({zone}).",
     "availability": {
       "rateRequired": "Než nabídnete dostupnost, doplňte do profilu hodinovou sazbu.",
       "editProfile": "Upravit profil",
@@ -142,7 +141,6 @@
       "save": "Přidat dostupnost",
       "saving": "Přidávání…",
       "saved": "Dostupnost je přidaná.",
-      "daySlots": "Nabízené dostupnosti – {date}",
       "noSlots": "Na tento den nenabízíte žádnou dostupnost.",
       "showMore": "Zobrazit další ({count})",
       "showLess": "Zobrazit méně",
@@ -155,8 +153,16 @@
         "saveFailed": "Čas se nepodařilo přidat. Zkuste to prosím znovu.",
         "unauthorized": "Pro správu dostupnosti se přihlaste svým účtem řemeslníka.",
         "deleteFailed": "Čas se nepodařilo smazat. Zkuste to prosím znovu."
-      },
-      "timeZone": "Místní čas – {city} ({zone})."
+      }
+    },
+    "bookings": {
+      "noBookings": "V tento den nemáte žádné zakázky.",
+      "status": {
+        "pending": "Čeká",
+        "confirmed": "Potvrzeno",
+        "completed": "Dokončeno",
+        "cancelled": "Zrušeno"
+      }
     }
   },
   "profile": {

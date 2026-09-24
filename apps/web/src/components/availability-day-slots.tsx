@@ -15,15 +15,14 @@ import {
   ItemGroup,
   ItemTitle,
 } from "@/components/ui/item";
+import type { DaySlotModel } from "@/lib/availability-model";
 import { useMutation } from "@/lib/use-mutation";
 
-export type DaySlot = { id: string; timeLabel: string; areaLabel: string };
-
 const initialState: DeleteSlotState = {};
-/** Rows shown before the rest collapse; the panel reserves room for them so days never change its height. */
-const VISIBLE_SLOTS = 1;
+/** Rows shown before the rest collapse: as many as stand beside the calendar, plus the show-more line. */
+const VISIBLE_SLOTS = 6;
 
-function DaySlotItem({ slot }: { slot: DaySlot }) {
+function DaySlotItem({ slot }: { slot: DaySlotModel }) {
   const t = useTranslations("dashboard.availability");
   const { id, timeLabel, areaLabel } = slot;
   const { state, pending, run } = useMutation({
@@ -56,27 +55,15 @@ function DaySlotItem({ slot }: { slot: DaySlot }) {
   );
 }
 
-export function AvailabilityDaySlots({
-  slots,
-  dateLabel,
-}: {
-  slots: DaySlot[];
-  dateLabel: string;
-}) {
+export function AvailabilityDaySlots({ slots }: { slots: DaySlotModel[] }) {
   const t = useTranslations("dashboard.availability");
   const [expanded, setExpanded] = useState(false);
   const visible = slots.slice(0, VISIBLE_SLOTS);
   const hidden = slots.slice(VISIBLE_SLOTS);
 
-  // min-h-35: heading, one row and the show-more line, whether or not the day fills them.
+  // min-h-103: six rows and the show-more line, so the list keeps the calendar's height.
   return (
-    <section
-      aria-labelledby="day-slots-heading"
-      className="flex min-h-35 flex-col gap-2 border-t p-3"
-    >
-      <h3 id="day-slots-heading" className="min-h-5 text-sm font-medium">
-        {dateLabel && t("daySlots", { date: dateLabel })}
-      </h3>
+    <div className="flex min-h-103 min-w-0 flex-1 flex-col gap-2">
       {slots.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("noSlots")}</p>
       ) : (
@@ -102,6 +89,6 @@ export function AvailabilityDaySlots({
           </CollapsibleTrigger>
         </Collapsible>
       )}
-    </section>
+    </div>
   );
 }

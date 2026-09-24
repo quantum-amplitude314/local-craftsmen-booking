@@ -1,10 +1,13 @@
 import { getTranslations } from "next-intl/server";
-import { AvailabilityPlanner } from "@/components/availability-planner";
+import { AddAvailabilityButton } from "@/components/add-availability-button";
+import { AvailabilitySection } from "@/components/availability-section";
+import { BookingCalendar } from "@/components/booking-calendar";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 import { apiClient } from "@/lib/api";
+import { getDashboardSchedules, type ScheduleParams } from "@/lib/dashboard-schedules";
 
-export async function CraftsmanDashboard({ day }: { day: string | undefined }) {
+export async function CraftsmanDashboard({ day, cityId, jobDay }: ScheduleParams) {
   const [t, profile] = await Promise.all([
     getTranslations("dashboard"),
     apiClient.me.profile.get(),
@@ -27,21 +30,27 @@ export async function CraftsmanDashboard({ day }: { day: string | undefined }) {
     );
   }
 
-  const [schedule, locations] = await Promise.all([
-    apiClient.me.availability.day(day ? { date: day } : {}),
-    apiClient.locations.list(),
-  ]);
   const { baseArea, rates } = profile;
+  const { availability, bookings } = await getDashboardSchedules({
+    day,
+    cityId,
+    jobDay,
+    baseArea,
+  });
 
   return (
-    <div className="grid gap-8 lg:grid-cols-2">
+    // Availability keeps the planner's tuned width; bookings fill the column beside it.
+    <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
       <section
-        className="flex min-w-0 flex-col gap-6 border-t pt-6"
+        className="flex w-full min-w-0 max-w-172 flex-col gap-6 border-t pt-6"
         aria-labelledby="availability-heading"
       >
-        <h2 id="availability-heading" className="section-heading">
-          {t("sections.availability")}
-        </h2>
+        <div className="flex min-w-0 items-center justify-between gap-4">
+          <h2 id="availability-heading" className="section-heading">
+            {t("sections.availability")}
+          </h2>
+          {rates.length > 0 && <AddAvailabilityButton availability={availability} />}
+        </div>
         {rates.length === 0 ? (
           <div className="flex flex-col items-start gap-4">
             <p className="text-muted-foreground">{t("availability.rateRequired")}</p>
@@ -50,17 +59,17 @@ export async function CraftsmanDashboard({ day }: { day: string | undefined }) {
             </Link>
           </div>
         ) : (
-          <AvailabilityPlanner schedule={schedule} baseArea={baseArea} locations={locations} />
+          <AvailabilitySection availability={availability} />
         )}
       </section>
       <section
-        className="flex min-w-0 flex-col gap-3 border-t pt-6"
+        className="flex w-full min-w-0 max-w-172 flex-1 flex-col gap-6 border-t pt-6"
         aria-labelledby="bookings-heading"
       >
         <h2 id="bookings-heading" className="section-heading">
           {t("sections.bookings")}
         </h2>
-        <p className="text-muted-foreground">{t("comingNext")}</p>
+        <BookingCalendar {...bookings} />
       </section>
     </div>
   );

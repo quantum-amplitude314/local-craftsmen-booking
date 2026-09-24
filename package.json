@@ -14,7 +14,6 @@
     "lint-fix": "biome check --write .",
     "web:dev": "bun run --cwd apps/web dev",
     "api:dev": "bun run --cwd apps/api dev",
-    "api:test": "bun run --cwd apps/api test:api",
     "db:up": "podman compose up -d",
     "db:down": "podman compose down",
     "db:migrate": "bun run --cwd packages/db db:migrate",

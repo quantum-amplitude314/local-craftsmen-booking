@@ -5,12 +5,11 @@ node_modules/
 .next/
 dist/
 coverage/
-**/test-results/*
-!**/test-results/.gitkeep
 *.tsbuildinfo
 next-env.d.ts
 worker-configuration.d.ts
 .wrangler/
+.open-next/
 wrangler.json
 wrangler.jsonc
 wrangler.toml

@@ -1,6 +1,6 @@
 # Local Craftsmen
 
-Booking platform connecting customers with local craftsmen. Portfolio project.
+Booking platform connecting customers with local craftsmen. PoC Demo Project.
 
 ## Workspace
 
@@ -51,8 +51,9 @@ bun run lint-fix
 bun run typecheck
 bun run test       # database, API integration and Worker runtime tests; needs PostgreSQL
 bun run build      # web build and Worker dry run
-bun run api:test   # Bruno collection against a fresh craftsmen_test database on port 3002
 ```
+
+`apps/api/bruno` is a Bruno collection for exploring the API by hand against `bun run api:dev`.
 
 ## Architecture
 

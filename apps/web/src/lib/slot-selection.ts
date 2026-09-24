@@ -10,7 +10,8 @@ export type QuarterSelection = { first: string; last: string } | null;
 
 export type SelectedRange = { start: string; end: string; quarters: Set<string> };
 
-export type RangeIssue = "tooShort" | "tooLong" | null;
+/** Whether the current selection can be saved, or what it still needs. */
+export type DraftStatus = "pickRange" | "tooShort" | "tooLong" | "ready";
 
 const indexOf = ({ quarters, time }: { quarters: Quarter[]; time: string }) =>
   quarters.findIndex(({ start }) => start === time);
@@ -83,11 +84,12 @@ export const pickQuarter = ({
   return picked;
 };
 
-/** Why a range cannot be saved yet; the API enforces the same limits. */
-export const rangeIssue = ({ range }: { range: SelectedRange }) => {
+/** Why the range cannot be saved yet; the API enforces the same limits. */
+export const draftStatus = ({ range }: { range: SelectedRange | null }): DraftStatus => {
+  if (!range) return "pickRange";
   const minutes = durationMinutes(range);
-  const issue: RangeIssue =
-    minutes < SLOT_MIN_MINUTES ? "tooShort" : minutes > SLOT_MAX_MINUTES ? "tooLong" : null;
+  if (minutes < SLOT_MIN_MINUTES) return "tooShort";
+  if (minutes > SLOT_MAX_MINUTES) return "tooLong";
 
-  return issue;
+  return "ready";
 };

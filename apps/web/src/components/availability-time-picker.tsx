@@ -1,20 +1,10 @@
 "use client";
 
-import type { Quarter } from "@local-craftsmen/contracts";
 import { cn } from "cn";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
-
-export type QuarterOption = {
-  time: string;
-  label: string;
-  endLabel: string;
-  state: Quarter["state"];
-  selected: boolean;
-  /** The first or last selected quarter. */
-  edge: boolean;
-};
+import type { QuarterOption } from "@/lib/use-slot-draft";
 
 // No transitions or press shift: about a hundred quarters repaint on every click and must stay still.
 const quarterClassName = ({ state, selected, edge }: QuarterOption) =>
@@ -29,11 +19,11 @@ const quarterClassName = ({ state, selected, edge }: QuarterOption) =>
 
 function QuarterContent({ option }: { option: QuarterOption }) {
   const t = useTranslations("dashboard.availability");
-  const { time, label, endLabel, state } = option;
+  const { start, label, endLabel, state } = option;
 
   return (
     <>
-      <time dateTime={time}>{label}</time>
+      <time dateTime={start}>{label}</time>
       {endLabel && <span className="font-normal opacity-60">– {endLabel}</span>}
       {(state === "break" || state === "occupied") && (
         <span className="absolute right-3 text-xs font-normal">{t(`states.${state}`)}</span>
@@ -49,7 +39,7 @@ function QuarterButton({
   option: QuarterOption;
   onPick: (time: string) => void;
 }) {
-  const { time, state, selected, edge } = option;
+  const { start, state, selected, edge } = option;
   const free = state === "free";
 
   return (
@@ -61,7 +51,7 @@ function QuarterButton({
       aria-pressed={selected}
       data-bookable={free || undefined}
       className={quarterClassName(option)}
-      onClick={() => onPick(time)}
+      onClick={() => onPick(start)}
     >
       <QuarterContent option={option} />
     </Button>
@@ -106,7 +96,7 @@ function QuarterList({
       className="absolute inset-0 grid grid-cols-1 content-start gap-2 overflow-y-auto overscroll-contain scroll-smooth p-1 [scrollbar-gutter:stable] motion-reduce:scroll-auto"
     >
       {options.map((option) => (
-        <QuarterButton key={option.time} option={option} onPick={onPick} />
+        <QuarterButton key={option.start} option={option} onPick={onPick} />
       ))}
     </div>
   );
