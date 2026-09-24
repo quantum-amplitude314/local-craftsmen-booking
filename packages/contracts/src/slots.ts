@@ -11,26 +11,33 @@ import {
   SLOT_MIN_MINUTES,
 } from "./schedule.ts";
 
+/**
+ * A slot is worked in one city, optionally narrowed to districts of it, because the slot's hours
+ * are read in that city's time zone.
+ */
 const coverageSchema = z
   .array(areaSchema)
   .min(1)
   .max(100)
   .superRefine((areas, context) => {
+    const [first] = areas;
+    if (!first) return;
+    const { cityId: slotCityId } = first;
+    const wholeCity = areas.some(({ districtId }) => districtId === null);
     const seen = new Set<string>();
-    const wholeCities = new Set(
-      areas.filter(({ districtId }) => districtId === null).map(({ cityId }) => cityId),
-    );
-    areas.forEach(({ cityId, districtId }, index) => {
-      const key = `${cityId}:${districtId ?? "*"}`;
-      if (seen.has(key) || (districtId !== null && wholeCities.has(cityId))) {
-        context.addIssue({
-          code: "custom",
-          path: [index],
-          message: "Duplicate or redundant coverage",
-        });
+    for (const [index, { cityId, districtId }] of areas.entries()) {
+      const addIssue = (message: string) =>
+        context.addIssue({ code: "custom", path: [index], message });
+      if (cityId !== slotCityId) {
+        addIssue("One city per slot");
+        continue;
+      }
+      const key = districtId ?? "*";
+      if (seen.has(key) || (districtId !== null && wholeCity)) {
+        addIssue("Duplicate or redundant coverage");
       }
       seen.add(key);
-    });
+    }
   });
 
 export const slotInputSchema = timeRangeSchema
@@ -66,6 +73,9 @@ export type SlotListing = z.infer<typeof slotListingSchema>;
 /** A calendar date in the schedule time zone, YYYY-MM-DD. */
 export const scheduleDateSchema = z.iso.date();
 
+/** Days and times follow the time zone of the city the schedule is being planned for. */
+export const scheduleTimeZoneSchema = z.object({ id: z.string().min(1), cityId: cityIdSchema });
+
 /**
  * One quarter-hour of the schedule. `break` covers the 15 minutes after each slot or booking and
  * the 15 minutes before one, where a new slot's own break would fall.
@@ -78,8 +88,7 @@ export const quarterSchema = z.object({
 export type Quarter = z.infer<typeof quarterSchema>;
 
 export const availabilityDaySchema = z.object({
-  /** Days and times follow the time zone of the craftsman's base city. */
-  timeZone: z.object({ id: z.string().min(1), cityId: cityIdSchema }),
+  timeZone: scheduleTimeZoneSchema,
   date: scheduleDateSchema,
   today: scheduleDateSchema,
   quarters: z.array(quarterSchema),
@@ -125,7 +134,13 @@ export const ownSlotsContract = {
       path: "/me/availability/day",
       summary: "Your schedule for one day: quarter-hour states and free slots",
     })
-    .input(z.object({ date: scheduleDateSchema.optional() }))
+    .input(
+      z.object({
+        date: scheduleDateSchema.optional(),
+        /** Reads the day in this city's time zone; the base city when omitted. */
+        cityId: cityIdSchema.optional(),
+      }),
+    )
     .output(availabilityDaySchema)
     .errors({ BAD_REQUEST: { message: "Set up your profile first" } }),
   create: oc

@@ -39,13 +39,21 @@ export {
   type UserRole,
   userRoleSchema,
 } from "./auth.ts";
-export { type Booking, type BookingInput, bookingSchema } from "./bookings.ts";
+export {
+  type Booking,
+  type BookingInput,
+  bookingSchema,
+  type CraftsmanBooking,
+  craftsmanBookingSchema,
+} from "./bookings.ts";
 export {
   type Area,
   areaSchema,
   CITY_IDS,
   type CityId,
   cityIdSchema,
+  type JobLocation,
+  jobLocationSchema,
   type Location,
 } from "./cities.ts";
 export { idSchema, type TimeRange, timeRangeSchema, userIdSchema } from "./common.ts";
@@ -83,6 +91,7 @@ export {
   type SlotListing,
   type SlotSearch,
   scheduleDateSchema,
+  scheduleTimeZoneSchema,
   slotInputSchema,
   slotListingSchema,
   slotSchema,

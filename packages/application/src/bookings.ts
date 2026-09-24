@@ -1,4 +1,10 @@
-import { type BookingInput, bookingSchema, type SessionUser } from "@local-craftsmen/contracts";
+import {
+  type BookingInput,
+  bookingSchema,
+  type CraftsmanBooking,
+  type JobLocation,
+  type SessionUser,
+} from "@local-craftsmen/contracts";
 import {
   availability,
   availabilityArea,
@@ -11,17 +17,30 @@ import {
   district,
   user,
 } from "@local-craftsmen/db";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, sql } from "drizzle-orm";
 import { DomainError } from "./errors.ts";
-import { toWorkEnd } from "./slots.ts";
+import { activeBookingStatuses, toWorkEnd } from "./slots.ts";
 
-const toBooking = ({ range, cityId, districtId, ...row }: typeof booking.$inferSelect) => {
+const jobPlaceColumns = {
+  cityName: city.name,
+  districtName: district.name,
+  timeZone: city.timeZone,
+};
+
+const toBooking = ({
+  row,
+  place,
+}: {
+  row: typeof booking.$inferSelect;
+  place: Pick<JobLocation, "cityName" | "districtName" | "timeZone">;
+}) => {
+  const { range, cityId, districtId, ...fields } = row;
   const { start, end } = range;
   const result = bookingSchema.parse({
-    ...row,
+    ...fields,
     start: start.toISOString(),
     end: end.toISOString(),
-    location: { cityId, districtId },
+    location: { cityId, districtId, ...place },
   });
 
   return result;
@@ -106,15 +125,17 @@ export const createBookingsService = ({ db }: { db: Db }) => {
         })
         .returning();
       if (!created) throw new Error("Created booking is missing");
-      const booked = toBooking(created);
+      const [place] = await tx
+        .select(jobPlaceColumns)
+        .from(city)
+        .leftJoin(district, and(eq(district.cityId, city.id), eq(district.id, districtId ?? "")))
+        .where(eq(city.id, cityId));
+      if (!place) throw new DomainError({ code: "BAD_REQUEST", message: "Unknown job city" });
+      const booked = toBooking({ row: created, place });
       const participants = await tx
         .select({ id: user.id, name: user.name })
         .from(user)
         .where(inArray(user.id, [customerId, craftsmanId]));
-      const [jobCity] = await tx.select({ name: city.name }).from(city).where(eq(city.id, cityId));
-      const [jobDistrict] = districtId
-        ? await tx.select({ name: district.name }).from(district).where(eq(district.id, districtId))
-        : [];
       await tx.insert(bookingHistory).values({
         bookingId: booked.id,
         actorId: customerId,
@@ -122,11 +143,7 @@ export const createBookingsService = ({ db }: { db: Db }) => {
         snapshot: {
           booking: booked,
           participants,
-          location: {
-            ...location,
-            cityName: jobCity?.name,
-            districtName: jobDistrict?.name ?? null,
-          },
+          location: booked.location,
           slot: {
             id: slotId,
             craftsmanId,
@@ -148,12 +165,51 @@ export const createBookingsService = ({ db }: { db: Db }) => {
   const list = async ({ user: account }: { user: SessionUser }) => {
     const { id, role } = account;
     const ownerColumn = role === "craftsman" ? booking.craftsmanId : booking.customerId;
-    const rows = await db.select().from(booking).where(eq(ownerColumn, id)).orderBy(booking.range);
+    const rows = await db
+      .select({ row: booking, place: jobPlaceColumns })
+      .from(booking)
+      .innerJoin(city, eq(city.id, booking.cityId))
+      .leftJoin(district, eq(district.id, booking.districtId))
+      .where(eq(ownerColumn, id))
+      .orderBy(booking.range, booking.id);
     const bookings = rows.map(toBooking);
 
     return bookings;
   };
-  const service = { create, list };
+
+  /** Every active job overlapping the window, in UTC. Which calendar day each one lands on is the
+   * caller's decision, because only the caller knows the zone its grid is drawn in. */
+  const range = async ({
+    craftsmanId,
+    start,
+    end,
+  }: {
+    craftsmanId: string;
+    start: string;
+    end: string;
+  }) => {
+    const rows = await db
+      .select({ row: booking, place: jobPlaceColumns, customerName: user.name })
+      .from(booking)
+      .innerJoin(user, eq(user.id, booking.customerId))
+      .innerJoin(city, eq(city.id, booking.cityId))
+      .leftJoin(district, eq(district.id, booking.districtId))
+      .where(
+        and(
+          eq(booking.craftsmanId, craftsmanId),
+          inArray(booking.status, activeBookingStatuses),
+          sql`${booking.range} && tstzrange(${start}::timestamptz, ${end}::timestamptz)`,
+        ),
+      )
+      .orderBy(booking.range, booking.id);
+    const bookings: CraftsmanBooking[] = rows.map(({ row, place, customerName }) => ({
+      ...toBooking({ row, place }),
+      customerName,
+    }));
+
+    return bookings;
+  };
+  const service = { create, list, range };
 
   return service;
 };

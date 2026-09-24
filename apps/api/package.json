@@ -11,8 +11,7 @@
     "cf-typegen": "wrangler types --env-file .env.example",
     "typecheck": "bun run cf-typegen && tsc --noEmit",
     "test": "vitest run && bun run test:auth",
-    "test:auth": "bun --env-file=.env.test --env-file=../../packages/db/.env.test test test/auth.integration.test.ts",
-    "test:api": "bun --env-file=.env.test --env-file=../../packages/db/.env.test scripts/test-api.ts"
+    "test:auth": "bun --env-file=.env.test --env-file=../../packages/db/.env.test test test/auth.integration.test.ts"
   },
   "dependencies": {
     "@local-craftsmen/application": "workspace:*",
@@ -28,7 +27,6 @@
     "@local-craftsmen/config": "workspace:*",
     "@types/bun": "latest",
     "@types/node": "^26.6.2",
-    "@usebruno/cli": "^2.0.0",
     "drizzle-orm": "^0.45.2",
     "vitest": "^4.1.0",
     "wrangler": "^4.136.1"

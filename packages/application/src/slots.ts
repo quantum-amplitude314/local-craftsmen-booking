@@ -13,7 +13,6 @@ import {
   availability,
   availabilityArea,
   booking,
-  city,
   craftsmanProfile,
   craftsmanRate,
   type Db,
@@ -23,11 +22,12 @@ import {
 import { and, eq, exists, inArray, isNull, or, sql } from "drizzle-orm";
 import { DomainError } from "./errors.ts";
 import { readRates } from "./rates.ts";
+import { readCalendarDay, readScheduleTimeZone } from "./schedule-day.ts";
 import { type BlockedRange, buildQuarters } from "./slot-times.ts";
 
 const BREAK_MS = BREAK_MINUTES * 60_000;
 const SLOT_MAX_MS = SLOT_MAX_MINUTES * 60_000;
-const activeBookingStatuses: ("pending" | "confirmed")[] = ["pending", "confirmed"];
+export const activeBookingStatuses: ("pending" | "confirmed")[] = ["pending", "confirmed"];
 const breakInterval = sql.raw(`interval '${BREAK_MINUTES} minutes'`);
 const workRange = sql`tstzrange(lower(${availability.range}), upper(${availability.range}) - ${breakInterval}, '[)')`;
 
@@ -185,58 +185,19 @@ export const createSlotsService = ({ db }: { db: Db }) => {
     return listings;
   };
 
-  const readBaseTimeZone = async ({ craftsmanId }: { craftsmanId: string }) => {
-    const [zone] = await db
-      .select({ id: city.timeZone, cityId: city.id })
-      .from(craftsmanProfile)
-      .innerJoin(city, eq(city.id, craftsmanProfile.baseCityId))
-      .where(eq(craftsmanProfile.userId, craftsmanId));
-    if (!zone) throw new DomainError({ code: "BAD_REQUEST", message: "Set up your profile first" });
-    const { id, cityId } = zone;
-    const timeZone = { id, cityId: cityIdSchema.parse(cityId) };
-
-    return timeZone;
-  };
-
-  /** Resolves a date (default today) in the time zone to the instants its day starts and ends. */
-  const readCalendarDay = async ({
+  const day = async ({
+    craftsmanId,
     date,
-    now,
-    timeZone,
+    cityId,
   }: {
-    date: string | undefined;
-    now: string;
-    timeZone: string;
+    craftsmanId: string;
+    date?: string | undefined;
+    cityId?: string | undefined;
   }) => {
-    const [calendarDay] = await db.execute<{
-      today: string;
-      date: string;
-      dayStart: number;
-      dayEnd: number;
-    }>(sql`
-      with requested as (
-        select coalesce(
-          ${date ?? null}::date,
-          (${now}::timestamptz at time zone ${timeZone})::date
-        ) as day
-      )
-      select
-        to_char((${now}::timestamptz at time zone ${timeZone})::date, 'YYYY-MM-DD') as "today",
-        to_char(day, 'YYYY-MM-DD') as "date",
-        (extract(epoch from day::timestamp at time zone ${timeZone}) * 1000)::float8 as "dayStart",
-        (extract(epoch from (day + 1)::timestamp at time zone ${timeZone}) * 1000)::float8 as "dayEnd"
-      from requested
-    `);
-    if (!calendarDay) throw new Error("Calendar day is missing");
-
-    return calendarDay;
-  };
-
-  const day = async ({ craftsmanId, date }: { craftsmanId: string; date?: string | undefined }) => {
     const now = new Date();
     const nowIso = now.toISOString();
-    const timeZone = await readBaseTimeZone({ craftsmanId });
-    const calendarDay = await readCalendarDay({ date, now: nowIso, timeZone: timeZone.id });
+    const timeZone = await readScheduleTimeZone({ db, craftsmanId, cityId });
+    const calendarDay = await readCalendarDay({ db, date, now: nowIso, timeZone: timeZone.id });
     const { dayStart, dayEnd } = calendarDay;
     const reach = sql`tstzrange(${new Date(dayStart).toISOString()}::timestamptz, ${new Date(dayEnd + SLOT_MAX_MS + BREAK_MS).toISOString()}::timestamptz, '[)')`;
     const [slotRows, bookingRows, slotDateRows] = await Promise.all([

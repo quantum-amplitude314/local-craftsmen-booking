@@ -41,9 +41,9 @@ export const router = os.router({
       day: os.me.availability.day.handler(({ context, input }) => {
         const { user, slots } = context;
         if (!user) throw new ORPCError("UNAUTHORIZED");
-        const { date } = input;
+        const { date, cityId } = input;
 
-        return execute(() => slots.day({ craftsmanId: user.id, date }));
+        return execute(() => slots.day({ craftsmanId: user.id, date, cityId }));
       }),
       create: os.me.availability.create.handler(({ context, input }) => {
         const { user, slots } = context;
@@ -65,6 +65,13 @@ export const router = os.router({
         if (!user) throw new ORPCError("UNAUTHORIZED");
 
         return bookings.list({ user });
+      }),
+      range: os.me.bookings.range.handler(({ context, input }) => {
+        const { user, bookings } = context;
+        if (!user) throw new ORPCError("UNAUTHORIZED");
+        const { start, end } = input;
+
+        return bookings.range({ craftsmanId: user.id, start, end });
       }),
     },
     profile: {

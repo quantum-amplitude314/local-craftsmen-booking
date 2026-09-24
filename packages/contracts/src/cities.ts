@@ -14,6 +14,14 @@ export const areaSchema = z.object({
 
 export type Area = z.infer<typeof areaSchema>;
 
+/** The work location carries its own time zone, independent of either participant. */
+export const jobLocationSchema = areaSchema.extend({
+  cityName: z.string(),
+  districtName: z.string().nullable(),
+  timeZone: z.string().min(1),
+});
+export type JobLocation = z.infer<typeof jobLocationSchema>;
+
 export const locationSchema = z.object({
   id: cityIdSchema,
   name: z.string(),

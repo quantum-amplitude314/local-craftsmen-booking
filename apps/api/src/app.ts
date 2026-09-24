@@ -55,6 +55,8 @@ export const createApp = <Bindings extends object>({
   app.use("/me/*", requireSession);
   app.use("/me/profile/*", requireRole(userRoleSchema.enum.craftsman));
   app.use("/me/availability/*", requireRole(userRoleSchema.enum.craftsman));
+  app.use("/me/bookings/range", requireRole(userRoleSchema.enum.craftsman));
+  app.use("/me/bookings/range/*", requireRole(userRoleSchema.enum.craftsman));
   app.use("/craftsmen/*", requireSession);
   app.use("/slots/*", requireSession);
   app.use("/bookings/*", requireSession);

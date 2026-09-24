@@ -10,6 +10,7 @@ import {
   availabilityDaySchema,
   bookingSchema,
   type CraftsmanRate,
+  craftsmanBookingSchema,
   craftsmanProfileSchema,
   sessionUserSchema,
   slotSchema,
@@ -19,6 +20,7 @@ import {
   availabilityArea,
   booking,
   bookingHistory,
+  city,
   type Db,
 } from "@local-craftsmen/db";
 import { startTestDb } from "@local-craftsmen/db/test-db";
@@ -192,6 +194,8 @@ describe("location-aware slots and booking allocation", () => {
     }
     expect((await call({ path: "/me/availability/day" })).status).toBe(401);
     expect((await call({ path: "/me/availability/day", cookie: customerCookie })).status).toBe(403);
+    expect((await call({ path: "/me/bookings/range" })).status).toBe(401);
+    expect((await call({ path: "/me/bookings/range", cookie: customerCookie })).status).toBe(403);
     expect((await call({ path: "/slots" })).status).toBe(401);
     expect((await call({ path: "/bookings", method: "POST", body: {} })).status).toBe(401);
     expect(
@@ -295,6 +299,21 @@ describe("location-aware slots and booking allocation", () => {
       body: { start, end, areas: [{ cityId: "prague", districtId: "pilsen-doubravka" }] },
     });
     expect(invalid.status).toBe(400);
+    // A slot is worked in one city, because its hours are read in that city's zone.
+    const twoCities = await call({
+      path: "/me/availability",
+      method: "POST",
+      cookie: craftsmanCookie,
+      body: {
+        start,
+        end,
+        areas: [
+          { cityId: "prague", districtId: null },
+          { cityId: "pilsen", districtId: null },
+        ],
+      },
+    });
+    expect(twoCities.status).toBe(400);
     const valid = await call({
       path: "/me/availability",
       method: "POST",
@@ -411,6 +430,38 @@ describe("location-aware slots and booking allocation", () => {
     expect(invalid.status).toBe(400);
   });
 
+  test("plans the day in the requested city's zone instead of the base city's", async () => {
+    const readDay = async (query: string) => {
+      const response = await call({
+        path: `/me/availability/day?${query}`,
+        cookie: craftsmanCookie,
+      });
+      expect(response.status).toBe(200);
+      const schedule = availabilityDaySchema.parse(await response.json());
+
+      return schedule;
+    };
+    await database.update(city).set({ timeZone: "America/New_York" }).where(eq(city.id, "prague"));
+    try {
+      const requested = await readDay("date=2040-07-02&cityId=prague");
+      expect(requested.timeZone).toEqual({ id: "America/New_York", cityId: "prague" });
+      // Midnight in New York is 04:00 UTC that July day, so the day starts four hours later.
+      expect(requested.quarters[0]?.start).toBe("2040-07-02T04:00:00.000Z");
+    } finally {
+      await database.update(city).set({ timeZone: "Europe/Prague" }).where(eq(city.id, "prague"));
+    }
+
+    const base = await readDay("date=2040-07-02");
+    expect(base.timeZone).toEqual({ id: "Europe/Prague", cityId: "pilsen" });
+    expect(base.quarters[0]?.start).toBe("2040-07-01T22:00:00.000Z");
+
+    const unknown = await call({
+      path: "/me/availability/day?cityId=atlantis",
+      cookie: craftsmanCookie,
+    });
+    expect(unknown.status).toBe(400);
+  });
+
   test("restricts slot deletion to the owner and cascades coverage deletion", async () => {
     const { id } = await createSlot();
     expect(
@@ -497,6 +548,13 @@ describe("location-aware slots and booking allocation", () => {
       start,
       end,
       status: "pending",
+      location: {
+        cityId: "prague",
+        cityName: "Praha",
+        districtId: "prague-liben",
+        districtName: "Libeň",
+        timeZone: "Europe/Prague",
+      },
     });
     expect(
       await database.select().from(availability).where(eq(availability.id, slot.id)),
@@ -543,6 +601,153 @@ describe("location-aware slots and booking allocation", () => {
     expect(
       await database.select().from(bookingHistory).where(eq(bookingHistory.bookingId, booked.id)),
     ).toEqual(history);
+  });
+
+  test("lists the craftsman's active jobs overlapping a window, in chronological order", async () => {
+    const book = async () => {
+      const { id: slotId, start, end } = await createSlot();
+      const response = await call({
+        path: "/bookings",
+        method: "POST",
+        cookie: customerCookie,
+        body: {
+          slotId,
+          start,
+          end,
+          location: { cityId: "prague", districtId: "prague-liben" },
+          currency: "EUR",
+        },
+      });
+      expect(response.status).toBe(200);
+      const booked = bookingSchema.parse(await response.json());
+
+      return booked;
+    };
+    const kept = await book();
+    const cancelled = await book();
+    const completed = await book();
+    const expired = await book();
+    const ongoing = await book();
+    await database.update(booking).set({ status: "cancelled" }).where(eq(booking.id, cancelled.id));
+    await database.update(booking).set({ status: "completed" }).where(eq(booking.id, completed.id));
+    const now = Date.now();
+    await database
+      .update(booking)
+      .set({ range: { start: new Date(now - 7_200_000), end: new Date(now - 3_600_000) } })
+      .where(eq(booking.id, expired.id));
+    await database
+      .update(booking)
+      .set({
+        status: "confirmed",
+        range: { start: new Date(now - 900_000), end: new Date(now + 3_600_000) },
+      })
+      .where(eq(booking.id, ongoing.id));
+
+    const inWindow = async ({
+      start,
+      end,
+      cookie,
+    }: {
+      start: string;
+      end: string;
+      cookie: string;
+    }) => {
+      const response = await call({
+        path: `/me/bookings/range?start=${start}&end=${end}`,
+        cookie,
+      });
+      expect(response.status).toBe(200);
+      const jobs = craftsmanBookingSchema.array().parse(await response.json());
+
+      return jobs;
+    };
+    const january = { start: "2039-12-31T00:00:00Z", end: "2040-02-01T00:00:00Z" };
+    const jobs = await inWindow({ ...january, cookie: craftsmanCookie });
+    expect(jobs).toContainEqual({ ...kept, customerName: "Test customer" });
+    const ids = jobs.map(({ id }) => id);
+    expect(ids).not.toContain(cancelled.id);
+    expect(ids).not.toContain(completed.id);
+    // Both were moved to this week, so a January window must not reach them.
+    expect(ids).not.toContain(ongoing.id);
+    expect(ids).not.toContain(expired.id);
+    const starts = jobs.map(({ start }) => start);
+    expect(starts).toEqual(starts.toSorted());
+
+    // A window looks backwards too: a job that has ended still belongs to the day it happened on.
+    const week = await inWindow({
+      start: new Date(now - 7 * 86_400_000).toISOString(),
+      end: new Date(now + 7 * 86_400_000).toISOString(),
+      cookie: craftsmanCookie,
+    });
+    const weekIds = week.map(({ id }) => id);
+    expect(weekIds).toContain(ongoing.id);
+    expect(weekIds).toContain(expired.id);
+
+    expect(await inWindow({ ...january, cookie: otherCraftsmanCookie })).toEqual([]);
+    const tooWide = await call({
+      path: "/me/bookings/range?start=2040-01-01T00:00:00Z&end=2040-06-01T00:00:00Z",
+      cookie: craftsmanCookie,
+    });
+    expect(tooWide.status).toBe(400);
+  });
+
+  test("returns the job city's zone, not the craftsman's base zone, for bookings in multiple cities", async () => {
+    const firstId = crypto.randomUUID();
+    const secondId = crypto.randomUUID();
+    await database.update(city).set({ timeZone: "America/New_York" }).where(eq(city.id, "prague"));
+    await database.update(city).set({ timeZone: "Europe/London" }).where(eq(city.id, "pardubice"));
+    try {
+      await database.insert(booking).values([
+        {
+          id: secondId,
+          customerId,
+          craftsmanId,
+          craft: "painter",
+          cityId: "pardubice",
+          districtId: null,
+          range: { start: new Date("2042-07-01T08:00:00Z"), end: new Date("2042-07-01T09:00:00Z") },
+          currency: "EUR",
+          hourlyRate: "10.00",
+        },
+        {
+          id: firstId,
+          customerId,
+          craftsmanId,
+          craft: "painter",
+          cityId: "prague",
+          districtId: "prague-liben",
+          range: { start: new Date("2042-07-01T00:15:00Z"), end: new Date("2042-07-01T01:15:00Z") },
+          currency: "EUR",
+          hourlyRate: "10.00",
+        },
+      ]);
+      const response = await call({
+        path: "/me/bookings/range?start=2042-06-30T00:00:00Z&end=2042-07-02T00:00:00Z",
+        cookie: craftsmanCookie,
+      });
+      expect(response.status).toBe(200);
+      const jobs = craftsmanBookingSchema.array().parse(await response.json());
+      const fixtureJobs = jobs.filter(({ id }) => id === firstId || id === secondId);
+      expect(fixtureJobs).toMatchObject([
+        {
+          id: firstId,
+          start: "2042-07-01T00:15:00.000Z",
+          location: { cityId: "prague", districtName: "Libeň", timeZone: "America/New_York" },
+        },
+        {
+          id: secondId,
+          location: { cityId: "pardubice", districtName: null, timeZone: "Europe/London" },
+        },
+      ]);
+    } finally {
+      await database.delete(booking).where(eq(booking.id, firstId));
+      await database.delete(booking).where(eq(booking.id, secondId));
+      await database.update(city).set({ timeZone: "Europe/Prague" }).where(eq(city.id, "prague"));
+      await database
+        .update(city)
+        .set({ timeZone: "Europe/Prague" })
+        .where(eq(city.id, "pardubice"));
+    }
   });
 
   test("concurrent requests for different districts and nonoverlapping portions of one slot have exactly one winner", async () => {
