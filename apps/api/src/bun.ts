@@ -7,6 +7,7 @@ import {
 import { createDb } from "@local-craftsmen/db";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
+import { readBunEnv } from "./env.ts";
 
 type Database = ReturnType<typeof createDb>;
 type Server = ReturnType<typeof Bun.serve>;
@@ -17,11 +18,14 @@ type LocalRuntime = typeof globalThis & {
   localCraftsmenShutdownHandler?: () => void;
 };
 
-const databaseUrl = process.env.DATABASE_URL;
-if (!databaseUrl) throw new Error("DATABASE_URL is required");
-
-const port = Number(process.env.PORT ?? 3001);
-if (!Number.isInteger(port)) throw new Error("PORT must be an integer");
+const {
+  DATABASE_URL: databaseUrl,
+  PORT: port,
+  BETTER_AUTH_SECRET,
+  BETTER_AUTH_URL,
+  WEB_ORIGIN,
+  TURNSTILE_SECRET_KEY,
+} = readBunEnv();
 
 const runtime = globalThis as LocalRuntime;
 const database = runtime.localCraftsmenDatabase ?? createDb({ connectionString: databaseUrl });
@@ -31,12 +35,6 @@ const craftsmen = createCraftsmenService({ db: database.db });
 const slots = createSlotsService({ db: database.db });
 const bookings = createBookingsService({ db: database.db });
 const locations = createLocationsService({ db: database.db });
-const {
-  BETTER_AUTH_SECRET,
-  BETTER_AUTH_URL = "http://localhost:3001",
-  WEB_ORIGIN = "http://localhost:3000",
-  TURNSTILE_SECRET_KEY,
-} = process.env;
 const auth = createAuth({
   db: database.db,
   secret: BETTER_AUTH_SECRET,

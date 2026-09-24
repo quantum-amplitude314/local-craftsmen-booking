@@ -6,18 +6,17 @@ import type { ContractRouterClient } from "@orpc/contract";
 import type { JsonifiedClient } from "@orpc/openapi-client";
 import { OpenAPILink } from "@orpc/openapi-client/fetch";
 import { cookies } from "next/headers";
-
-const apiUrl = process.env.API_URL ?? "http://localhost:3001";
+import { apiFetch, getApiBaseUrl } from "@/lib/api-fetch";
 
 const link = new OpenAPILink(contract, {
-  url: apiUrl,
+  url: getApiBaseUrl,
   headers: async () => {
     const cookieStore = await cookies();
     const headers = { cookie: cookieStore.toString() };
 
     return headers;
   },
-  fetch: (request, init) => globalThis.fetch(request, { ...init, cache: "no-store" }),
+  fetch: (request, init) => apiFetch(new Request(request, init)),
 });
 
 /** Server-side API client that forwards the visitor's session cookie. */

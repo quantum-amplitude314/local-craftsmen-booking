@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import locations from "../data/locations.json" with { type: "json" };
 import { createDb, type Db } from "./client.ts";
+import { readDatabaseEnv } from "./env.ts";
 import { city, district } from "./schema.ts";
 
 const cities = locations.map(({ id, name, timeZone }) => ({ id, name, timeZone }));
@@ -31,9 +32,7 @@ const hasMigrations = async ({ db }: { db: Db }) => {
 };
 
 if (import.meta.main) {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) throw new Error("DATABASE_URL is required");
-
+  const { DATABASE_URL: connectionString } = readDatabaseEnv();
   const { db, close } = createDb({ connectionString });
   if (!(await hasMigrations({ db }))) {
     await close();

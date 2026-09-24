@@ -4,6 +4,7 @@ import Script from "next/script";
 import { useLocale } from "next-intl";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { readAppliedPalette, subscribeToPaletteChange } from "@/lib/palette";
+import { publicEnv } from "@/lib/public-env";
 
 /** Explicit-render API of https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit */
 type TurnstileApi = {
@@ -29,7 +30,7 @@ declare global {
 }
 
 const turnstileScriptUrl = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
-const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? "";
+const { NEXT_PUBLIC_TURNSTILE_SITE_KEY: siteKey } = publicEnv;
 const readServerPalette = () => "dark" as const;
 
 /**

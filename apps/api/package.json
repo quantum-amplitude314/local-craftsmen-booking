@@ -20,7 +20,8 @@
     "@orpc/openapi": "^1.15.1",
     "@orpc/server": "^1.15.1",
     "better-auth": "^1.7.5",
-    "hono": "^4.13.8"
+    "hono": "^4.13.8",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@cloudflare/vitest-plugin": "^1.2.1",

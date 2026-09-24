@@ -13,16 +13,11 @@ export const createAuth = ({
   turnstileSecretKey,
 }: {
   db: Db;
-  secret: string | undefined;
+  secret: string;
   baseURL: string;
   webOrigin: string;
-  turnstileSecretKey: string | undefined;
+  turnstileSecretKey: string;
 }) => {
-  if (!secret || secret.length < 32) {
-    throw new Error("BETTER_AUTH_SECRET must contain at least 32 characters");
-  }
-  if (!turnstileSecretKey) throw new Error("TURNSTILE_SECRET_KEY is required");
-
   const auth = betterAuth({
     appName: "Local Craftsmen",
     baseURL,

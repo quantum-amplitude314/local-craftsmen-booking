@@ -4,9 +4,8 @@ import { sessionUserSchema } from "@local-craftsmen/contracts";
 import { parseSetCookieHeader, toCookieOptions } from "better-auth/cookies";
 import { cookies } from "next/headers";
 import { cache } from "react";
-
-const apiUrl = process.env.API_URL ?? "http://localhost:3001";
-const webOrigin = process.env.WEB_ORIGIN ?? "http://localhost:3000";
+import { apiFetch, getApiBaseUrl } from "@/lib/api-fetch";
+import { getEnv } from "@/lib/env";
 
 export const getCurrentUser = cache(async () => {
   const cookieStore = await cookies();
@@ -16,10 +15,10 @@ export const getCurrentUser = cache(async () => {
   )
     return null;
 
-  const response = await fetch(`${apiUrl}/me`, {
+  const request = new Request(new URL("/me", await getApiBaseUrl()), {
     headers: { cookie: cookieStore.toString() },
-    cache: "no-store",
   });
+  const response = await apiFetch(request);
   if (response.status === 401) return null;
   if (!response.ok) throw new Error("Unable to load your account. Please try again.");
 
@@ -38,7 +37,8 @@ export const sendAuthRequest = async ({
   captchaToken?: string | undefined;
 }) => {
   const cookieStore = await cookies();
-  const response = await fetch(`${apiUrl}/auth/${endpoint}`, {
+  const { WEB_ORIGIN: webOrigin } = await getEnv();
+  const request = new Request(new URL(`/auth/${endpoint}`, await getApiBaseUrl()), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -47,8 +47,8 @@ export const sendAuthRequest = async ({
       ...(captchaToken && { "x-captcha-response": captchaToken }),
     },
     body: JSON.stringify(body),
-    cache: "no-store",
   });
+  const response = await apiFetch(request);
 
   for (const header of response.headers.getSetCookie()) {
     for (const [name, attributes] of parseSetCookieHeader(header)) {

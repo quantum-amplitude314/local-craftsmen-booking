@@ -1,0 +1,12 @@
+# Copy to .dev.vars. Worker env for `next dev` and `preview`; overrides `vars` in wrangler.jsonc.
+# Validated by src/lib/env.ts. Production uses the `vars` in wrangler.jsonc.
+
+# WRANGLER_BINDING — how the web server reaches the API:
+#   off: HTTP to API_URL (API running with `bun run api:dev` or `dev:preview` on port 3001).
+#   on:  the `API` service binding from wrangler.jsonc. Locally it needs the API running with
+#        `bun run --cwd apps/api dev:preview`. Production is always "on".
+WRANGLER_BINDING=off
+# Required while WRANGLER_BINDING=off:
+API_URL=http://localhost:3001
+# Sent as `Origin` on auth requests; must match the API's WEB_ORIGIN.
+WEB_ORIGIN=http://localhost:3000

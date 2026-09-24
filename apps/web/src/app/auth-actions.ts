@@ -1,6 +1,7 @@
 "use server";
 
 import { hasLocale } from "next-intl";
+import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { sendAuthRequest } from "@/lib/auth";
@@ -18,6 +19,7 @@ const getFormLocale = (formData: FormData) => {
 
 // Better Auth captcha plugin codes for a missing or rejected Turnstile token.
 const captchaErrorCodes: unknown[] = ["MISSING_RESPONSE", "VERIFICATION_FAILED"];
+const authErrorBodySchema = z.object({ code: z.unknown() }).catch({ code: undefined });
 
 const readAuthError = async ({
   response,
@@ -30,8 +32,8 @@ const readAuthError = async ({
   if (status === 429) return "tooManyAttempts";
   if (status >= 500) return "serviceUnavailable";
 
-  const body: { code?: unknown } | null = await response.json().catch(() => null);
-  const error = captchaErrorCodes.includes(body?.code)
+  const { code } = authErrorBodySchema.parse(await response.json().catch(() => null));
+  const error = captchaErrorCodes.includes(code)
     ? "verificationFailed"
     : mode === "login"
       ? "loginFailed"

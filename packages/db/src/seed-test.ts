@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { createDb, type Db } from "./client.ts";
+import { readDatabaseEnv } from "./env.ts";
 import { runMigrations } from "./migrate.ts";
 import { availability, availabilityArea, craftsmanProfile, craftsmanRate, user } from "./schema.ts";
 import { seedReference } from "./seed-reference.ts";
@@ -113,8 +114,7 @@ const hasTestData = async ({ db }: { db: Db }) => {
 };
 
 if (import.meta.main) {
-  const connectionString = process.env.DATABASE_URL;
-  if (!connectionString) throw new Error("DATABASE_URL is required");
+  const { DATABASE_URL: connectionString } = readDatabaseEnv();
   if (!["localhost", "127.0.0.1"].includes(new URL(connectionString).hostname)) {
     throw new Error("db:seed:test only seeds a localhost database");
   }

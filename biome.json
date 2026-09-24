@@ -10,6 +10,7 @@
       "!**/.wrangler",
       "!**/.turbo",
       "!apps/api/worker-configuration.d.ts",
+      "!apps/web/cloudflare-env.d.ts",
       "!archive",
       "!docs"
     ]

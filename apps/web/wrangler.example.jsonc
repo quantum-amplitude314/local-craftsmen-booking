@@ -4,11 +4,23 @@
   "main": ".open-next/worker.js",
   "compatibility_date": "2026-09-21",
   "compatibility_flags": ["nodejs_compat"],
+  "routes": [{ "pattern": "craftsmen.quantum-amplitude.tech", "custom_domain": true }],
+  "workers_dev": false,
+  // Production runtime values; `.dev.vars` overrides them locally. Validated by src/lib/env.ts.
+  "vars": {
+    // "on": reach the API through the `API` service binding below. "off" (local only): HTTP to API_URL.
+    "WRANGLER_BINDING": "on",
+    "WEB_ORIGIN": "https://craftsmen.quantum-amplitude.tech"
+  },
   "assets": {
     "directory": ".open-next/assets",
     "binding": "ASSETS"
   },
   "services": [
+    {
+      "binding": "API",
+      "service": "local-craftsmen-api"
+    },
     {
       "binding": "WORKER_SELF_REFERENCE",
       "service": "local-craftsmen-web"
