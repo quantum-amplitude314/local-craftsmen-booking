@@ -32,21 +32,11 @@ apps/api/bruno          Bruno collection
 
 ```sh
 bun install
-cp packages/db/.env.example packages/db/.env.local
-cp apps/api/.env.example apps/api/.env.local
-cp apps/api/wrangler.example.jsonc apps/api/wrangler.jsonc
-cp apps/web/.env.example apps/web/.env.local
-cp apps/web/.dev.vars.example apps/web/.dev.vars
-cp apps/web/wrangler.example.jsonc apps/web/wrangler.jsonc
 ```
 
-Set `BETTER_AUTH_SECRET` in `apps/api/.env.local`, then start and seed the database:
-
-```sh
-bun run db:up
-bun run db:migrate
-bun run db:seed:reference # upserts cities and districts from `packages/db/data/locations.json`
-```
+- First setup sections in
+- [API runbook](apps/api/README.md)
+- [Web runbook](apps/web/README.md)
 
 ## Development
 
@@ -60,13 +50,9 @@ bun run build      # web build and Worker dry run
 
 ## Deployment
 
-Two Cloudflare Workers; the API has no public URL.
-
 ```text
-browser → web Worker (Next.js, OpenNext) ─service binding→ API Worker (Hono) ─Hyperdrive→ Neon PostgreSQL
+browser → web Worker (Next.js, OpenNext) ─service binding →
+API Worker (Hono) ─Hyperdrive → Neon PostgreSQL
 ```
 
-- [API runbook](apps/api/README.md): env files, Neon and Hyperdrive, migrations, secrets, deploy.
-- [Web runbook](apps/web/README.md): build-time Turnstile key, binding switch, preview, deploy.
-- Deploy the API first; the web's service binding needs it. Both run locally as Workers
-  (`dev:preview`, `preview`) against a Neon preview branch.
+- Deploy the API first; the web's service binding needs it. Both can run locally as Workers in wrangler preview (`dev:preview`, `preview`) against a Neon preview branch
