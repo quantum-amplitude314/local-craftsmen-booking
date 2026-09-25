@@ -2,11 +2,12 @@ import type { Metadata } from "next";
 import { Fraunces, Noto_Sans } from "next/font/google";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import "../globals.css";
 import { PaletteScript } from "@/components/palette-script";
 import { SiteHeader } from "@/components/site-header";
-import { routing } from "@/i18n/routing";
+import { type Locale, routing } from "@/i18n/routing";
+import { getEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 const fraunces = Fraunces({
@@ -20,9 +21,30 @@ const notoSans = Noto_Sans({
   variable: "--font-noto-sans",
 });
 
+const OPEN_GRAPH_LOCALES: Record<Locale, string> = { en: "en_US", cs: "cs_CZ" };
+
 export const generateMetadata = async (): Promise<Metadata> => {
-  const t = await getTranslations("metadata");
-  const metadata = { title: t("title"), description: t("description") };
+  const [t, locale, { WEB_ORIGIN: webOrigin }] = await Promise.all([
+    getTranslations(),
+    getLocale(),
+    getEnv(),
+  ]);
+  const title = t("metadata.title");
+  const description = t("metadata.description");
+  // The shared image comes from opengraph-image.jpg beside this layout; X falls back to it.
+  const metadata: Metadata = {
+    metadataBase: new URL(webOrigin),
+    title,
+    description,
+    openGraph: {
+      type: "website",
+      siteName: t("shell.brand"),
+      title,
+      description,
+      locale: OPEN_GRAPH_LOCALES[locale],
+    },
+    twitter: { card: "summary_large_image" },
+  };
 
   return metadata;
 };

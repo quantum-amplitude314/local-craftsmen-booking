@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "Local Craftsmen",
-    "description": "Find local craftsmen for your next project."
+    "title": "Local Craftsmen – Find a craftsman near you",
+    "description": "Local craftsmen post their available times. Pick one, see the rate and order the job."
   },
   "shell": {
     "skipToContent": "Skip to content",
@@ -11,7 +11,7 @@
   "home": {
     "eyebrow": "Independent local specialists",
     "heading": "Find a craftsman<br></br>near you.",
-    "description": "Browse available times from local craftsmen, compare hourly rates, and book a visit. Free account required.",
+    "description": "Local craftsmen post their available times. Pick one, see the rate and order the job.",
     "findCraftsman": "Find a craftsman",
     "offerServices": "Offer your services",
     "signInPrompt": "Already have an account? <link>Sign in</link>",
@@ -20,15 +20,16 @@
       "step": "Step {number}",
       "createAccount": {
         "title": "Create a free account",
-        "description": "Register as a customer to find help, or as a craftsman to offer your services."
+        "description": "Register as a customer or a craftsman."
       },
-      "browse": {
-        "title": "Choose an available time",
-        "description": "Filter by craft, place, and date, then compare craftsmen and their hourly rates."
+      "order": {
+        "title": "Order a job, or offer your availability",
+        "customer": "Choose a craft and a day, browse current offers and pick a time.",
+        "craftsman": "Publish your available times, location and rate."
       },
-      "book": {
-        "title": "Book the visit",
-        "description": "Choose the start, length, and job location. Follow confirmation and status from your dashboard."
+      "manage": {
+        "title": "All in one place",
+        "description": "Manage your bookings and availability on the dashboard."
       }
     }
   },

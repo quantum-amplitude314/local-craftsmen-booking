@@ -8,5 +8,5 @@
 WRANGLER_BINDING=off
 # Required while WRANGLER_BINDING=off:
 API_URL=http://localhost:3001
-# Sent as `Origin` on auth requests; must match the API's WEB_ORIGIN.
+# Sent as `Origin` on auth requests; must match the API's WEB_ORIGIN. Also the base for share URLs.
 WEB_ORIGIN=http://localhost:3000

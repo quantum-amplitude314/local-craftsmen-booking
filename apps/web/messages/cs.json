@@ -1,7 +1,7 @@
 {
   "metadata": {
-    "title": "Local Craftsmen",
-    "description": "Najděte řemeslníky ve svém okolí pro svůj příští projekt."
+    "title": "Local Craftsmen – Najděte řemeslníka ve svém okolí",
+    "description": "Místní řemeslníci vypisují volné termíny. Vyberte si, porovnejte sazby a objednejte práci."
   },
   "shell": {
     "skipToContent": "Přejít na obsah",
@@ -9,9 +9,9 @@
     "tagline": "Šikovné ruce. Blízko domova."
   },
   "home": {
-    "eyebrow": "Nezávislí řemeslníci ve vašem okolí",
+    "eyebrow": "Nezávislí místní specialisté",
     "heading": "Najděte řemeslníka<br></br>ve svém okolí.",
-    "description": "Prohlédněte si volné termíny místních řemeslníků, porovnejte hodinové sazby a objednejte návštěvu. Stačí bezplatný účet.",
+    "description": "Místní řemeslníci vypisují volné termíny. Vyberte si, porovnejte sazby a objednejte práci.",
     "findCraftsman": "Najít řemeslníka",
     "offerServices": "Nabídnout své služby",
     "signInPrompt": "Už máte účet? <link>Přihlaste se</link>",
@@ -20,15 +20,16 @@
       "step": "Krok {number}",
       "createAccount": {
         "title": "Založte si bezplatný účet",
-        "description": "Zaregistrujte se jako zákazník, pokud hledáte pomoc, nebo jako řemeslník, pokud nabízíte své služby."
+        "description": "Zaregistrujte se jako zákazník nebo řemeslník."
       },
-      "browse": {
-        "title": "Vyberte volný termín",
-        "description": "Filtrujte podle řemesla, místa a data a porovnejte řemeslníky i jejich hodinové sazby."
+      "order": {
+        "title": "Objednejte práci, nabídněte své dostupnosti",
+        "customer": "Vyberte řemeslo a den, projděte aktuální nabídky a zvolte čas.",
+        "craftsman": "Zveřejněte své volné termíny, místo a sazbu."
       },
-      "book": {
-        "title": "Objednejte návštěvu",
-        "description": "Vyberte začátek, délku a místo zakázky. Potvrzení a stav najdete na nástěnce."
+      "manage": {
+        "title": "Vše na jednom místě",
+        "description": "Spravujte své rezervace a dostupnost na dashboardu."
       }
     }
   },
@@ -90,7 +91,7 @@
     }
   },
   "dashboard": {
-    "title": "Nástěnka | Local Craftsmen",
+    "title": "Dashboard | Local Craftsmen",
     "welcome": "Vítejte, {name}",
     "unavailable": "Váš účet je dočasně nedostupný",
     "unavailableDescription": "Účet se nepodařilo načíst. Zkuste to prosím znovu.",
@@ -252,7 +253,7 @@
     "createAccount": "Vytvořit účet",
     "togglePalette": "Přepnout světlý a tmavý motiv",
     "language": "Jazyk",
-    "dashboard": "Nástěnka",
+    "dashboard": "Dashboard",
     "breadcrumb": "Drobečková navigace",
     "profile": "Profil"
   }

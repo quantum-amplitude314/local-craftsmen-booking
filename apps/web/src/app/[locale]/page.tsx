@@ -4,8 +4,6 @@ import { buttonVariants } from "@/components/ui/button";
 import { Link, redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
-const HOW_IT_WORKS_STEPS = ["createAccount", "browse", "book"] as const;
-
 export default async function Home() {
   const [user, locale, t] = await Promise.all([
     getCurrentUser(),
@@ -13,6 +11,24 @@ export default async function Home() {
     getTranslations("home"),
   ]);
   if (user) return redirect({ href: "/dashboard", locale });
+
+  const steps = [
+    {
+      key: "createAccount",
+      title: t("howItWorks.createAccount.title"),
+      lines: [t("howItWorks.createAccount.description")],
+    },
+    {
+      key: "order",
+      title: t("howItWorks.order.title"),
+      lines: [t("howItWorks.order.customer"), t("howItWorks.order.craftsman")],
+    },
+    {
+      key: "manage",
+      title: t("howItWorks.manage.title"),
+      lines: [t("howItWorks.manage.description")],
+    },
+  ];
 
   return (
     <main id="main-content" tabIndex={-1} className="page-shell">
@@ -53,13 +69,15 @@ export default async function Home() {
           {t("howItWorks.heading")}
         </h2>
         <ol className="grid gap-x-8 border-t md:grid-cols-3">
-          {HOW_IT_WORKS_STEPS.map((step, index) => (
-            <li key={step} className="flex min-w-0 flex-col gap-3 border-b py-8">
+          {steps.map(({ key, title, lines }, index) => (
+            <li key={key} className="flex min-w-0 flex-col gap-3 border-b py-8">
               <p className="eyebrow text-primary">{t("howItWorks.step", { number: index + 1 })}</p>
-              <h3 className="subsection-heading">{t(`howItWorks.${step}.title`)}</h3>
-              <p className="prose-text text-base leading-[1.7] text-muted-foreground">
-                {t(`howItWorks.${step}.description`)}
-              </p>
+              <h3 className="subsection-heading">{title}</h3>
+              {lines.map((line) => (
+                <p key={line} className="prose-text text-base leading-[1.7] text-muted-foreground">
+                  {line}
+                </p>
+              ))}
             </li>
           ))}
         </ol>
