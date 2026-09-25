@@ -1,6 +1,6 @@
 "use client";
 
-import type { CraftsmanBooking } from "@local-craftsmen/contracts";
+import type { OwnBooking } from "@local-craftsmen/contracts";
 import { useLayoutEffect, useState } from "react";
 import {
   type BookingCalendarText,
@@ -28,20 +28,19 @@ export const useBookingCalendar = ({
   locale,
   text,
 }: {
-  bookings: CraftsmanBooking[];
+  bookings: OwnBooking[];
   day: string;
   clock: ViewerClock;
   locale: string;
   text: BookingCalendarText;
 }) => {
-  const { now, ...viewerZone } = clock;
-  const [{ timeZone, today }, correctZone] = useState(viewerZone);
+  const [{ timeZone, today }, correctZone] = useState(clock);
   useLayoutEffect(() => {
     const viewer = readViewerZone();
     if (viewer.timeZone !== timeZone || viewer.today !== today) correctZone(viewer);
   }, [timeZone, today]);
 
-  const model = prepareBookingCalendar({ bookings, day, today, now, timeZone, locale, text });
+  const model = prepareBookingCalendar({ bookings, day, today, timeZone, locale, text });
 
   return model;
 };

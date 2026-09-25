@@ -53,8 +53,9 @@ export const selectedRange = ({
 
 /**
  * A click stretches the selection to include the quarter, so clicking every quarter or just the
- * first and last gives the same range. Clicking one edge keeps only the other edge, and clicking a
- * lone quarter clears it. A click beyond a taken quarter or a break starts a new selection there.
+ * first and last gives the same range. A click inside the range ends it there, so shortening takes
+ * one click. Clicking one edge keeps only the other edge, and clicking a lone quarter clears it. A
+ * click beyond a taken quarter or a break starts a new selection there.
  */
 export const pickQuarter = ({
   selection,
@@ -73,7 +74,7 @@ export const pickQuarter = ({
   if (first === last && time === first) return null;
   if (time === first) return { first: last, last };
   if (time === last) return { first, last: first };
-  if (index > firstIndex && index < lastIndex) return selection;
+  if (index > firstIndex && index < lastIndex) return { first, last: time };
   const from = Math.min(firstIndex, index);
   const to = Math.max(lastIndex, index);
   const reachable = quarters.slice(from, to + 1).every(({ state }) => state === "free");

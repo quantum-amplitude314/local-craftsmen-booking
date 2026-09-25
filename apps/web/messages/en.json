@@ -32,54 +32,17 @@
       }
     }
   },
-  "directory": {
-    "title": "Available times | Local Craftsmen",
-    "heading": "Available times",
-    "empty": "No available times yet. Please check back soon.",
-    "emptyFiltered": "No available times match these filters.",
-    "unavailable": "We couldn’t load available times.",
-    "unavailableDescription": "Please try again in a moment.",
-    "perHour": " / hour",
-    "areaWithDistrict": "{district}, {city}",
-    "crafts": {
-      "painter": "Painter",
-      "plumber": "Plumber",
-      "electrician": "Electrician",
-      "carpenter": "Carpenter",
-      "tiler": "Tiler"
-    },
-    "wholeCity": "All of {city}",
-    "zoneNote": "{city} local time ({zone})",
-    "filters": {
-      "legend": "Filter available times",
-      "any": "Any",
-      "craft": "Craft",
-      "city": "City",
-      "district": "District",
-      "cityFirst": "Choose a city first",
-      "date": "Date",
-      "clear": "Clear filters"
-    },
-    "book": {
-      "action": "Book",
-      "booking": "Booking…",
-      "start": "Start",
-      "length": "Length",
-      "where": "Where",
-      "currency": "Currency",
-      "total": "Total",
-      "errors": {
-        "taken": "This time has just been taken. Reload to see what is still free.",
-        "invalid": "Check the chosen time and place.",
-        "failed": "The booking could not be made. Please try again.",
-        "unauthorized": "Sign in as a customer to book."
-      }
-    }
-  },
   "cities": {
     "prague": "Prague",
     "pilsen": "Pilsen",
     "pardubice": "Pardubice"
+  },
+  "crafts": {
+    "painter": "Painter",
+    "plumber": "Plumber",
+    "electrician": "Electrician",
+    "carpenter": "Carpenter",
+    "tiler": "Tiler"
   },
   "login": {
     "title": "Sign in | Local Craftsmen",
@@ -129,14 +92,6 @@
   "dashboard": {
     "title": "Dashboard | Local Craftsmen",
     "welcome": "Welcome, {name}",
-    "roles": {
-      "craftsman": "Craftsman account",
-      "customer": "Customer account"
-    },
-    "ready": {
-      "customer": "Your account is ready. You can browse available times while booking is being added."
-    },
-    "browse": "Browse available times",
     "unavailable": "Your account is temporarily unavailable",
     "unavailableDescription": "We couldn’t load your account. Please try again.",
     "retry": "Try again",
@@ -147,7 +102,8 @@
     },
     "sections": {
       "availability": "Availability",
-      "bookings": "Active bookings"
+      "bookings": "Active bookings",
+      "slots": "Available times"
     },
     "timeZone": "{city} local time ({zone}).",
     "availability": {
@@ -162,7 +118,6 @@
         "break": "break"
       },
       "city": "City",
-      "cityPlaceholder": "Choose a city",
       "district": "District",
       "districtPlaceholder": "Whole city",
       "noMatches": "No matches",
@@ -181,14 +136,15 @@
         "saveFailed": "We couldn’t add the time. Please try again.",
         "unauthorized": "Sign in with your craftsman account to manage availability.",
         "deleteFailed": "We couldn’t delete the time. Please try again."
-      }
+      },
+      "cancel": "Cancel"
     },
     "bookings": {
       "noBookings": "No jobs on this day.",
       "cancelDialog": {
         "open": "Cancel booking",
         "title": "Cancel this booking?",
-        "description": "{customer}, {time}. This cannot be undone.",
+        "description": "{party}, {time}. This cannot be undone.",
         "keep": "Keep booking",
         "confirm": "Cancel booking"
       },
@@ -201,26 +157,49 @@
       "price": "{hours} · {rate} / hour · {total} in total",
       "status": {
         "pending": "Pending",
-        "confirmed": "Confirmed",
+        "confirmed": "Accepted",
         "completed": "Completed",
         "cancelled": "Cancelled"
       },
       "actions": {
-        "confirm": "Confirm",
-        "confirmPending": "Confirming",
+        "confirm": "Accept",
+        "confirmPending": "Accepting",
         "cancel": "Cancel",
         "cancelPending": "Cancelling",
         "complete": "Mark done",
         "completePending": "Marking"
       },
-      "noneBooked": "You have not booked anyone yet.",
-      "noUpcoming": "Nothing booked ahead.",
-      "showPast": "Show {count} past {count, plural, one {job} other {jobs}}",
-      "hidePast": "Hide past jobs",
       "errors": {
         "refused": "This job has moved on. Reload to see where it stands.",
         "advanceFailed": "That did not go through. Try again.",
         "unauthorized": "Sign in again to change this job."
+      }
+    },
+    "slots": {
+      "filters": {
+        "label": "Filter available times",
+        "craft": "Craft",
+        "city": "City",
+        "district": "District",
+        "any": "Any"
+      },
+      "rate": "{rate} / hour",
+      "book": "Book",
+      "empty": "No available times on this day.",
+      "pagination": "Pages of available times",
+      "previous": "Previous page",
+      "next": "Next page",
+      "page": "{page} / {pages}",
+      "wholeCity": "Whole city",
+      "place": "Place",
+      "close": "Close",
+      "booking": "Booking…",
+      "window": "{day} · free {start} – {end}",
+      "errors": {
+        "taken": "This time has just been taken. Pick another one.",
+        "invalid": "Check the chosen time and place.",
+        "failed": "The booking could not be made. Please try again.",
+        "unauthorized": "Sign in as a customer to book."
       }
     }
   },
@@ -265,28 +244,6 @@
     "districtPlaceholder": "Choose a district",
     "noMatches": "No matches."
   },
-  "craftsman": {
-    "title": "Craftsman | Local Craftsmen",
-    "breadcrumbFallback": "Craftsman",
-    "basedIn": "Based in",
-    "rate": "Hourly rate",
-    "perHour": " / hour",
-    "noRate": "Rate unavailable",
-    "noBio": "No introduction provided.",
-    "availability": "Available times",
-    "empty": "This craftsman has no available times right now.",
-    "unavailable": "We couldn’t load this craftsman.",
-    "unavailableDescription": "Please try again in a moment.",
-    "wholeCity": "All of {city}",
-    "zoneNote": "{city} local time ({zone})",
-    "crafts": {
-      "painter": "Painter",
-      "plumber": "Plumber",
-      "electrician": "Electrician",
-      "carpenter": "Carpenter",
-      "tiler": "Tiler"
-    }
-  },
   "header": {
     "home": "Local Craftsmen home",
     "accountNavigation": "Account",
@@ -297,7 +254,6 @@
     "language": "Language",
     "dashboard": "Dashboard",
     "breadcrumb": "Breadcrumb",
-    "slots": "Available times",
     "profile": "Profile"
   }
 }

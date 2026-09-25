@@ -11,7 +11,7 @@ export type BookSlotState = {
   error?: "taken" | "invalid" | "failed" | "unauthorized";
 };
 
-const bookedPaths = ["/slots", "/dashboard"];
+const bookedPaths = ["/dashboard"];
 /** A slot someone else took first, or times that have since passed, both mean: look again. */
 const takenCodes = ["NOT_FOUND", "CONFLICT", "BAD_REQUEST"];
 

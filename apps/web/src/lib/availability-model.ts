@@ -19,6 +19,8 @@ export type SlotError = NonNullable<SlotFormState["error"]>;
 
 export type AvailabilityModel = {
   date: string;
+  /** The planned day, as the dialog names it. */
+  dayLabel: string;
   calendar: ScheduleCalendarModel;
   zoneNote: string;
   quarters: QuarterModel[];
@@ -79,6 +81,12 @@ export const prepareAvailability = ({
     hourCycle: "h23",
     timeZone: timeZone.id,
   });
+  const formatDay = new Intl.DateTimeFormat(locale, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: timeZone.id,
+  });
   const formatZone = new Intl.DateTimeFormat(locale, {
     timeZone: timeZone.id,
     timeZoneName: "short",
@@ -93,6 +101,7 @@ export const prepareAvailability = ({
   const dayStart = quarters[0]?.start ?? `${date}T00:00:00.000Z`;
   const availability: AvailabilityModel = {
     date,
+    dayLabel: formatDay.format(new Date(dayStart)),
     calendar: prepareScheduleCalendar({ date, today, markedDates: slotDates }),
     zoneNote: text.zoneNote({
       city: cityName(timeZone.cityId),

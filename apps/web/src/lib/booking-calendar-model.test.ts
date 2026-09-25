@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import type { CraftsmanBooking } from "@local-craftsmen/contracts";
+import type { OwnBooking } from "@local-craftsmen/contracts";
 import { prepareBookingCalendar } from "@/lib/booking-calendar-model";
 
 const job = ({
@@ -12,14 +12,15 @@ const job = ({
   id: string;
   start: string;
   end: string;
-  cityId?: CraftsmanBooking["location"]["cityId"];
+  cityId?: OwnBooking["location"]["cityId"];
   timeZone?: string;
-}): CraftsmanBooking => ({
+}): OwnBooking => ({
   id,
   customerId: "seed-customer-1",
   craftsmanId: "seed-painter-1",
   craft: "painter",
-  customerName: "Dan Customer",
+  partyName: "Dan Customer",
+  actions: [],
   status: "confirmed",
   currency: "EUR",
   hourlyRate: "10.00",
@@ -48,18 +49,15 @@ const prepare = ({
   bookings,
   day,
   timeZone,
-  now = "2040-06-30T12:00:00.000Z",
 }: {
-  bookings: CraftsmanBooking[];
+  bookings: OwnBooking[];
   day: string;
   timeZone: string;
-  now?: string;
 }) =>
   prepareBookingCalendar({
     bookings,
     day,
     today: "2040-07-01",
-    now,
     timeZone,
     locale: "en-GB",
     text,
@@ -112,8 +110,8 @@ describe("prepareBookingCalendar", () => {
     expect(cards[1]?.placeLabel).toBe("Pardubice · Libeň");
   });
 
-  test("offers only what the job's status and its end allow", () => {
-    const offered = ({ status, now }: { status: CraftsmanBooking["status"]; now: string }) => {
+  test("offers what the API allows, with cancelling apart from the steps forward", () => {
+    const offered = (actions: OwnBooking["actions"]) => {
       const { cards } = prepare({
         bookings: [
           {
@@ -122,12 +120,11 @@ describe("prepareBookingCalendar", () => {
               start: "2040-07-01T06:00:00.000Z",
               end: "2040-07-01T08:00:00.000Z",
             }),
-            status,
+            actions,
           },
         ],
         day: "2040-07-01",
         timeZone: "Europe/Prague",
-        now,
       });
       const [card] = cards;
 
@@ -136,29 +133,10 @@ describe("prepareBookingCalendar", () => {
         cancellable: card?.cancellable,
       };
     };
-    const beforeWork = "2040-07-01T05:00:00.000Z";
-    const afterWork = "2040-07-01T09:00:00.000Z";
 
-    expect(offered({ status: "pending", now: beforeWork })).toEqual({
-      forward: ["confirm"],
-      cancellable: true,
-    });
-    // Work that has not happened yet cannot be reported as done.
-    expect(offered({ status: "confirmed", now: beforeWork })).toEqual({
-      forward: [],
-      cancellable: true,
-    });
-    expect(offered({ status: "confirmed", now: afterWork })).toEqual({
-      forward: ["complete"],
-      cancellable: true,
-    });
-    expect(offered({ status: "completed", now: afterWork })).toEqual({
-      forward: [],
-      cancellable: false,
-    });
-    expect(offered({ status: "cancelled", now: afterWork })).toEqual({
-      forward: [],
-      cancellable: false,
-    });
+    expect(offered(["confirm", "cancel"])).toEqual({ forward: ["confirm"], cancellable: true });
+    expect(offered(["cancel", "complete"])).toEqual({ forward: ["complete"], cancellable: true });
+    expect(offered(["cancel"])).toEqual({ forward: [], cancellable: true });
+    expect(offered([])).toEqual({ forward: [], cancellable: false });
   });
 });

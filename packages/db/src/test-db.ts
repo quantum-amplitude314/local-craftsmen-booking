@@ -3,7 +3,7 @@ import { createDb } from "./client.ts";
 import { readTestDatabaseEnv } from "./env.ts";
 import { runMigrations } from "./migrate.ts";
 import { seedReference } from "./seed-reference.ts";
-import { seedTestData } from "./seed-test.ts";
+import { seedTestData } from "./test-data.ts";
 
 export const startTestDb = async () => {
   const { TEST_DATABASE_URL: connectionString } = readTestDatabaseEnv();

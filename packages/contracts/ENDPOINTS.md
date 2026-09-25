@@ -17,8 +17,8 @@ GET    /me/availability/day?date=&cityId=
 POST   /me/availability               craftsman: { start, end, areas: [{ cityId, districtId }] }
 DELETE /me/availability/:id           craftsman
 POST   /bookings                      customer: { slotId, start, end, location, currency }
-GET    /me/bookings                   both roles: own jobs with the other party's name
-GET    /me/bookings/range?start=&end= craftsman: active jobs in a window (≤ 62 days)
+GET    /me/bookings                   both roles: own jobs with the other party's name and actions
+GET    /me/bookings/range?start=&end= both roles: active jobs in a window (≤ 62 days), same shape
 POST   /me/bookings/:id/:transition   confirm | cancel | complete
 ```
 

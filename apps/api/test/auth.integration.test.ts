@@ -10,7 +10,6 @@ import {
   availabilityDaySchema,
   bookingSchema,
   type CraftsmanRate,
-  craftsmanBookingSchema,
   craftsmanProfileSchema,
   ownBookingSchema,
   sessionUserSchema,
@@ -201,7 +200,6 @@ describe("location-aware slots and booking allocation", () => {
     expect((await call({ path: "/me/availability/day" })).status).toBe(401);
     expect((await call({ path: "/me/availability/day", cookie: customerCookie })).status).toBe(403);
     expect((await call({ path: "/me/bookings/range" })).status).toBe(401);
-    expect((await call({ path: "/me/bookings/range", cookie: customerCookie })).status).toBe(403);
     expect((await call({ path: "/slots" })).status).toBe(401);
     expect((await call({ path: "/bookings", method: "POST", body: {} })).status).toBe(401);
     expect(
@@ -615,11 +613,13 @@ describe("location-aware slots and booking allocation", () => {
     expect(ownBookingSchema.array().parse(await own.json())).toContainEqual({
       ...booked,
       partyName: "Test craftsman",
+      actions: ["cancel"],
     });
     const provider = await call({ path: "/me/bookings", cookie: craftsmanCookie });
     expect(ownBookingSchema.array().parse(await provider.json())).toContainEqual({
       ...booked,
       partyName: "Test customer",
+      actions: ["confirm", "cancel"],
     });
     const unrelated = await call({ path: "/me/bookings", cookie: otherCustomerCookie });
     expect(
@@ -641,7 +641,7 @@ describe("location-aware slots and booking allocation", () => {
     ).toEqual(history);
   });
 
-  test("lists the craftsman's active jobs overlapping a window, in chronological order", async () => {
+  test("lists either party's active jobs overlapping a window, in chronological order", async () => {
     const book = async () => {
       const { id: slotId, start, end } = await createSlot();
       const response = await call({
@@ -671,7 +671,10 @@ describe("location-aware slots and booking allocation", () => {
     const now = Date.now();
     await database
       .update(booking)
-      .set({ range: { start: new Date(now - 7_200_000), end: new Date(now - 3_600_000) } })
+      .set({
+        status: "confirmed",
+        range: { start: new Date(now - 7_200_000), end: new Date(now - 3_600_000) },
+      })
       .where(eq(booking.id, expired.id));
     await database
       .update(booking)
@@ -695,13 +698,25 @@ describe("location-aware slots and booking allocation", () => {
         cookie,
       });
       expect(response.status).toBe(200);
-      const jobs = craftsmanBookingSchema.array().parse(await response.json());
+      const jobs = ownBookingSchema.array().parse(await response.json());
 
       return jobs;
     };
     const january = { start: "2039-12-31T00:00:00Z", end: "2040-02-01T00:00:00Z" };
     const jobs = await inWindow({ ...january, cookie: craftsmanCookie });
-    expect(jobs).toContainEqual({ ...kept, customerName: "Test customer" });
+    expect(jobs).toContainEqual({
+      ...kept,
+      partyName: "Test customer",
+      actions: ["confirm", "cancel"],
+    });
+    // The customer's window holds the same job under the craftsman's name; an outsider's holds none.
+    expect(await inWindow({ ...january, cookie: customerCookie })).toContainEqual({
+      ...kept,
+      partyName: "Test craftsman",
+      actions: ["cancel"],
+    });
+    const outsider = await inWindow({ ...january, cookie: otherCustomerCookie });
+    expect(outsider.map(({ id }) => id)).not.toContain(kept.id);
     const ids = jobs.map(({ id }) => id);
     expect(ids).not.toContain(cancelled.id);
     expect(ids).not.toContain(completed.id);
@@ -712,14 +727,21 @@ describe("location-aware slots and booking allocation", () => {
     expect(starts).toEqual(starts.toSorted());
 
     // A window looks backwards too: a job that has ended still belongs to the day it happened on.
-    const week = await inWindow({
+    const thisWeek = {
       start: new Date(now - 7 * 86_400_000).toISOString(),
       end: new Date(now + 7 * 86_400_000).toISOString(),
-      cookie: craftsmanCookie,
-    });
+    };
+    const week = await inWindow({ ...thisWeek, cookie: craftsmanCookie });
     const weekIds = week.map(({ id }) => id);
     expect(weekIds).toContain(ongoing.id);
     expect(weekIds).toContain(expired.id);
+    // Each job says what its reader may do now; work is reported done only once it has ended.
+    const actionsOf = ({ jobs, id }: { jobs: typeof week; id: string }) =>
+      jobs.find((job) => job.id === id)?.actions;
+    expect(actionsOf({ jobs: week, id: ongoing.id })).toEqual(["cancel"]);
+    expect(actionsOf({ jobs: week, id: expired.id })).toEqual(["cancel", "complete"]);
+    const customerWeek = await inWindow({ ...thisWeek, cookie: customerCookie });
+    expect(actionsOf({ jobs: customerWeek, id: expired.id })).toEqual(["cancel"]);
 
     expect(await inWindow({ ...january, cookie: otherCraftsmanCookie })).toEqual([]);
     const tooWide = await call({
@@ -849,7 +871,7 @@ describe("location-aware slots and booking allocation", () => {
         cookie: craftsmanCookie,
       });
       expect(response.status).toBe(200);
-      const jobs = craftsmanBookingSchema.array().parse(await response.json());
+      const jobs = ownBookingSchema.array().parse(await response.json());
       const fixtureJobs = jobs.filter(({ id }) => id === firstId || id === secondId);
       expect(fixtureJobs).toMatchObject([
         {

@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { eq } from "drizzle-orm";
 import { availability, availabilityArea, craftsmanProfile, craftsmanRate } from "./schema.ts";
-import { seedCraftsmen } from "./seed-test.ts";
+import { seedCraftsmen } from "./test-data.ts";
 import { startTestDb } from "./test-db.ts";
 
 const at = (hour: number) => new Date(Date.UTC(2030, 0, 1, hour));

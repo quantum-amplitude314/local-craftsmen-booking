@@ -3,7 +3,7 @@ import {
   type BookingStatus,
   type BookingTransition,
   bookingSchema,
-  type CraftsmanBooking,
+  bookingTransitionSchema,
   type JobLocation,
   type OwnBooking,
   type SessionUser,
@@ -43,6 +43,46 @@ const transitions: Record<
   confirm: { by: "craftsman", from: ["pending"], to: "confirmed" },
   cancel: { by: "either", from: ["pending", "confirmed"], to: "cancelled" },
   complete: { by: "craftsman", from: ["confirmed"], to: "completed", afterWork: true },
+};
+
+/** Which side of a job someone is on; nobody's side when they are not part of it. */
+const partyOf = ({
+  row,
+  userId,
+}: {
+  row: Pick<typeof booking.$inferSelect, "craftsmanId" | "customerId">;
+  userId: string;
+}) => {
+  const parties: Record<Party, string> = { craftsman: row.craftsmanId, customer: row.customerId };
+  const party = (Object.keys(parties) as Party[]).find((name) => parties[name] === userId);
+
+  return party;
+};
+
+/** The steps someone may take with a job now, read from the same table `advance` enforces. */
+const allowedTransitions = ({
+  row,
+  userId,
+  now,
+}: {
+  row: typeof booking.$inferSelect;
+  userId: string;
+  now: Date;
+}) => {
+  const party = partyOf({ row, userId });
+  const { status, range } = row;
+  const allowed = bookingTransitionSchema.options.filter((transition) => {
+    const { by, from, afterWork } = transitions[transition];
+    const permitted =
+      party !== undefined &&
+      (by === "either" || by === party) &&
+      from.includes(status) &&
+      (!afterWork || range.end <= now);
+
+    return permitted;
+  });
+
+  return allowed;
 };
 
 const toBooking = ({
@@ -183,6 +223,7 @@ export const createBookingsService = ({ db }: { db: Db }) => {
   /** Your own jobs, each carrying the name of whoever is on the other side of it. */
   const list = async ({ user: account }: { user: SessionUser }) => {
     const { id, role } = account;
+    const now = new Date();
     const mine = role === "craftsman" ? booking.craftsmanId : booking.customerId;
     const theirs = role === "craftsman" ? booking.customerId : booking.craftsmanId;
     const rows = await db
@@ -196,39 +237,40 @@ export const createBookingsService = ({ db }: { db: Db }) => {
     const bookings: OwnBooking[] = rows.map(({ row, place, partyName }) => ({
       ...toBooking({ row, place }),
       partyName,
+      actions: allowedTransitions({ row, userId: id, now }),
     }));
 
     return bookings;
   };
 
-  /** Every active job overlapping the window, in UTC. Which calendar day each one lands on is the
-   * caller's decision, because only the caller knows the zone its grid is drawn in. */
-  const range = async ({
-    craftsmanId,
-    start,
-    end,
-  }: {
-    craftsmanId: string;
-    start: string;
-    end: string;
-  }) => {
+  /** Every active job of yours overlapping the window, in UTC, whichever side of it you are on.
+   * Which calendar day each one lands on is the caller's decision, because only the caller knows
+   * the zone its grid is drawn in. */
+  const range = async ({ userId, start, end }: { userId: string; start: string; end: string }) => {
+    // NOTE: a correlated subquery, one primary-key lookup per job. A join on the same condition
+    // (`join "user" on "user".id in (...) and "user".id <> me`) returns the same rows if needed.
+    const otherPartyName = sql<string>`(
+      select ${user.name} from ${user}
+      where ${user.id} in (${booking.customerId}, ${booking.craftsmanId}) and ${user.id} <> ${userId}
+    )`;
     const rows = await db
-      .select({ row: booking, place: jobPlaceColumns, customerName: user.name })
+      .select({ row: booking, place: jobPlaceColumns, partyName: otherPartyName })
       .from(booking)
-      .innerJoin(user, eq(user.id, booking.customerId))
       .innerJoin(city, eq(city.id, booking.cityId))
       .leftJoin(district, eq(district.id, booking.districtId))
       .where(
         and(
-          eq(booking.craftsmanId, craftsmanId),
+          sql`${userId} in (${booking.customerId}, ${booking.craftsmanId})`,
           inArray(booking.status, activeBookingStatuses),
           sql`${booking.range} && tstzrange(${start}::timestamptz, ${end}::timestamptz)`,
         ),
       )
       .orderBy(booking.range, booking.id);
-    const bookings: CraftsmanBooking[] = rows.map(({ row, place, customerName }) => ({
+    const now = new Date();
+    const bookings: OwnBooking[] = rows.map(({ row, place, partyName }) => ({
       ...toBooking({ row, place }),
-      customerName,
+      partyName,
+      actions: allowedTransitions({ row, userId, now }),
     }));
 
     return bookings;
@@ -248,9 +290,8 @@ export const createBookingsService = ({ db }: { db: Db }) => {
       const [current] = await tx.select().from(booking).where(eq(booking.id, id)).for("update");
       // An outsider is told the same thing as someone naming a job that never existed.
       if (!current) throw new DomainError({ code: "NOT_FOUND", message: "Booking not found" });
-      const { craftsmanId, customerId, status, range, cityId, districtId } = current;
-      const parties: Record<Party, string> = { craftsman: craftsmanId, customer: customerId };
-      const party = (Object.keys(parties) as Party[]).find((name) => parties[name] === actor.id);
+      const { status, range, cityId, districtId } = current;
+      const party = partyOf({ row: current, userId: actor.id });
       if (!party) throw new DomainError({ code: "NOT_FOUND", message: "Booking not found" });
       if (by !== "either" && by !== party)
         throw new DomainError({ code: "CONFLICT", message: `Only the ${by} can do that` });

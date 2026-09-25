@@ -1,6 +1,6 @@
 "use client";
 
-import type { BookingTransition, CraftsmanBooking } from "@local-craftsmen/contracts";
+import type { BookingTransition, OwnBooking } from "@local-craftsmen/contracts";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { advanceBooking, type BookingActionState } from "@/app/booking-actions";
@@ -39,7 +39,7 @@ const initialState: BookingActionState = {};
 function BookingCard({
   id,
   timeLabel,
-  customerName,
+  partyName,
   placeLabel,
   priceLabel,
   statusLabel,
@@ -70,7 +70,7 @@ function BookingCard({
         <Badge variant={statusVariant}>{statusLabel}</Badge>
       </ItemHeader>
       <ItemContent className="min-w-0 gap-0.5">
-        <p className="truncate font-medium">{customerName}</p>
+        <p className="truncate font-medium">{partyName}</p>
         <ItemDescription className="line-clamp-1">{placeLabel}</ItemDescription>
         <ItemDescription className="line-clamp-1 tabular-nums">{priceLabel}</ItemDescription>
       </ItemContent>
@@ -112,7 +112,7 @@ function BookingCard({
           <DialogHeader>
             <DialogTitle>{t("cancelDialog.title")}</DialogTitle>
             <DialogDescription>
-              {t("cancelDialog.description", { customer: customerName, time: timeLabel })}
+              {t("cancelDialog.description", { party: partyName, time: timeLabel })}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -139,7 +139,7 @@ export function BookingCalendar({
   day,
   clock,
 }: {
-  bookings: CraftsmanBooking[];
+  bookings: OwnBooking[];
   day: string;
   clock: ViewerClock;
 }) {
@@ -163,12 +163,11 @@ export function BookingCalendar({
   });
 
   return (
-    // The calendar leads on a phone and sits beside the jobs from large screens on.
     <div className="flex min-w-0 flex-col gap-6 lg:flex-row-reverse lg:items-start">
       <div className="w-full min-w-0 overflow-hidden rounded-xl border lg:max-w-80">
         <ScheduleCalendar calendar={calendar} allowPast onSelect={selectJobDay} />
       </div>
-      {/* The calendar stays live so the latest click wins; the list fades only on a slow answer. */}
+
       <div
         aria-busy={changing}
         data-changing={changing || undefined}

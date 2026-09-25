@@ -35,11 +35,14 @@ export type BookingStatus = Booking["status"];
 export const bookingTransitionSchema = z.enum(["confirm", "cancel", "complete"]);
 export type BookingTransition = z.infer<typeof bookingTransitionSchema>;
 
-export const craftsmanBookingSchema = bookingSchema.safeExtend({ customerName: z.string() });
-export type CraftsmanBooking = z.infer<typeof craftsmanBookingSchema>;
-
-/** A job as one of its two parties sees it: the name shown is always the other side's. */
-export const ownBookingSchema = bookingSchema.safeExtend({ partyName: z.string() });
+/**
+ * A job as one of its two parties sees it: the name shown is always the other side's, and the
+ * actions are the steps this party may take with it now.
+ */
+export const ownBookingSchema = bookingSchema.safeExtend({
+  partyName: z.string(),
+  actions: z.array(bookingTransitionSchema),
+});
 export type OwnBooking = z.infer<typeof ownBookingSchema>;
 
 /** A month plus a day of padding on each side, the widest window a calendar page needs. */
@@ -68,7 +71,8 @@ export const ownBookingsContract = {
     .route({
       method: "GET",
       path: "/me/bookings/range",
-      summary: "Active jobs overlapping a time window, ordered by start, with customer and place",
+      summary:
+        "Your active jobs overlapping a time window, ordered by start, with the other party and place",
     })
     /**
      * The window is in UTC and the caller widens it by a day on each side, so whatever zone the
@@ -80,7 +84,7 @@ export const ownBookingsContract = {
         { message: "Ask for at most 62 days", path: ["end"] },
       ),
     )
-    .output(z.array(craftsmanBookingSchema)),
+    .output(z.array(ownBookingSchema)),
   advance: oc
     .route({
       method: "POST",

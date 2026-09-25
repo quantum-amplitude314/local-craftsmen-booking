@@ -1,4 +1,9 @@
-import { cityIdSchema, scheduleDateSchema, type UserRole } from "@local-craftsmen/contracts";
+import {
+  cityIdSchema,
+  craftSchema,
+  scheduleDateSchema,
+  type UserRole,
+} from "@local-craftsmen/contracts";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { ComponentType } from "react";
@@ -22,15 +27,16 @@ export const generateMetadata = async (): Promise<Metadata> => {
 };
 
 export default async function DashboardPage({ searchParams }: PageProps<"/[locale]/dashboard">) {
-  const [user, locale, t, { day, city, jobDay }] = await Promise.all([
+  const [user, locale, t, { day, city, craft, district, jobDay }] = await Promise.all([
     getCurrentUser(),
     getLocale(),
     getTranslations("dashboard"),
     searchParams,
   ]);
-  // An unreadable day or city is planned as if it were absent, in the craftsman's own city today.
+  // An unreadable value counts as absent, and each dashboard falls back to its own default.
   const requestedDay = scheduleDateSchema.safeParse(day);
   const requestedCity = cityIdSchema.safeParse(city);
+  const requestedCraft = craftSchema.safeParse(craft);
   const requestedJobDay = scheduleDateSchema.safeParse(jobDay);
   if (!user) return redirect({ href: "/login", locale });
   const { name, role } = user;
@@ -49,6 +55,8 @@ export default async function DashboardPage({ searchParams }: PageProps<"/[local
       <RoleDashboard
         day={requestedDay.success ? requestedDay.data : undefined}
         cityId={requestedCity.success ? requestedCity.data : undefined}
+        craft={requestedCraft.success ? requestedCraft.data : undefined}
+        districtId={typeof district === "string" && district ? district : undefined}
         jobDay={requestedJobDay.success ? requestedJobDay.data : undefined}
       />
     </main>

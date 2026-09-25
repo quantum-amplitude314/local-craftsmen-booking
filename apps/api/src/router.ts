@@ -71,7 +71,7 @@ export const router = os.router({
         if (!user) throw new ORPCError("UNAUTHORIZED");
         const { start, end } = input;
 
-        return bookings.range({ craftsmanId: user.id, start, end });
+        return bookings.range({ userId: user.id, start, end });
       }),
       advance: os.me.bookings.advance.handler(({ context, input }) => {
         const { user, bookings } = context;

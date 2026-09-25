@@ -34,7 +34,7 @@ describe("quarter selection", () => {
     expect(draftStatus({ range })).toBe("ready");
   });
 
-  test("clicking an edge keeps only the other edge, and a lone quarter clears", () => {
+  test("an edge keeps only the other edge, inside ends the range there, a lone quarter clears", () => {
     const selection = { first: at(0), last: at(2) };
     expect(pickQuarter({ selection, time: at(2), quarters })).toEqual({
       first: at(0),
@@ -44,7 +44,10 @@ describe("quarter selection", () => {
       first: at(2),
       last: at(2),
     });
-    expect(pickQuarter({ selection, time: at(1), quarters })).toBe(selection);
+    expect(pickQuarter({ selection, time: at(1), quarters })).toEqual({
+      first: at(0),
+      last: at(1),
+    });
     expect(pickQuarter({ selection: { first: at(1), last: at(1) }, time: at(1), quarters })).toBe(
       null,
     );

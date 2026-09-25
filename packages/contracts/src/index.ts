@@ -47,8 +47,6 @@ export {
   bookingInputSchema,
   bookingSchema,
   bookingTransitionSchema,
-  type CraftsmanBooking,
-  craftsmanBookingSchema,
   type OwnBooking,
   ownBookingSchema,
 } from "./bookings.ts";

@@ -32,54 +32,17 @@
       }
     }
   },
-  "directory": {
-    "title": "Volné termíny | Local Craftsmen",
-    "heading": "Volné termíny",
-    "empty": "Zatím tu nejsou žádné volné termíny. Zkuste to prosím brzy znovu.",
-    "emptyFiltered": "Těmto filtrům neodpovídají žádné volné termíny.",
-    "unavailable": "Volné termíny se nepodařilo načíst.",
-    "unavailableDescription": "Zkuste to prosím za chvíli znovu.",
-    "perHour": " / hodinu",
-    "areaWithDistrict": "{district}, {city}",
-    "crafts": {
-      "painter": "Malíř",
-      "plumber": "Instalatér",
-      "electrician": "Elektrikář",
-      "carpenter": "Truhlář",
-      "tiler": "Obkladač"
-    },
-    "wholeCity": "Celé {city}",
-    "zoneNote": "Místní čas – {city} ({zone})",
-    "filters": {
-      "legend": "Filtrovat volné termíny",
-      "any": "Vše",
-      "craft": "Řemeslo",
-      "city": "Město",
-      "district": "Čtvrť",
-      "cityFirst": "Nejdřív vyberte město",
-      "date": "Datum",
-      "clear": "Vymazat filtry"
-    },
-    "book": {
-      "action": "Objednat",
-      "booking": "Objednávám…",
-      "start": "Začátek",
-      "length": "Délka",
-      "where": "Kde",
-      "currency": "Měna",
-      "total": "Celkem",
-      "errors": {
-        "taken": "Tento termín byl právě obsazen. Načtěte stránku znovu.",
-        "invalid": "Zkontrolujte vybraný čas a místo.",
-        "failed": "Objednávku se nepodařilo vytvořit. Zkuste to prosím znovu.",
-        "unauthorized": "Pro objednání se přihlaste jako zákazník."
-      }
-    }
-  },
   "cities": {
     "prague": "Praha",
     "pilsen": "Plzeň",
     "pardubice": "Pardubice"
+  },
+  "crafts": {
+    "painter": "Malíř",
+    "plumber": "Instalatér",
+    "electrician": "Elektrikář",
+    "carpenter": "Truhlář",
+    "tiler": "Obkladač"
   },
   "login": {
     "title": "Přihlášení | Local Craftsmen",
@@ -129,14 +92,6 @@
   "dashboard": {
     "title": "Nástěnka | Local Craftsmen",
     "welcome": "Vítejte, {name}",
-    "roles": {
-      "craftsman": "Účet řemeslníka",
-      "customer": "Zákaznický účet"
-    },
-    "ready": {
-      "customer": "Váš účet je připravený. Než přidáme rezervace, můžete si prohlédnout volné termíny."
-    },
-    "browse": "Prohlédnout volné termíny",
     "unavailable": "Váš účet je dočasně nedostupný",
     "unavailableDescription": "Účet se nepodařilo načíst. Zkuste to prosím znovu.",
     "retry": "Zkusit znovu",
@@ -147,7 +102,8 @@
     },
     "sections": {
       "availability": "Dostupnost",
-      "bookings": "Aktivní rezervace"
+      "bookings": "Aktivní rezervace",
+      "slots": "Volné termíny"
     },
     "timeZone": "Místní čas – {city} ({zone}).",
     "availability": {
@@ -162,7 +118,6 @@
         "break": "přestávka"
       },
       "city": "Město",
-      "cityPlaceholder": "Vyberte město",
       "district": "Čtvrť",
       "districtPlaceholder": "Celé město",
       "noMatches": "Nic nenalezeno",
@@ -181,14 +136,15 @@
         "saveFailed": "Čas se nepodařilo přidat. Zkuste to prosím znovu.",
         "unauthorized": "Pro správu dostupnosti se přihlaste svým účtem řemeslníka.",
         "deleteFailed": "Čas se nepodařilo smazat. Zkuste to prosím znovu."
-      }
+      },
+      "cancel": "Zrušit"
     },
     "bookings": {
       "noBookings": "V tento den nemáte žádné zakázky.",
       "cancelDialog": {
         "open": "Zrušit rezervaci",
         "title": "Zrušit tuto rezervaci?",
-        "description": "{customer}, {time}. Tuto akci nelze vrátit.",
+        "description": "{party}, {time}. Tuto akci nelze vrátit.",
         "keep": "Ponechat rezervaci",
         "confirm": "Zrušit rezervaci"
       },
@@ -201,26 +157,49 @@
       "price": "{hours} · {rate} / hod. · celkem {total}",
       "status": {
         "pending": "Čeká",
-        "confirmed": "Potvrzeno",
+        "confirmed": "Přijato",
         "completed": "Dokončeno",
         "cancelled": "Zrušeno"
       },
       "actions": {
-        "confirm": "Potvrdit",
-        "confirmPending": "Potvrzuji",
+        "confirm": "Přijmout",
+        "confirmPending": "Přijímám",
         "cancel": "Zrušit",
         "cancelPending": "Ruším",
         "complete": "Hotovo",
         "completePending": "Ukládám"
       },
-      "noneBooked": "Zatím jste si nikoho neobjednali.",
-      "noUpcoming": "Nic naplánovaného.",
-      "showPast": "Zobrazit {count, plural, one {# minulou zakázku} few {# minulé zakázky} other {# minulých zakázek}}",
-      "hidePast": "Skrýt minulé zakázky",
       "errors": {
         "refused": "Zakázka se mezitím změnila. Načtěte stránku znovu.",
         "advanceFailed": "Nepodařilo se to. Zkuste to znovu.",
         "unauthorized": "Pro změnu zakázky se znovu přihlaste."
+      }
+    },
+    "slots": {
+      "filters": {
+        "label": "Filtrovat volné termíny",
+        "craft": "Řemeslo",
+        "city": "Město",
+        "district": "Čtvrť",
+        "any": "Vše"
+      },
+      "rate": "{rate} / hod.",
+      "book": "Rezervovat",
+      "empty": "Na tento den nejsou žádné volné termíny.",
+      "pagination": "Stránky volných termínů",
+      "previous": "Předchozí stránka",
+      "next": "Další stránka",
+      "page": "{page} / {pages}",
+      "wholeCity": "Celé město",
+      "place": "Místo",
+      "close": "Zavřít",
+      "booking": "Rezervuji…",
+      "window": "{day} · volno {start} – {end}",
+      "errors": {
+        "taken": "Tento termín byl právě obsazen. Vyberte jiný.",
+        "invalid": "Zkontrolujte vybraný čas a místo.",
+        "failed": "Rezervaci se nepodařilo vytvořit. Zkuste to prosím znovu.",
+        "unauthorized": "Pro rezervaci se přihlaste jako zákazník."
       }
     }
   },
@@ -265,28 +244,6 @@
     "districtPlaceholder": "Vyberte čtvrť",
     "noMatches": "Nic nenalezeno."
   },
-  "craftsman": {
-    "title": "Řemeslník | Local Craftsmen",
-    "breadcrumbFallback": "Řemeslník",
-    "basedIn": "Působí v",
-    "rate": "Hodinová sazba",
-    "perHour": " / hodinu",
-    "noRate": "Sazba není uvedena",
-    "noBio": "Řemeslník zatím nepřidal žádné představení.",
-    "availability": "Volné termíny",
-    "empty": "Tento řemeslník teď nemá žádné volné termíny.",
-    "unavailable": "Profil řemeslníka se nepodařilo načíst.",
-    "unavailableDescription": "Zkuste to prosím za chvíli znovu.",
-    "wholeCity": "Celé {city}",
-    "zoneNote": "Místní čas – {city} ({zone})",
-    "crafts": {
-      "painter": "Malíř",
-      "plumber": "Instalatér",
-      "electrician": "Elektrikář",
-      "carpenter": "Truhlář",
-      "tiler": "Obkladač"
-    }
-  },
   "header": {
     "home": "Local Craftsmen – úvodní stránka",
     "accountNavigation": "Účet",
@@ -297,7 +254,6 @@
     "language": "Jazyk",
     "dashboard": "Nástěnka",
     "breadcrumb": "Drobečková navigace",
-    "slots": "Volné termíny",
     "profile": "Profil"
   }
 }

@@ -12,7 +12,7 @@ import { revalidateLocalized } from "@/lib/revalidate";
 
 export type BookingActionState = { error?: "refused" | "advanceFailed" | "unauthorized" };
 
-const bookedPaths = ["/dashboard", "/slots"];
+const bookedPaths = ["/dashboard"];
 
 export const advanceBooking = async (input: {
   id: string;

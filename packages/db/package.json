@@ -15,7 +15,6 @@
     "db:generate": "bun --env-file=.env.local drizzle-kit generate",
     "db:migrate": "bun --env-file=.env.local drizzle-kit migrate",
     "db:seed:reference": "bun --env-file=.env.local src/seed-reference.ts",
-    "db:seed:test": "bun --env-file=.env.local src/seed-test.ts",
     "db:clear": "bun --env-file=.env.local src/clear.ts"
   },
   "dependencies": {

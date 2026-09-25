@@ -68,7 +68,7 @@ export function ProfileForm({
   locations: Location[];
 }) {
   const t = useTranslations("profile");
-  const tCrafts = useTranslations("directory.crafts");
+  const tCrafts = useTranslations("crafts");
   const tCities = useTranslations("cities");
   const { state, run, pending } = useMutation({
     action: saveProfile,

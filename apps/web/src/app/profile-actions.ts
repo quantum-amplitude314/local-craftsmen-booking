@@ -30,7 +30,7 @@ export const saveProfile = async (input: ProfileValues): Promise<ProfileFormStat
     return failure;
   }
 
-  revalidateLocalized(["/profile", "/dashboard", "/slots"]);
+  revalidateLocalized(["/profile", "/dashboard"]);
   const saved: ProfileFormState = { saved: true, values };
 
   return saved;

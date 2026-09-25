@@ -18,7 +18,7 @@ export type SlotFormState = {
 
 export type DeleteSlotState = { error?: "deleteFailed" | "unauthorized" };
 
-const scheduledPaths = ["/dashboard", "/slots"];
+const scheduledPaths = ["/dashboard"];
 
 const isCraftsman = async () => {
   const user = await getCurrentUser();

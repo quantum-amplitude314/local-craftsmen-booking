@@ -11,14 +11,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Link } from "@/i18n/navigation";
 
-type PageBreadcrumbsProps =
-  | { current: "dashboard" | "profile" | "slots"; label?: never }
-  | { current: "craftsman"; label: string };
-
-export function PageBreadcrumbs(props: PageBreadcrumbsProps) {
-  const { current } = props;
+export function PageBreadcrumbs({ current }: { current: "dashboard" | "profile" }) {
   const t = useTranslations("header");
-  const currentLabel = current === "craftsman" ? props.label : t(current);
 
   return (
     <Breadcrumb aria-label={t("breadcrumb")}>
@@ -30,19 +24,11 @@ export function PageBreadcrumbs(props: PageBreadcrumbsProps) {
             <BreadcrumbLink render={<Link href="/dashboard" />}>{t("dashboard")}</BreadcrumbLink>
           )}
         </BreadcrumbItem>
-        {current === "craftsman" && (
-          <>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink render={<Link href="/slots" />}>{t("slots")}</BreadcrumbLink>
-            </BreadcrumbItem>
-          </>
-        )}
         {current !== "dashboard" && (
           <>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>{currentLabel}</BreadcrumbPage>
+              <BreadcrumbPage>{t(current)}</BreadcrumbPage>
             </BreadcrumbItem>
           </>
         )}

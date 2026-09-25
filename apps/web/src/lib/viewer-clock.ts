@@ -22,13 +22,7 @@ const readConnectionTimeZone = async () => {
  */
 export const getViewerClock = async () => {
   const timeZone = (await readConnectionTimeZone()) ?? FALLBACK_TIME_ZONE;
-  const loadedAt = new Date();
-  const clock: ViewerClock = {
-    timeZone,
-    today: dayReader(timeZone)(loadedAt),
-    // Whether a job is already over is decided once, when the page is built.
-    now: loadedAt.toISOString(),
-  };
+  const clock: ViewerClock = { timeZone, today: dayReader(timeZone)(new Date()) };
 
   return clock;
 };

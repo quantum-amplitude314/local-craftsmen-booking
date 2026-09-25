@@ -1,9 +1,5 @@
-import { eq } from "drizzle-orm";
-import { createDb, type Db } from "./client.ts";
-import { readDatabaseEnv } from "./env.ts";
-import { runMigrations } from "./migrate.ts";
+import type { Db } from "./client.ts";
 import { availability, availabilityArea, craftsmanProfile, craftsmanRate, user } from "./schema.ts";
-import { seedReference } from "./seed-reference.ts";
 
 const HOUR_MS = 3_600_000;
 const BREAK_MS = 15 * 60_000;
@@ -104,30 +100,3 @@ export const seedTestData = async ({ db }: { db: Db }) => {
       .values(districts.map((districtId) => ({ availabilityId, cityId: baseCityId, districtId })));
   }
 };
-
-const hasTestData = async ({ db }: { db: Db }) => {
-  const [firstCraftsman] = seedCraftsmen;
-  const rows = await db.select({ id: user.id }).from(user).where(eq(user.id, firstCraftsman.id));
-  const seeded = rows.length > 0;
-
-  return seeded;
-};
-
-if (import.meta.main) {
-  const { DATABASE_URL: connectionString } = readDatabaseEnv();
-  if (!["localhost", "127.0.0.1"].includes(new URL(connectionString).hostname)) {
-    throw new Error("db:seed:test only seeds a localhost database");
-  }
-
-  const { db, close } = createDb({ connectionString });
-  await runMigrations({ db });
-  await seedReference({ db });
-  if (await hasTestData({ db })) {
-    await close();
-    throw new Error("Test data is already seeded. Run `bun run db:clear` first.");
-  }
-
-  await seedTestData({ db });
-  await close();
-  console.log("seeded reference and test data");
-}
