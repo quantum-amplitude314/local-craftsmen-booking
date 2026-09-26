@@ -10,9 +10,7 @@
     "credit": "Built by"
   },
   "home": {
-    "eyebrow": "Independent local specialists",
     "heading": "Find a craftsman<br></br>near you.",
-    "description": "Local craftsmen post their available times. Pick one, see the rate and order the job.",
     "findCraftsman": "Find a craftsman",
     "offerServices": "Offer your services",
     "signInPrompt": "Already have an account? <link>Sign in</link>",

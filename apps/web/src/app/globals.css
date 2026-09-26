@@ -89,6 +89,11 @@
   --sidebar-ring: var(--ring);
   --page-gutter: clamp(1.25rem, 4vw, 3rem);
   --section-space: clamp(3rem, 7vw, 6rem);
+  /* The header icon's tile takes the text colour; the accent is the other palette's primary so it
+     stands out on that tile. */
+  --brand-mark-tile: var(--foreground);
+  --brand-mark-line: var(--background);
+  --brand-mark-accent: #236967;
 }
 
 :root[data-palette="light"] {
@@ -110,6 +115,7 @@
   --chart-3: #1c2541;
   --chart-4: #507f7d;
   --chart-5: #72869e;
+  --brand-mark-accent: #5bc0be;
 }
 
 @utility page-shell {
@@ -124,6 +130,19 @@
 
 @utility section-space {
   padding-block: var(--section-space);
+}
+
+/* The brand name as the OG image draws it (docs/brand/og-title.py). */
+@utility wordmark {
+  font-family: var(--font-heading);
+  font-variation-settings:
+    "opsz" 72,
+    "SOFT" 25,
+    "WONK" 1;
+  font-size: 1.5rem;
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.03em;
 }
 
 @utility display-heading {
