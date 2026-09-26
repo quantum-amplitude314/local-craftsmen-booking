@@ -7,7 +7,8 @@
     "skipToContent": "Skip to content",
     "brand": "Local Craftsmen",
     "tagline": "Independent skills. Closer to home.",
-    "credit": "Built by"
+    "credit": "Built by",
+    "loading": "Loading…"
   },
   "home": {
     "heading": "Find a craftsman<br></br>near you.",
@@ -92,9 +93,6 @@
   "dashboard": {
     "title": "Dashboard | Local Craftsmen",
     "welcome": "Welcome, {name}",
-    "unavailable": "Your account is temporarily unavailable",
-    "unavailableDescription": "We couldn’t load your account. Please try again.",
-    "retry": "Try again",
     "profileSetup": {
       "heading": "Complete your profile",
       "description": "Set your craft, where you are based, and an hourly rate before you offer availability.",
@@ -255,5 +253,16 @@
     "dashboard": "Dashboard",
     "breadcrumb": "Breadcrumb",
     "profile": "Profile"
+  },
+  "notFound": {
+    "heading": "Page not found.",
+    "home": "Back to home"
+  },
+  "errorPage": {
+    "heading": "Something went wrong.",
+    "description": "We monitor errors and will look into it. Try again later.",
+    "retry": "Try again",
+    "home": "Back to home",
+    "code": "Error code: {digest}"
   }
 }

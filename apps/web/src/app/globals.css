@@ -261,3 +261,85 @@
     animation-duration: 0s;
   }
 }
+
+/* The photo hero (photo-hero.tsx). Plain rules with literal values, easy to tune in DevTools. The
+   fade is the dark palette's background (#0b132b) behind the hero text; the watermark's em is the
+   heading size. */
+.hero-fade {
+  background: linear-gradient(
+    to right,
+    rgb(11 19 43 / 0.9),
+    rgb(11 19 43 / 0.75) 32%,
+    transparent 50%
+  );
+}
+
+.hero-edges {
+  mask-image:
+    linear-gradient(to right, transparent, black 5% 90%, transparent),
+    linear-gradient(to bottom, transparent, black 5% 90%, transparent);
+  mask-composite: intersect;
+}
+
+@media (min-width: 64rem) {
+  :root:not([data-palette="light"]) .hero-edges {
+    mask-image:
+      linear-gradient(to right, transparent, black 15% 75%, transparent),
+      linear-gradient(to bottom, transparent, black 15% 75%, transparent);
+  }
+}
+
+.hero-watermark {
+  position: absolute;
+  top: 50%;
+  left: -0.04em;
+  translate: 0 -50%;
+  font-size: 2.5em;
+  line-height: 1;
+  color: var(--primary);
+  opacity: 0.3;
+  filter: blur(3px);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* The loader (loading.tsx) fades in after 0.3s, so fast pages never flash it. */
+.brand-loader {
+  animation: brand-loader-appear 0.2s ease-out 0.3s both;
+}
+
+.brand-loader-square {
+  fill: transparent;
+  stroke: var(--brand-mark-line);
+  animation: brand-loader-step 1.6s ease-in-out infinite;
+}
+
+@keyframes brand-loader-appear {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes brand-loader-step {
+  0%,
+  25% {
+    fill: var(--brand-mark-accent);
+    stroke: var(--brand-mark-accent);
+  }
+  45%,
+  100% {
+    fill: transparent;
+    stroke: var(--brand-mark-line);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .brand-loader-square {
+    animation: none;
+  }
+
+  .brand-loader-square:nth-child(4) {
+    fill: var(--brand-mark-accent);
+    stroke: var(--brand-mark-accent);
+  }
+}

@@ -7,7 +7,8 @@
     "skipToContent": "Přejít na obsah",
     "brand": "Local Craftsmen",
     "tagline": "Šikovné ruce. Blízko domova.",
-    "credit": "Realizace:"
+    "credit": "Realizace:",
+    "loading": "Načítání…"
   },
   "home": {
     "heading": "Najděte řemeslníka<br></br>ve svém okolí.",
@@ -92,9 +93,6 @@
   "dashboard": {
     "title": "Dashboard | Local Craftsmen",
     "welcome": "Vítejte, {name}",
-    "unavailable": "Váš účet je dočasně nedostupný",
-    "unavailableDescription": "Účet se nepodařilo načíst. Zkuste to prosím znovu.",
-    "retry": "Zkusit znovu",
     "profileSetup": {
       "heading": "Dokončete svůj profil",
       "description": "Než nabídnete dostupnost, nastavte své řemeslo, odkud jste a hodinovou sazbu.",
@@ -255,5 +253,16 @@
     "dashboard": "Dashboard",
     "breadcrumb": "Drobečková navigace",
     "profile": "Profil"
+  },
+  "notFound": {
+    "heading": "Stránka nenalezena.",
+    "home": "Zpět na úvod"
+  },
+  "errorPage": {
+    "heading": "Něco se pokazilo.",
+    "description": "Chyby sledujeme a podíváme se na to. Zkuste to prosím později.",
+    "retry": "Zkusit znovu",
+    "home": "Zpět na úvod",
+    "code": "Kód chyby: {digest}"
   }
 }

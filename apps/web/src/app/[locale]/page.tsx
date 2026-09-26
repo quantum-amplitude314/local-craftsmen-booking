@@ -1,84 +1,17 @@
-import { userRoleSchema } from "@local-craftsmen/contracts";
-import { getLocale, getTranslations } from "next-intl/server";
-import { buttonVariants } from "@/components/ui/button";
-import { Link, redirect } from "@/i18n/navigation";
+import { getLocale } from "next-intl/server";
+import { HowItWorks } from "@/components/how-it-works";
+import { LandingHero } from "@/components/landing-hero";
+import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function Home() {
-  const [user, locale, t] = await Promise.all([
-    getCurrentUser(),
-    getLocale(),
-    getTranslations("home"),
-  ]);
+  const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
   if (user) return redirect({ href: "/dashboard", locale });
 
-  const steps = [
-    {
-      key: "createAccount",
-      title: t("howItWorks.createAccount.title"),
-      lines: [t("howItWorks.createAccount.description")],
-    },
-    {
-      key: "order",
-      title: t("howItWorks.order.title"),
-      lines: [t("howItWorks.order.customer"), t("howItWorks.order.craftsman")],
-    },
-    {
-      key: "manage",
-      title: t("howItWorks.manage.title"),
-      lines: [t("howItWorks.manage.description")],
-    },
-  ];
-
   return (
-    <main id="main-content" tabIndex={-1} className="page-shell">
-      <section className="section-space grid gap-8 lg:grid-cols-[1.6fr_1fr] lg:items-end lg:gap-12">
-        <h1 className="display-heading max-w-3xl">{t.rich("heading", { br: () => <br /> })}</h1>
-        <div className="flex max-w-md flex-col gap-4 lg:pb-1">
-          <div className="flex flex-wrap gap-3">
-            <Link href="/register" className={buttonVariants({ size: "lg" })}>
-              {t("findCraftsman")}
-            </Link>
-            <Link
-              href={{ pathname: "/register", query: { role: userRoleSchema.enum.craftsman } }}
-              className={buttonVariants({ variant: "outline", size: "lg" })}
-            >
-              {t("offerServices")}
-            </Link>
-          </div>
-          <p className="text-sm text-muted-foreground">
-            {t.rich("signInPrompt", {
-              link: (chunks) => (
-                <Link href="/login" className="font-medium text-foreground underline">
-                  {chunks}
-                </Link>
-              ),
-            })}
-          </p>
-        </div>
-      </section>
-
-      <section
-        aria-labelledby="how-it-works-heading"
-        className="border-t pt-8 pb-(--section-space)"
-      >
-        <h2 id="how-it-works-heading" className="section-heading">
-          {t("howItWorks.heading")}
-        </h2>
-        <ol className="grid gap-x-8 md:grid-cols-3">
-          {steps.map(({ key, title, lines }, index) => (
-            <li key={key} className="flex min-w-0 flex-col gap-3 py-8 max-md:not-first:border-t">
-              <p className="eyebrow text-primary">{t("howItWorks.step", { number: index + 1 })}</p>
-              <h3 className="subsection-heading">{title}</h3>
-              {lines.map((line) => (
-                <p key={line} className="prose-text text-base leading-[1.7] text-muted-foreground">
-                  {line}
-                </p>
-              ))}
-            </li>
-          ))}
-        </ol>
-      </section>
+    <main id="main-content" tabIndex={-1} className="dashboard-shell">
+      <LandingHero />
+      <HowItWorks />
     </main>
   );
 }
