@@ -5,6 +5,7 @@ import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import "../globals.css";
 import { PaletteScript } from "@/components/palette-script";
+import { QaCredit } from "@/components/qa-credit";
 import { SiteHeader } from "@/components/site-header";
 import { type Locale, routing } from "@/i18n/routing";
 import { getEnv } from "@/lib/env";
@@ -74,9 +75,14 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
           </a>
           <SiteHeader />
           {children}
-          <footer className="dashboard-shell mt-auto flex flex-wrap justify-between gap-2 border-t py-6 text-xs text-muted-foreground">
-            <p>{t("brand")}</p>
-            <p>{t("tagline")}</p>
+          <footer className="dashboard-shell mt-auto border-t py-6 text-xs text-muted-foreground">
+            <div className="flex flex-wrap justify-between gap-2">
+              <p>{t("brand")}</p>
+              <p>{t("tagline")}</p>
+            </div>
+            <p className="mt-4 text-center">
+              <QaCredit label={t("credit")} />
+            </p>
           </footer>
         </NextIntlClientProvider>
       </body>

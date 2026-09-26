@@ -6,7 +6,8 @@
   "shell": {
     "skipToContent": "Skip to content",
     "brand": "Local Craftsmen",
-    "tagline": "Independent skills. Closer to home."
+    "tagline": "Independent skills. Closer to home.",
+    "credit": "Built by"
   },
   "home": {
     "eyebrow": "Independent local specialists",
