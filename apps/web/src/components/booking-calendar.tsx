@@ -70,9 +70,9 @@ function BookingCard({
         <Badge variant={statusVariant}>{statusLabel}</Badge>
       </ItemHeader>
       <ItemContent className="min-w-0 gap-0.5">
-        <p className="truncate font-medium">{partyName}</p>
-        <ItemDescription className="line-clamp-1">{placeLabel}</ItemDescription>
-        <ItemDescription className="line-clamp-1 tabular-nums">{priceLabel}</ItemDescription>
+        <p className="font-medium wrap-break-word">{partyName}</p>
+        <ItemDescription className="line-clamp-none">{placeLabel}</ItemDescription>
+        <ItemDescription className="line-clamp-none tabular-nums">{priceLabel}</ItemDescription>
       </ItemContent>
       {(cancellable || actions.length > 0) && (
         <ItemFooter className="justify-end">
@@ -163,25 +163,28 @@ export function BookingCalendar({
   });
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 lg:flex-row-reverse lg:items-start">
-      <div className="w-full min-w-0 overflow-hidden rounded-xl border lg:max-w-80">
-        <ScheduleCalendar calendar={calendar} allowPast onSelect={selectJobDay} />
-      </div>
+    // Calendar beside the cards only when this column, not the viewport, has room for both.
+    <div className="@container min-w-0">
+      <div className="flex flex-col gap-6 @split:flex-row-reverse @split:items-start">
+        <div className="w-full min-w-0 overflow-hidden rounded-xl border @split:max-w-70">
+          <ScheduleCalendar calendar={calendar} allowPast onSelect={selectJobDay} />
+        </div>
 
-      <div
-        aria-busy={changing}
-        data-changing={changing || undefined}
-        className="flex min-w-0 flex-1 flex-col gap-3 transition-opacity data-changing:opacity-60 data-changing:delay-300"
-      >
-        {emptyMessage ? (
-          <p className="text-sm text-muted-foreground">{emptyMessage}</p>
-        ) : (
-          <ItemGroup>
-            {cards.map((card) => (
-              <BookingCard key={card.id} {...card} />
-            ))}
-          </ItemGroup>
-        )}
+        <div
+          aria-busy={changing}
+          data-changing={changing || undefined}
+          className="flex min-w-0 flex-1 flex-col gap-3 transition-opacity data-changing:opacity-60 data-changing:delay-300"
+        >
+          {emptyMessage ? (
+            <p className="text-sm text-muted-foreground">{emptyMessage}</p>
+          ) : (
+            <ItemGroup>
+              {cards.map((card) => (
+                <BookingCard key={card.id} {...card} />
+              ))}
+            </ItemGroup>
+          )}
+        </div>
       </div>
     </div>
   );

@@ -43,8 +43,8 @@ function OfferCard({ card }: { card: OfferCardModel }) {
         <SlotBookingButton booking={booking} />
       </ItemHeader>
       <ItemContent className="min-w-0 gap-0.5">
-        <p className="truncate font-medium">{craftsmanName}</p>
-        <ItemDescription className="line-clamp-1 tabular-nums">{detailLabel}</ItemDescription>
+        <p className="font-medium wrap-break-word">{craftsmanName}</p>
+        <ItemDescription className="line-clamp-none tabular-nums">{detailLabel}</ItemDescription>
       </ItemContent>
     </Item>
   );
@@ -148,55 +148,61 @@ export function SlotSearch({
     });
 
   return (
-    <div className="flex min-w-0 flex-col gap-6 lg:flex-row lg:items-start">
-      <div className="flex w-full min-w-0 flex-col gap-4 lg:max-w-80">
-        <fieldset className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2">
-          <legend className="sr-only">{t("slots.filters.label")}</legend>
-          <FieldLabel htmlFor="offer-craft">{t("slots.filters.craft")}</FieldLabel>
-          <FilterSelect
-            id="offer-craft"
-            options={crafts}
-            value={craft}
-            onValueChange={(next) =>
-              choose({ patch: { craft: next }, navigate: () => selectCraft(next) })
-            }
-          />
-          <FieldLabel htmlFor="offer-city">{t("slots.filters.city")}</FieldLabel>
-          <FilterSelect
-            id="offer-city"
-            options={cities}
-            value={cityId}
-            onValueChange={(next) =>
-              choose({ patch: { cityId: next, districtId: "" }, navigate: () => selectCity(next) })
-            }
-          />
-          <FieldLabel htmlFor="offer-district">{t("slots.filters.district")}</FieldLabel>
-          <FilterSelect
-            id="offer-district"
-            anyLabel={t("slots.filters.any")}
-            options={districts}
-            value={districtId}
-            disabled={districts.length === 0}
-            onValueChange={(next) =>
-              choose({ patch: { districtId: next }, navigate: () => selectDistrict(next) })
-            }
-          />
-        </fieldset>
-        <div className="w-full min-w-0 overflow-hidden rounded-xl border">
-          <ScheduleCalendar calendar={calendar} onSelect={selectDay} />
+    // Filters and calendar beside the list only when this column, not the viewport, has room.
+    <div className="@container min-w-0">
+      <div className="flex flex-col gap-6 @split:flex-row @split:items-start">
+        <div className="flex w-full min-w-0 flex-col gap-4 @split:max-w-70">
+          <fieldset className="grid grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-2">
+            <legend className="sr-only">{t("slots.filters.label")}</legend>
+            <FieldLabel htmlFor="offer-craft">{t("slots.filters.craft")}</FieldLabel>
+            <FilterSelect
+              id="offer-craft"
+              options={crafts}
+              value={craft}
+              onValueChange={(next) =>
+                choose({ patch: { craft: next }, navigate: () => selectCraft(next) })
+              }
+            />
+            <FieldLabel htmlFor="offer-city">{t("slots.filters.city")}</FieldLabel>
+            <FilterSelect
+              id="offer-city"
+              options={cities}
+              value={cityId}
+              onValueChange={(next) =>
+                choose({
+                  patch: { cityId: next, districtId: "" },
+                  navigate: () => selectCity(next),
+                })
+              }
+            />
+            <FieldLabel htmlFor="offer-district">{t("slots.filters.district")}</FieldLabel>
+            <FilterSelect
+              id="offer-district"
+              anyLabel={t("slots.filters.any")}
+              options={districts}
+              value={districtId}
+              disabled={districts.length === 0}
+              onValueChange={(next) =>
+                choose({ patch: { districtId: next }, navigate: () => selectDistrict(next) })
+              }
+            />
+          </fieldset>
+          <div className="w-full min-w-0 overflow-hidden rounded-xl border">
+            <ScheduleCalendar calendar={calendar} onSelect={selectDay} />
+          </div>
         </div>
-      </div>
-      {/* The controls stay live so the latest choice wins; the list fades only on a slow answer. */}
-      <div
-        aria-busy={changing}
-        data-changing={changing || undefined}
-        className="flex min-w-0 flex-1 flex-col gap-3 transition-opacity data-changing:opacity-60 data-changing:delay-300"
-      >
-        <OfferList
-          key={`${day}|${filters.craft}|${filters.cityId}|${filters.districtId}`}
-          cards={cards}
-          emptyMessage={emptyMessage}
-        />
+        {/* The controls stay live so the latest choice wins; the list fades only on a slow answer. */}
+        <div
+          aria-busy={changing}
+          data-changing={changing || undefined}
+          className="flex min-w-0 flex-1 flex-col gap-3 transition-opacity data-changing:opacity-60 data-changing:delay-300"
+        >
+          <OfferList
+            key={`${day}|${filters.craft}|${filters.cityId}|${filters.districtId}`}
+            cards={cards}
+            emptyMessage={emptyMessage}
+          />
+        </div>
       </div>
     </div>
   );

@@ -37,7 +37,7 @@ function DaySlotItem({ slot }: { slot: DaySlotModel }) {
     <Item role="listitem" size="xs" className="min-h-14 border-primary/20 bg-primary/10">
       <ItemContent className="gap-0.5">
         <ItemTitle className="min-h-5 tabular-nums">{timeLabel}</ItemTitle>
-        <ItemDescription className="line-clamp-1">{areaLabel}</ItemDescription>
+        <ItemDescription className="line-clamp-none">{areaLabel}</ItemDescription>
       </ItemContent>
       <ItemActions>
         <PendingButton

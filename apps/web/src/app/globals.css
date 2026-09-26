@@ -48,6 +48,9 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+  /* A dashboard column fits its calendar panel beside the cards from here: 280 panel (7 cells of
+     2.25rem + padding) + 24 gap + 254 narrowest card (two buttons) = 558px. */
+  --container-split: 35rem;
 }
 
 :root {

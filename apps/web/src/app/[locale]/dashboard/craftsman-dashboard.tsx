@@ -40,10 +40,10 @@ export async function CraftsmanDashboard({ day, cityId, jobDay }: ScheduleParams
   });
 
   return (
-    // Availability keeps the planner's tuned width; bookings fill the column beside it.
-    <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
+    // Two equal columns from xl, where each still fits its calendar beside the cards.
+    <div className="flex flex-col gap-10 xl:flex-row xl:items-start">
       <section
-        className="flex w-full min-w-0 max-w-172 flex-col gap-6 border-t pt-6"
+        className="flex w-full min-w-0 max-w-172 flex-1 flex-col gap-6 border-t pt-6"
         aria-labelledby="availability-heading"
       >
         <div className="flex min-w-0 items-center justify-between gap-4">

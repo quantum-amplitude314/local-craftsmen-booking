@@ -49,10 +49,10 @@ export async function CustomerDashboard({
   };
 
   return (
-    // The offer keeps the planner's width on the craftsman's side; bookings fill the column beside it.
-    <div className="flex flex-col gap-10 lg:flex-row lg:items-start">
+    // Two equal columns from xl, where each still fits its calendar beside the cards.
+    <div className="flex flex-col gap-10 xl:flex-row xl:items-start">
       <section
-        className="flex w-full min-w-0 max-w-172 flex-col gap-6 border-t pt-6"
+        className="flex w-full min-w-0 max-w-172 flex-1 flex-col gap-6 border-t pt-6"
         aria-labelledby="slots-heading"
       >
         {/* min-h-9 matches the History button beside the other heading. */}
