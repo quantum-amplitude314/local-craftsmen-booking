@@ -20,7 +20,7 @@ export type OfferBookingModel = {
   slotId: string;
   cityId: CityId;
   currency: Currency;
-  /** The slot's day on its city's clock, for showing the new booking once it is made. */
+  /** The slot's day on its city's clock, the day the offer calendar files it under. */
   date: string;
   craftsmanName: string;
   windowLabel: string;
@@ -66,6 +66,7 @@ export const prepareSlotOffer = ({
   locations,
   day,
   today,
+  now,
   districtId,
   locale,
   text,
@@ -74,12 +75,15 @@ export const prepareSlotOffer = ({
   locations: Location[];
   day: string;
   today: string;
+  /** The server's render time, so a slot already under way offers only its quarters still ahead. */
+  now: string;
   /** The district the customer filtered by, preselected where the slot allows it. */
   districtId: string;
   locale: string;
   text: SlotOfferText;
 }) => {
   const { wholeCity, rate: rateText, window: windowText, price, empty } = text;
+  const nowMs = Date.parse(now);
   const cities = new Map(locations.map((location) => [location.id, location]));
   const hours = new Intl.NumberFormat(locale, {
     style: "unit",
@@ -144,7 +148,8 @@ export const prepareSlotOffer = ({
         const quarter: QuarterModel = {
           start: quarterStart.toISOString(),
           end: quarterEnd.toISOString(),
-          state: "free",
+          // A booking has to start after now, as the API checks.
+          state: quarterStart.getTime() > nowMs ? "free" : "past",
           label: time.format(quarterStart),
           endLabel: time.format(quarterEnd),
         };

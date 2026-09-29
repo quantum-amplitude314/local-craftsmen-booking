@@ -111,6 +111,7 @@ export function SlotSearch({
   filters,
   day,
   today,
+  now,
   options,
 }: {
   slots: SlotListing[];
@@ -118,6 +119,7 @@ export function SlotSearch({
   filters: OfferFilters;
   day: string;
   today: string;
+  now: string;
   options: OfferFilterOptions;
 }) {
   const t = useTranslations("dashboard");
@@ -133,6 +135,7 @@ export function SlotSearch({
     locations,
     day,
     today,
+    now,
     districtId: filters.districtId,
     locale: formattingLocale(locale),
     text: {

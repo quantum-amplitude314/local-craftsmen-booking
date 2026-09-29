@@ -194,7 +194,7 @@
       "booking": "Rezervuji…",
       "window": "{day} · volno {start} – {end}",
       "errors": {
-        "taken": "Tento termín byl právě obsazen. Vyberte jiný.",
+        "taken": "Tento termín už není volný. Vyberte jiný.",
         "invalid": "Zkontrolujte vybraný čas a místo.",
         "failed": "Rezervaci se nepodařilo vytvořit. Zkuste to prosím znovu.",
         "unauthorized": "Pro rezervaci se přihlaste jako zákazník."

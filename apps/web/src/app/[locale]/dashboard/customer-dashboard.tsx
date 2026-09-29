@@ -37,6 +37,8 @@ export async function CustomerDashboard({
         ...(filters.districtId ? { districtId: filters.districtId } : {}),
       })
     : [];
+  // Read once here, so the server render and hydration agree on which quarters have passed.
+  const now = new Date().toISOString();
   const options: OfferFilterOptions = {
     crafts: CRAFTS.map((value) => ({ value, label: craftName(value) })),
     cities: locations.map(({ id }) => ({ value: id, label: cityName(id) })),
@@ -67,6 +69,7 @@ export async function CustomerDashboard({
           filters={filters}
           day={day ?? today}
           today={today}
+          now={now}
           options={options}
         />
       </section>

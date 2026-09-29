@@ -289,6 +289,29 @@ describe("location-aware slots and booking allocation", () => {
     expect(await utcDay.json()).not.toContainEqual(expect.objectContaining({ id: slot.id }));
   });
 
+  test("offers a slot under way only while a full hour of its work is still ahead", async () => {
+    const slot = await createSlot();
+    const now = Date.now();
+    const listedWithWorkLeft = async (minutes: number) => {
+      // Stored ranges include the 15-minute break after the work.
+      await database
+        .update(availability)
+        .set({
+          range: { start: new Date(now - 3_600_000), end: new Date(now + (minutes + 15) * 60_000) },
+        })
+        .where(eq(availability.id, slot.id));
+      const response = await call({ path: "/slots?cityId=prague", cookie: customerCookie });
+      const listed: unknown = await response.json();
+
+      return listed;
+    };
+
+    const inSlot = expect.objectContaining({ id: slot.id });
+    expect(await listedWithWorkLeft(45)).not.toContainEqual(inSlot);
+    expect(await listedWithWorkLeft(90)).toContainEqual(inSlot);
+    await database.delete(availability).where(eq(availability.id, slot.id));
+  });
+
   test("supports city-wide coverage with a nullable district, without accepting mismatched district filters", async () => {
     const slot = await createSlot([{ cityId: "pardubice", districtId: null }]);
     const city = await call({ path: "/slots?cityId=pardubice", cookie: customerCookie });

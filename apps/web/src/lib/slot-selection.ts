@@ -1,16 +1,16 @@
 import {
+  BOOKING_MIN_MINUTES,
   durationMinutes,
   type Quarter,
+  SCHEDULE_STEP_MINUTES,
   SLOT_MAX_MINUTES,
   SLOT_MIN_MINUTES,
 } from "@local-craftsmen/contracts";
 
-/** The first and last selected quarter-hour, by their start times. */
 export type QuarterSelection = { first: string; last: string } | null;
 
 export type SelectedRange = { start: string; end: string; quarters: Set<string> };
 
-/** Whether the current selection can be saved, or what it still needs. */
 export type DraftStatus = "pickRange" | "tooShort" | "tooLong" | "ready";
 
 const indexOf = ({ quarters, time }: { quarters: Quarter[]; time: string }) =>
@@ -52,10 +52,9 @@ export const selectedRange = ({
 };
 
 /**
- * A click stretches the selection to include the quarter, so clicking every quarter or just the
- * first and last gives the same range. A click inside the range ends it there, so shortening takes
- * one click. Clicking one edge keeps only the other edge, and clicking a lone quarter clears it. A
- * click beyond a taken quarter or a break starts a new selection there.
+ * A click outside the range stretches it to that quarter, or starts over there when a quarter in
+ * between is not free. A click inside ends the range there, an edge keeps only the other edge, and
+ * a lone quarter clears.
  */
 export const pickQuarter = ({
   selection,
@@ -83,6 +82,23 @@ export const pickQuarter = ({
     : { first: time, last: time };
 
   return picked;
+};
+
+/** The earliest hour of free quarters, so booking the soonest time takes a single click. */
+export const firstFreeHour = ({ quarters }: { quarters: Quarter[] }) => {
+  const length = BOOKING_MIN_MINUTES / SCHEDULE_STEP_MINUTES;
+  const from = quarters.findIndex((_, index) => {
+    const hour = quarters.slice(index, index + length);
+    const free = hour.length === length && hour.every(({ state }) => state === "free");
+
+    return free;
+  });
+  const first = quarters[from];
+  const last = quarters[from + length - 1];
+  const selection: QuarterSelection =
+    first && last ? { first: first.start, last: last.start } : null;
+
+  return selection;
 };
 
 /** Why the range cannot be saved yet; the API enforces the same limits. */

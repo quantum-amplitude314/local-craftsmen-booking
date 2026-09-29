@@ -8,8 +8,9 @@ GET    /me                            session user
 GET    /crafts
 GET    /locations                     cities with districts
 GET    /slots?craft=&cityId=&districtId=&date=&start=&end=
-                                      future slots with craftsman, craft, rates
-GET    /craftsmen/:id                 profile and future slots
+                                      slots with at least an hour of work ahead, with craftsman,
+                                      craft, rates
+GET    /craftsmen/:id                 profile and slots, as on /slots
 GET    /me/profile                    craftsman: own profile, or null before setup
 PUT    /me/profile                    craftsman: save profile and rates
 GET    /me/availability/day?date=&cityId=

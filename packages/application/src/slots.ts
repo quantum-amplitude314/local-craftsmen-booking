@@ -1,6 +1,7 @@
 import {
   type Area,
   type AvailabilityDay,
+  BOOKING_MIN_MINUTES,
   BREAK_MINUTES,
   cityIdSchema,
   SLOT_MAX_MINUTES,
@@ -30,6 +31,7 @@ const BREAK_MS = BREAK_MINUTES * 60_000;
 const SLOT_MAX_MS = SLOT_MAX_MINUTES * 60_000;
 export const activeBookingStatuses: ("pending" | "confirmed")[] = ["pending", "confirmed"];
 const breakInterval = sql.raw(`interval '${BREAK_MINUTES} minutes'`);
+const bookingMinInterval = sql.raw(`interval '${BOOKING_MIN_MINUTES} minutes'`);
 const workRange = sql`tstzrange(lower(${availability.range}), upper(${availability.range}) - ${breakInterval}, '[)')`;
 
 /** Stored slot ranges include the break after the working time. */
@@ -53,7 +55,8 @@ export const slotPredicate = ({
 }) => {
   const { cityId, districtId, date, start, end, craft } = input;
   const predicate = and(
-    sql`upper(${workRange}) > now()`,
+    // Still bookable: the shortest booking that ends with the work would start after now.
+    sql`upper(${workRange}) - ${bookingMinInterval} > now()`,
     date
       ? exists(
           db

@@ -1,7 +1,7 @@
 /// <reference types="bun" />
 import { describe, expect, test } from "bun:test";
 import type { Quarter } from "@local-craftsmen/contracts";
-import { draftStatus, pickQuarter, selectedRange } from "./slot-selection";
+import { draftStatus, firstFreeHour, pickQuarter, selectedRange } from "./slot-selection";
 
 const quarterAt = (minutes: number, state: Quarter["state"] = "free"): Quarter => ({
   start: new Date(Date.UTC(2040, 0, 1, 8, minutes)).toISOString(),
@@ -63,5 +63,16 @@ describe("quarter selection", () => {
     const long = { start: at(0), end: "2040-01-01T12:15:00.000Z", quarters: new Set<string>() };
     expect(draftStatus({ range: long })).toBe("tooLong");
     expect(draftStatus({ range: null })).toBe("pickRange");
+  });
+
+  test("preselects the earliest free hour, past the quarters gone and runs too short for one", () => {
+    const pastUntil = (count: number) =>
+      quarters.map((quarter, index) =>
+        index < count ? { ...quarter, state: "past" as const } : quarter,
+      );
+    expect(firstFreeHour({ quarters })).toEqual({ first: at(0), last: at(3) });
+    expect(firstFreeHour({ quarters: pastUntil(2) })).toEqual({ first: at(2), last: at(5) });
+    // Two free quarters before the break and three after it leave no hour to book.
+    expect(firstFreeHour({ quarters: pastUntil(6) })).toBeNull();
   });
 });

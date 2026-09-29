@@ -1,39 +1,19 @@
 "use client";
 
-import {
-  BOOKING_MIN_MINUTES,
-  type BookingInput,
-  durationMinutes,
-  SCHEDULE_STEP_MINUTES,
-} from "@local-craftsmen/contracts";
+import { type BookingInput, durationMinutes } from "@local-craftsmen/contracts";
 import { useState } from "react";
 import type { OfferBookingModel } from "@/lib/slot-offer-model";
-import {
-  draftStatus,
-  pickQuarter,
-  type QuarterSelection,
-  selectedRange,
-} from "@/lib/slot-selection";
+import { draftStatus, firstFreeHour, pickQuarter, selectedRange } from "@/lib/slot-selection";
 import type { QuarterOption } from "@/lib/use-slot-draft";
-
-/** The slot's first hour, so booking the earliest time takes a single click. */
-const firstHourOf = ({ quarters }: Pick<OfferBookingModel, "quarters">) => {
-  const first = quarters[0];
-  const last = quarters[BOOKING_MIN_MINUTES / SCHEDULE_STEP_MINUTES - 1];
-  const selection: QuarterSelection =
-    first && last ? { first: first.start, last: last.start } : null;
-
-  return selection;
-};
 
 /**
  * One customer's choice within a slot: the quarters picked, the same way the planner picks them,
- * and where the work is. The slot holds only free quarters, so any picked range can be booked once
- * it is long enough.
+ * and where the work is. Quarters already started are past; the rest are free, so any picked range
+ * can be booked once it is long enough.
  */
 export const useOfferBooking = ({ booking }: { booking: OfferBookingModel }) => {
   const { slotId, cityId, currency, quarters, defaultPlace, priceLabels } = booking;
-  const [selection, setSelection] = useState(() => firstHourOf({ quarters }));
+  const [selection, setSelection] = useState(() => firstFreeHour({ quarters }));
   const [place, setPlace] = useState(defaultPlace);
   const range = selectedRange({ selection, quarters });
   const current = range ? selection : null;
