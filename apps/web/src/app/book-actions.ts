@@ -1,13 +1,14 @@
 "use server";
 
-import { bookingInputSchema } from "@local-craftsmen/contracts";
+import { type Booking, bookingInputSchema } from "@local-craftsmen/contracts";
 import { ORPCError } from "@orpc/client";
 import { apiClient } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
 import { revalidateLocalized } from "@/lib/revalidate";
 
 export type BookSlotState = {
-  booked?: true;
+  /** When the booked job starts, so the bookings calendar can open on its day. */
+  bookedStart?: string;
   error?: "taken" | "invalid" | "failed" | "unauthorized";
 };
 
@@ -29,8 +30,9 @@ export const bookSlot = async (input: unknown): Promise<BookSlotState> => {
     return unauthorized;
   }
 
+  let created: Booking;
   try {
-    await apiClient.bookings.create(parsed.data);
+    created = await apiClient.bookings.create(parsed.data);
   } catch (error) {
     const taken = error instanceof ORPCError && takenCodes.includes(error.code);
     const failure: BookSlotState = { error: taken ? "taken" : "failed" };
@@ -40,7 +42,7 @@ export const bookSlot = async (input: unknown): Promise<BookSlotState> => {
   }
 
   revalidateLocalized(bookedPaths);
-  const booked: BookSlotState = { booked: true };
+  const booked: BookSlotState = { bookedStart: created.start };
 
   return booked;
 };

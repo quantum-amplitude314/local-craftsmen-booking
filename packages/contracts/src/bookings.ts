@@ -64,9 +64,6 @@ export const bookingsContract = {
     }),
 };
 export const ownBookingsContract = {
-  list: oc
-    .route({ method: "GET", path: "/me/bookings", summary: "List your bookings" })
-    .output(z.array(ownBookingSchema)),
   range: oc
     .route({
       method: "GET",

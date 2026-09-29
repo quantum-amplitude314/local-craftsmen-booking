@@ -235,29 +235,6 @@ export const createBookingsService = ({ db }: { db: Db }) => {
     return result;
   };
 
-  /** Your own jobs, each carrying the name of whoever is on the other side of it. */
-  const list = async ({ user: account }: { user: SessionUser }) => {
-    const { id, role } = account;
-    const now = new Date();
-    const mine = role === "craftsman" ? booking.craftsmanId : booking.customerId;
-    const theirs = role === "craftsman" ? booking.customerId : booking.craftsmanId;
-    const rows = await db
-      .select({ row: booking, place: jobPlaceColumns, partyName: user.name })
-      .from(booking)
-      .innerJoin(user, eq(user.id, theirs))
-      .innerJoin(city, eq(city.id, booking.cityId))
-      .leftJoin(district, eq(district.id, booking.districtId))
-      .where(eq(mine, id))
-      .orderBy(booking.range, booking.id);
-    const bookings: OwnBooking[] = rows.map(({ row, place, partyName }) => ({
-      ...toBooking({ row, place }),
-      partyName,
-      actions: allowedTransitions({ row, userId: id, now }),
-    }));
-
-    return bookings;
-  };
-
   /** Every active job of yours overlapping the window, in UTC, whichever side of it you are on.
    * Which calendar day each one lands on is the caller's decision, because only the caller knows
    * the zone its grid is drawn in. */
@@ -334,7 +311,7 @@ export const createBookingsService = ({ db }: { db: Db }) => {
 
     return result;
   };
-  const service = { create, list, range, advance };
+  const service = { create, range, advance };
 
   return service;
 };

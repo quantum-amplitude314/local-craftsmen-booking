@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import type { OfferBookingModel } from "@/lib/slot-offer-model";
+import { viewerDayOf } from "@/lib/use-booking-calendar";
 import { useMutation } from "@/lib/use-mutation";
 import { useOfferBooking } from "@/lib/use-offer-booking";
 import { useScheduleParams } from "@/lib/use-schedule-params";
@@ -40,7 +41,7 @@ function BookingDialogBody({
   onBooked: () => void;
 }) {
   const t = useTranslations("dashboard");
-  const { slotId, date, craftsmanName, windowLabel, places, placeFixed } = booking;
+  const { slotId, craftsmanName, windowLabel, places, placeFixed } = booking;
   const { options, status, place, rangeLabel, priceLabel, input, setPlace, pick } = useOfferBooking(
     { booking },
   );
@@ -49,11 +50,12 @@ function BookingDialogBody({
     action: bookSlot,
     initialState,
     failureState: { error: "failed" },
-    onResult: ({ booked }) => {
-      if (!booked) return;
+    onResult: ({ bookedStart }) => {
+      if (!bookedStart) return;
       onBooked();
-      // The new booking shows at once in the bookings calendar beside the offer.
-      selectJobDay(date);
+      // The new booking shows at once in the bookings calendar beside the offer, on the reader's
+      // day: past midnight in an overnight slot, or in another zone, that is not the slot's date.
+      selectJobDay(viewerDayOf(bookedStart));
     },
   });
   const { error } = state;

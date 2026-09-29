@@ -60,12 +60,6 @@ export const router = os.router({
       }),
     },
     bookings: {
-      list: os.me.bookings.list.handler(({ context }) => {
-        const { user, bookings } = context;
-        if (!user) throw new ORPCError("UNAUTHORIZED");
-
-        return bookings.list({ user });
-      }),
       range: os.me.bookings.range.handler(({ context, input }) => {
         const { user, bookings } = context;
         if (!user) throw new ORPCError("UNAUTHORIZED");

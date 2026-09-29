@@ -608,26 +608,6 @@ describe("location-aware slots and booking allocation", () => {
         areas: expect.arrayContaining([expect.objectContaining({ districtName: "Libeň" })]),
       },
     });
-    // Each side of a job is shown the other side's name.
-    const own = await call({ path: "/me/bookings", cookie: customerCookie });
-    expect(ownBookingSchema.array().parse(await own.json())).toContainEqual({
-      ...booked,
-      partyName: "Test craftsman",
-      actions: ["cancel"],
-    });
-    const provider = await call({ path: "/me/bookings", cookie: craftsmanCookie });
-    expect(ownBookingSchema.array().parse(await provider.json())).toContainEqual({
-      ...booked,
-      partyName: "Test customer",
-      actions: ["confirm", "cancel"],
-    });
-    const unrelated = await call({ path: "/me/bookings", cookie: otherCustomerCookie });
-    expect(
-      ownBookingSchema
-        .array()
-        .parse(await unrelated.json())
-        .map(({ id }) => id),
-    ).not.toContain(booked.id);
     const overlap = await call({
       path: "/me/availability",
       method: "POST",
