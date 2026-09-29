@@ -850,7 +850,7 @@ describe("location-aware slots and booking allocation", () => {
           id: secondId,
           customerId,
           craftsmanId,
-          craft: "painter",
+          craft: "painting",
           cityId: "pardubice",
           districtId: null,
           range: { start: new Date("2042-07-01T08:00:00Z"), end: new Date("2042-07-01T09:00:00Z") },
@@ -861,7 +861,7 @@ describe("location-aware slots and booking allocation", () => {
           id: firstId,
           customerId,
           craftsmanId,
-          craft: "painter",
+          craft: "painting",
           cityId: "prague",
           districtId: "prague-liben",
           range: { start: new Date("2042-07-01T00:15:00Z"), end: new Date("2042-07-01T01:15:00Z") },
@@ -1072,20 +1072,20 @@ describe("slot listing and craftsman access", () => {
 
   test("lists seeded slots with their craftsman for a signed-in user", async () => {
     const { cookie } = await registerUser({ role: "customer" });
-    const response = await call({ path: "/slots?craft=painter", cookie });
+    const response = await call({ path: "/slots?craft=painting", cookie });
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toContainEqual(
       expect.objectContaining({
         craftsmanId: "seed-painter-1",
-        craftsman: expect.objectContaining({ id: "seed-painter-1", craft: "painter" }),
+        craftsman: expect.objectContaining({ id: "seed-painter-1", craft: "painting" }),
       }),
     );
   });
 });
 
 const profileInput = {
-  craft: "painter",
+  craft: "painting",
   baseArea: { cityId: "prague", districtId: "prague-liben" },
   bio: "Interior painting",
   rates: [
@@ -1234,7 +1234,7 @@ describe("craftsman profile pricing", () => {
       id: bookingId,
       customerId: "seed-customer-1",
       craftsmanId,
-      craft: "painter",
+      craft: "painting",
       cityId: "prague",
       districtId: "prague-liben",
       range: { start: new Date("2035-01-01T08:00:00Z"), end: new Date("2035-01-01T10:00:00Z") },

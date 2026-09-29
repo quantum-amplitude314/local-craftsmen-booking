@@ -18,7 +18,7 @@ const job = ({
   id,
   customerId: "seed-customer-1",
   craftsmanId: "seed-painter-1",
-  craft: "painter",
+  craft: "painting",
   partyName: "Dan Customer",
   actions: [],
   status: "confirmed",

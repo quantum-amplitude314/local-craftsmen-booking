@@ -15,11 +15,14 @@ describe("API Worker", () => {
 
     expect(response.status).toBe(200);
     await expect(response.json()).resolves.toEqual([
-      "painter",
-      "plumber",
-      "electrician",
-      "carpenter",
-      "tiler",
+      "painting",
+      "plumbing",
+      "electrical",
+      "carpentry",
+      "tiling",
+      "cleaning",
+      "it",
+      "wellness",
     ]);
   });
 

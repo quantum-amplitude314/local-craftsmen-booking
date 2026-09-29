@@ -5,7 +5,7 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/slots?craft=painter
+  url: {{baseUrl}}/slots?craft=painting
   body: none
   auth: none
 }
@@ -15,7 +15,7 @@ headers {
 }
 
 params:query {
-  craft: painter
+  craft: painting
 }
 
 vars:post-response {
@@ -25,5 +25,5 @@ vars:post-response {
 assert {
   res.status: eq 200
   res.body: isArray
-  res.body[0].craftsman.craft: eq painter
+  res.body[0].craftsman.craft: eq painting
 }

@@ -24,7 +24,7 @@
       },
       "order": {
         "title": "Order a job, or offer your availability",
-        "customer": "Choose a craft and a day, browse current offers and pick a time.",
+        "customer": "Choose a service and a day, browse current offers and pick a time.",
         "craftsman": "Publish your available times, location and rate."
       },
       "manage": {
@@ -39,11 +39,14 @@
     "pardubice": "Pardubice"
   },
   "crafts": {
-    "painter": "Painter",
-    "plumber": "Plumber",
-    "electrician": "Electrician",
-    "carpenter": "Carpenter",
-    "tiler": "Tiler"
+    "painting": "Painting",
+    "plumbing": "Plumbing",
+    "electrical": "Electrical work",
+    "carpentry": "Carpentry",
+    "tiling": "Tiling",
+    "cleaning": "Cleaning",
+    "it": "IT",
+    "wellness": "Wellness"
   },
   "login": {
     "title": "Sign in | Local Craftsmen",
@@ -95,7 +98,7 @@
     "welcome": "Welcome, {name}",
     "profileSetup": {
       "heading": "Complete your profile",
-      "description": "Set your craft, where you are based, and an hourly rate before you offer availability.",
+      "description": "Set your service, where you are based, and an hourly rate before you offer availability.",
       "action": "Set up profile"
     },
     "sections": {
@@ -176,7 +179,7 @@
     "slots": {
       "filters": {
         "label": "Filter available times",
-        "craft": "Craft",
+        "craft": "Service",
         "city": "City",
         "district": "District",
         "any": "Any"
@@ -204,7 +207,7 @@
   "profile": {
     "heading": "Your profile",
     "description": "This is how customers see you next to your available times.",
-    "craft": "Craft",
+    "craft": "Service",
     "baseArea": "Where you're based",
     "baseAreaHint": "You set the areas you serve on each available time.",
     "city": "City",
@@ -222,7 +225,7 @@
     "validation": {
       "invalidValue": "Enter a valid value or choose an option.",
       "wholeRate": "Enter a whole-number price from 1 to 9,999,999,999.",
-      "craftRequired": "Choose a craft.",
+      "craftRequired": "Choose a service.",
       "cityRequired": "Choose a city."
     },
     "title": "Profile | Local Craftsmen",
@@ -237,7 +240,7 @@
       "services": "Services",
       "servicesHint": "What you offer and your price."
     },
-    "craftPlaceholder": "Choose a craft",
+    "craftPlaceholder": "Choose a service",
     "cityPlaceholder": "Choose a city",
     "districtPlaceholder": "Choose a district",
     "noMatches": "No matches."

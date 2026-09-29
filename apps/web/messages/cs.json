@@ -24,7 +24,7 @@
       },
       "order": {
         "title": "Objednejte práci, nabídněte své dostupnosti",
-        "customer": "Vyberte řemeslo a den, projděte aktuální nabídky a zvolte čas.",
+        "customer": "Vyberte službu a den, projděte aktuální nabídky a zvolte čas.",
         "craftsman": "Zveřejněte své volné termíny, místo a sazbu."
       },
       "manage": {
@@ -39,11 +39,14 @@
     "pardubice": "Pardubice"
   },
   "crafts": {
-    "painter": "Malíř",
-    "plumber": "Instalatér",
-    "electrician": "Elektrikář",
-    "carpenter": "Truhlář",
-    "tiler": "Obkladač"
+    "painting": "Malování",
+    "plumbing": "Instalatérské práce",
+    "electrical": "Elektroinstalace",
+    "carpentry": "Truhlářství",
+    "tiling": "Obklady a dlažby",
+    "cleaning": "Úklid",
+    "it": "IT",
+    "wellness": "Wellness"
   },
   "login": {
     "title": "Přihlášení | Local Craftsmen",
@@ -95,7 +98,7 @@
     "welcome": "Vítejte, {name}",
     "profileSetup": {
       "heading": "Dokončete svůj profil",
-      "description": "Než nabídnete dostupnost, nastavte své řemeslo, odkud jste a hodinovou sazbu.",
+      "description": "Než nabídnete dostupnost, nastavte svou službu, odkud jste a hodinovou sazbu.",
       "action": "Nastavit profil"
     },
     "sections": {
@@ -176,7 +179,7 @@
     "slots": {
       "filters": {
         "label": "Filtrovat volné termíny",
-        "craft": "Řemeslo",
+        "craft": "Služba",
         "city": "Město",
         "district": "Čtvrť",
         "any": "Vše"
@@ -204,7 +207,7 @@
   "profile": {
     "heading": "Váš profil",
     "description": "Takto vás zákazníci uvidí u vaší dostupnosti.",
-    "craft": "Řemeslo",
+    "craft": "Služba",
     "baseArea": "Kde sídlíte",
     "baseAreaHint": "Oblasti, kde pracujete, nastavíte u každé dostupnosti.",
     "city": "Město",
@@ -222,7 +225,7 @@
     "validation": {
       "invalidValue": "Zadejte platnou hodnotu nebo vyberte možnost.",
       "wholeRate": "Zadejte cenu jako celé číslo od 1 do 9 999 999 999.",
-      "craftRequired": "Vyberte řemeslo.",
+      "craftRequired": "Vyberte službu.",
       "cityRequired": "Vyberte město."
     },
     "title": "Profil | Local Craftsmen",
@@ -237,7 +240,7 @@
       "services": "Služby",
       "servicesHint": "Co nabízíte a za kolik."
     },
-    "craftPlaceholder": "Vyberte řemeslo",
+    "craftPlaceholder": "Vyberte službu",
     "cityPlaceholder": "Vyberte město",
     "districtPlaceholder": "Vyberte čtvrť",
     "noMatches": "Nic nenalezeno."

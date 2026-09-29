@@ -18,11 +18,14 @@ import { tstzrange } from "./range.ts";
 
 export const userRoleEnum = pgEnum("user_role", ["customer", "craftsman"]);
 export const craftEnum = pgEnum("craft", [
-  "painter",
-  "plumber",
-  "electrician",
-  "carpenter",
-  "tiler",
+  "painting",
+  "plumbing",
+  "electrical",
+  "carpentry",
+  "tiling",
+  "cleaning",
+  "it",
+  "wellness",
 ]);
 export const bookingStatusEnum = pgEnum("booking_status", [
   "pending",

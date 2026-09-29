@@ -22,7 +22,7 @@ const slot: SlotListing = {
   craftsman: {
     id: "seed-painter-1",
     name: "Pat Painter",
-    craft: "painter",
+    craft: "painting",
     rates: [{ currency: "CZK", hourlyRate: "500.00" }],
   },
 };

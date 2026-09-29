@@ -15,6 +15,13 @@
       "when": 1790184590490,
       "tag": "0001_city_time_zone",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1790667290435,
+      "tag": "0002_crafts_as_services",
+      "breakpoints": true
     }
   ]
 }
