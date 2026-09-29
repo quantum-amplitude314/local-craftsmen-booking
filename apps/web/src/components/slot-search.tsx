@@ -59,8 +59,10 @@ function OfferList({
   emptyMessage: string | null;
 }) {
   const t = useTranslations("dashboard.slots");
-  const [page, setPage] = useState(0);
+  const [requestedPage, setPage] = useState(0);
   const pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE));
+  // A booking can shorten the list under the page being read; stay on its last page.
+  const page = Math.min(requestedPage, pages - 1);
   const shown = cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   if (emptyMessage) return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;

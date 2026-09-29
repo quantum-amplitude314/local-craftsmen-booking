@@ -104,6 +104,26 @@ const toBooking = ({
   return result;
 };
 
+/** The names and zone of the place a job is in, read inside the caller's transaction. */
+const loadPlace = async ({
+  tx,
+  cityId,
+  districtId,
+}: {
+  tx: Pick<Db, "select">;
+  cityId: string;
+  districtId: string | null;
+}) => {
+  const [place] = await tx
+    .select(jobPlaceColumns)
+    .from(city)
+    .leftJoin(district, and(eq(district.cityId, city.id), eq(district.id, districtId ?? "")))
+    .where(eq(city.id, cityId));
+  if (!place) throw new DomainError({ code: "BAD_REQUEST", message: "Unknown job city" });
+
+  return place;
+};
+
 export const createBookingsService = ({ db }: { db: Db }) => {
   const create = async ({ customerId, input }: { customerId: string; input: BookingInput }) => {
     const { slotId, start, end, location, currency } = input;
@@ -183,12 +203,7 @@ export const createBookingsService = ({ db }: { db: Db }) => {
         })
         .returning();
       if (!created) throw new Error("Created booking is missing");
-      const [place] = await tx
-        .select(jobPlaceColumns)
-        .from(city)
-        .leftJoin(district, and(eq(district.cityId, city.id), eq(district.id, districtId ?? "")))
-        .where(eq(city.id, cityId));
-      if (!place) throw new DomainError({ code: "BAD_REQUEST", message: "Unknown job city" });
+      const place = await loadPlace({ tx, cityId, districtId });
       const booked = toBooking({ row: created, place });
       const participants = await tx
         .select({ id: user.id, name: user.name })
@@ -305,12 +320,7 @@ export const createBookingsService = ({ db }: { db: Db }) => {
         .where(eq(booking.id, id))
         .returning();
       if (!updated) throw new Error("Updated booking is missing");
-      const [place] = await tx
-        .select(jobPlaceColumns)
-        .from(city)
-        .leftJoin(district, and(eq(district.cityId, city.id), eq(district.id, districtId ?? "")))
-        .where(eq(city.id, cityId));
-      if (!place) throw new DomainError({ code: "BAD_REQUEST", message: "Unknown job city" });
+      const place = await loadPlace({ tx, cityId, districtId });
       const advanced = toBooking({ row: updated, place });
       await tx.insert(bookingHistory).values({
         bookingId: advanced.id,
