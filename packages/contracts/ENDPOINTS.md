@@ -10,7 +10,7 @@ GET    /locations                     cities with districts
 GET    /slots?craft=&cityId=&districtId=&date=&start=&end=
                                       slots with at least an hour of work ahead, with craftsman,
                                       craft, rates
-GET    /craftsmen/:id                 profile and slots, as on /slots
+GET    /craftsmen/:id                 profile: name, service, base area, bio, rates
 GET    /me/profile                    craftsman: own profile, or null before setup
 PUT    /me/profile                    craftsman: save profile and rates
 GET    /me/availability/day?date=&cityId=

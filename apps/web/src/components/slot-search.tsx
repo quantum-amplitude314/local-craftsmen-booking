@@ -18,6 +18,7 @@ import {
   ItemHeader,
   ItemTitle,
 } from "@/components/ui/item";
+import { Link } from "@/i18n/navigation";
 import { formattingLocale } from "@/lib/intl-locale";
 import { type OfferCardModel, prepareSlotOffer } from "@/lib/slot-offer-model";
 import { useScheduleParams } from "@/lib/use-schedule-params";
@@ -34,7 +35,7 @@ export type OfferFilterOptions = {
 export type OfferFilters = { craft: string; cityId: string; districtId: string };
 
 function OfferCard({ card }: { card: OfferCardModel }) {
-  const { timeLabel, craftsmanName, detailLabel, booking } = card;
+  const { timeLabel, craftsmanId, craftsmanName, detailLabel, booking } = card;
 
   return (
     <Item role="listitem" size="sm" className="border-primary/20 bg-primary/10">
@@ -43,7 +44,14 @@ function OfferCard({ card }: { card: OfferCardModel }) {
         <SlotBookingButton booking={booking} />
       </ItemHeader>
       <ItemContent className="min-w-0 gap-0.5">
-        <p className="font-medium wrap-break-word">{craftsmanName}</p>
+        <p className="font-medium wrap-break-word">
+          <Link
+            href={`/craftsmen/${craftsmanId}`}
+            className="underline decoration-primary/50 underline-offset-4 hover:decoration-primary"
+          >
+            {craftsmanName}
+          </Link>
+        </p>
         <ItemDescription className="line-clamp-none tabular-nums">{detailLabel}</ItemDescription>
       </ItemContent>
     </Item>

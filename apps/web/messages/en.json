@@ -267,5 +267,13 @@
     "retry": "Try again",
     "home": "Back to home",
     "code": "Error code: {digest}"
+  },
+  "craftsman": {
+    "title": "{name} | Local Craftsmen",
+    "baseArea": "Based in",
+    "rate": "Hourly rate",
+    "rateValue": "{rate} / hour",
+    "about": "About",
+    "noBio": "No description yet."
   }
 }

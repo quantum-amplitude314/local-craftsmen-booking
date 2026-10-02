@@ -267,5 +267,13 @@
     "retry": "Zkusit znovu",
     "home": "Zpět na úvod",
     "code": "Kód chyby: {digest}"
+  },
+  "craftsman": {
+    "title": "{name} | Local Craftsmen",
+    "baseArea": "Působí v",
+    "rate": "Hodinová sazba",
+    "rateValue": "{rate} / hod.",
+    "about": "Popis",
+    "noBio": "Zatím bez popisu."
   }
 }

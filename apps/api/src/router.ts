@@ -117,7 +117,7 @@ export const router = os.router({
   },
   craftsmen: {
     find: os.craftsmen.find.handler(async ({ context, input }) => {
-      const craftsman = await context.craftsmen.find(input);
+      const craftsman = await context.craftsmen.getProfile(input);
       if (!craftsman) throw new ORPCError("NOT_FOUND");
 
       return craftsman;

@@ -63,9 +63,7 @@ export {
 export { idSchema, type TimeRange, timeRangeSchema, userIdSchema } from "./common.ts";
 export { CRAFTS, type Craft, craftSchema } from "./crafts.ts";
 export {
-  type CraftsmanDetail,
   type CraftsmanProfile,
-  craftsmanDetailSchema,
   craftsmanProfileSchema,
   type ProfileInput,
   profileInputSchema,

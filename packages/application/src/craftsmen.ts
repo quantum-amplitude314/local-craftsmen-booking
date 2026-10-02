@@ -3,7 +3,6 @@ import { availability, craftsmanProfile, craftsmanRate, type Db, user } from "@l
 import { and, eq, sql } from "drizzle-orm";
 import { DomainError } from "./errors.ts";
 import { readRates } from "./rates.ts";
-import { createSlotsService } from "./slots.ts";
 
 const profileColumns = {
   id: craftsmanProfile.userId,
@@ -108,21 +107,7 @@ export const createCraftsmenService = ({ db }: { db: Db }) => {
     return profile;
   };
 
-  const find = async ({ id }: { id: string }) => {
-    const profile = await getProfile({ id });
-    if (!profile) return null;
-
-    const slots = await createSlotsService({ db }).list({ craftsmanId: id });
-
-    const detail = {
-      ...profile,
-      availability: slots,
-    };
-
-    return detail;
-  };
-
-  const service = { find, getProfile, saveProfile };
+  const service = { getProfile, saveProfile };
 
   return service;
 };

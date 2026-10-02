@@ -44,15 +44,7 @@ type SlotRow = {
   range: { start: Date; end: Date };
 };
 
-export const slotPredicate = ({
-  db,
-  input,
-  craftsmanId,
-}: {
-  db: Db;
-  input: SlotSearch;
-  craftsmanId?: string;
-}) => {
+const slotPredicate = ({ db, input }: { db: Db; input: SlotSearch }) => {
   const { cityId, districtId, date, start, end, craft } = input;
   const predicate = and(
     // Still bookable: the shortest booking that ends with the work would start after now.
@@ -79,7 +71,6 @@ export const slotPredicate = ({
             .where(and(eq(district.id, districtId), eq(district.cityId, cityId))),
         )
       : undefined,
-    craftsmanId ? eq(availability.craftsmanId, craftsmanId) : undefined,
     craft
       ? exists(
           db
@@ -151,24 +142,6 @@ export const createSlotsService = ({ db }: { db: Db }) => {
     };
 
     return slot;
-  };
-
-  const list = async ({
-    input = {},
-    craftsmanId,
-  }: {
-    input?: SlotSearch;
-    craftsmanId?: string;
-  }) => {
-    const rows = await db
-      .select()
-      .from(availability)
-      .where(slotPredicate({ db, input, ...(craftsmanId ? { craftsmanId } : {}) }))
-      .orderBy(availability.range);
-    const areasBySlot = await readAreas({ ids: rows.map(({ id }) => id) });
-    const slots = rows.map((row) => toSlot({ row, areasBySlot }));
-
-    return slots;
   };
 
   const search = async ({ input }: { input: SlotSearch }) => {
@@ -367,7 +340,7 @@ export const createSlotsService = ({ db }: { db: Db }) => {
 
     return deleted;
   };
-  const service = { list, search, day, create, remove };
+  const service = { search, day, create, remove };
 
   return service;
 };

@@ -4,7 +4,6 @@ import { areaSchema } from "./cities.ts";
 import { userIdSchema } from "./common.ts";
 import { craftSchema } from "./crafts.ts";
 import { craftsmanRateSchema, profileRatesInputSchema } from "./rates.ts";
-import { slotSchema } from "./slots.ts";
 
 export const craftsmanProfileSchema = z.object({
   id: userIdSchema,
@@ -40,15 +39,10 @@ export const ownProfileContract = {
     .output(craftsmanProfileSchema),
 };
 
-export const craftsmanDetailSchema = craftsmanProfileSchema.extend({
-  availability: z.array(slotSchema),
-});
-export type CraftsmanDetail = z.infer<typeof craftsmanDetailSchema>;
-
 export const craftsmenContract = {
   find: oc
     .route({ method: "GET", path: "/craftsmen/{id}", summary: "Craftsman profile" })
     .input(z.object({ id: userIdSchema }))
     .errors({ NOT_FOUND: { message: "Craftsman not found" } })
-    .output(craftsmanDetailSchema),
+    .output(craftsmanProfileSchema),
 };

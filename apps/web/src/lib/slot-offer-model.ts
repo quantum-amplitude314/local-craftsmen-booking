@@ -37,6 +37,7 @@ export type OfferBookingModel = {
 export type OfferCardModel = {
   id: string;
   timeLabel: string;
+  craftsmanId: string;
   craftsmanName: string;
   /** Craft and city are the filters' choice, so the card names only the place and the rate. */
   detailLabel: string;
@@ -185,6 +186,7 @@ export const prepareSlotOffer = ({
     const card: OfferCardModel = {
       id,
       timeLabel: `${startLabel} – ${endLabel}`,
+      craftsmanId: craftsman.id,
       craftsmanName: craftsman.name,
       detailLabel: `${placeLabel} · ${rateText(format.format(hourlyRate))}`,
       booking: {
