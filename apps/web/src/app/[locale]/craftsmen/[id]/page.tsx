@@ -2,8 +2,8 @@ import { ORPCError } from "@orpc/client";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
-import { cache } from "react";
-import { CraftsmanProfile } from "@/components/craftsman-profile";
+import { cache, Suspense } from "react";
+import { CraftsmanProfile, CraftsmanProfileSkeleton } from "@/components/craftsman-profile";
 import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { redirect } from "@/i18n/navigation";
 import { apiClient } from "@/lib/api";
@@ -37,8 +37,9 @@ export const generateMetadata = async ({
   return metadata;
 };
 
-export default async function CraftsmanPage({ params }: PageProps<"/[locale]/craftsmen/[id]">) {
-  const [{ id }, user, locale] = await Promise.all([params, getCurrentUser(), getLocale()]);
+/** Everything that waits for the API streams in here, behind the Card's skeleton. */
+async function CraftsmanProfileSection({ id }: { id: string }) {
+  const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
   if (!user) return redirect({ href: "/login", locale });
   const [craftsman, locations, t, craftName, cityName] = await Promise.all([
     findCraftsman(id),
@@ -55,10 +56,18 @@ export default async function CraftsmanPage({ params }: PageProps<"/[locale]/cra
     text: { craftName, cityName, rate: (rate) => t("rateValue", { rate }) },
   });
 
+  return <CraftsmanProfile profile={profile} />;
+}
+
+export default async function CraftsmanPage({ params }: PageProps<"/[locale]/craftsmen/[id]">) {
+  const { id } = await params;
+
   return (
     <main id="main-content" tabIndex={-1} className="page-shell flex flex-col gap-8 py-8 sm:py-10">
-      <PageBreadcrumbs current={{ name: profile.name }} />
-      <CraftsmanProfile profile={profile} />
+      <PageBreadcrumbs current="profile" />
+      <Suspense fallback={<CraftsmanProfileSkeleton />}>
+        <CraftsmanProfileSection id={id} />
+      </Suspense>
     </main>
   );
 }

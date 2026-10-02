@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 import { craftIcons } from "@/lib/craft-icons";
 import type { CraftsmanDetailModel } from "@/lib/craftsman-detail-model";
 
@@ -79,6 +80,36 @@ export function CraftsmanProfile({ profile }: { profile: CraftsmanDetailModel })
           </h2>
           <About bio={bio} />
         </section>
+      </CardContent>
+    </Card>
+  );
+}
+
+/** The Card's shape while the profile streams in. */
+export function CraftsmanProfileSkeleton() {
+  const t = useTranslations("shell");
+
+  return (
+    <Card className="max-w-2xl" aria-busy="true">
+      <p role="status" className="sr-only">
+        {t("loading")}
+      </p>
+      <CardHeader className="grid-cols-[auto_1fr] items-center gap-x-4">
+        <Skeleton className="row-span-2 size-16 rounded-full" />
+        <Skeleton className="h-7 w-56 max-w-full" />
+        <Skeleton className="h-5 w-28 rounded-4xl" />
+      </CardHeader>
+      <CardContent className="gap-4">
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          <Skeleton className="h-5 w-44" />
+          <Skeleton className="h-5 w-32" />
+        </div>
+        <Separator />
+        <div className="flex flex-col gap-2">
+          <Skeleton className="h-5 w-16" />
+          <Skeleton className="h-5 w-full" />
+          <Skeleton className="h-5 w-2/3" />
+        </div>
       </CardContent>
     </Card>
   );

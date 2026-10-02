@@ -11,14 +11,8 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Link } from "@/i18n/navigation";
 
-/** Pages named in the messages pass their key; a page named by its content passes the name. */
-export function PageBreadcrumbs({
-  current,
-}: {
-  current: "dashboard" | "profile" | { name: string };
-}) {
+export function PageBreadcrumbs({ current }: { current: "dashboard" | "profile" }) {
   const t = useTranslations("header");
-  const currentLabel = typeof current === "string" ? t(current) : current.name;
 
   return (
     <Breadcrumb aria-label={t("breadcrumb")}>
@@ -34,7 +28,7 @@ export function PageBreadcrumbs({
           <>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage className="wrap-anywhere">{currentLabel}</BreadcrumbPage>
+              <BreadcrumbPage>{t(current)}</BreadcrumbPage>
             </BreadcrumbItem>
           </>
         )}
