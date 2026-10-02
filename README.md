@@ -25,7 +25,7 @@ apps/api/bruno          Bruno collection
 | Database | PostgreSQL, Postgres.js, Drizzle ORM and drizzle-kit migrations |
 | Auth | Better Auth, email and password, database sessions, roles `customer` / `craftsman` |
 | Bot protection | Turnstile on sign-in and registration, verified by the API (Better Auth captcha plugin) |
-| Tests | Vitest (logic, Worker runtime), Bun test for API integration against real PostgreSQL |
+| Tests | Bun test (logic, schema, API integration against real PostgreSQL), Vitest for the Worker runtime |
 | Hosting | Two Cloudflare Workers: private API through Hyperdrive, web through OpenNext |
 
 ## Local setup

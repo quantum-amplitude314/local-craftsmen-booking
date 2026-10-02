@@ -132,7 +132,6 @@ export const craftsmanProfile = pgTable(
       .references(() => city.id),
     baseDistrictId: text("base_district_id"),
     bio: text("bio"),
-    timezone: text("timezone").notNull().default("UTC"),
     ...timestamps,
   },
   (table) => [

@@ -1,0 +1,1 @@
+ALTER TABLE "craftsman_profile" DROP COLUMN "timezone";
