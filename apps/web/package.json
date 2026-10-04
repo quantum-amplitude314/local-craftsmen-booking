@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "preview": "bun --env-file=.env.preview run opennextjs-cloudflare build --env preview && opennextjs-cloudflare preview --env preview",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
     "typecheck": "bun run cf-typegen && next typegen && tsc --noEmit",

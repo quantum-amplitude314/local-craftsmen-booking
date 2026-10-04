@@ -11,16 +11,44 @@
     "BETTER_AUTH_URL": "https://craftsmen.quantum-amplitude.tech",
     "WEB_ORIGIN": "https://craftsmen.quantum-amplitude.tech"
   },
-  // Local: .env.local. Production: `wrangler secret put <NAME>` for each.
   "secrets": { "required": ["BETTER_AUTH_SECRET", "TURNSTILE_SECRET_KEY"] },
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
       // Replace this placeholder with the production Hyperdrive configuration ID before deploy.
-      "id": "00000000000000000000000000000000",
-      "localConnectionString": "postgres://postgres:postgres@localhost:5432/craftsmen"
+      "id": "00000000000000000000000000000000"
     }
   ],
+  "env": {
+    "preview": {
+      "vars": {
+        "BETTER_AUTH_URL": "http://localhost:3001",
+        "WEB_ORIGIN": "http://localhost:3000"
+      },
+      "secrets": { "required": ["BETTER_AUTH_SECRET", "TURNSTILE_SECRET_KEY"] },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "00000000000000000000000000000000",
+          "localConnectionString": "postgres://user:password@preview-host/database"
+        }
+      ]
+    },
+    "test": {
+      "vars": {
+        "BETTER_AUTH_URL": "http://localhost:3001",
+        "WEB_ORIGIN": "http://localhost:3000"
+      },
+      "secrets": { "required": ["BETTER_AUTH_SECRET", "TURNSTILE_SECRET_KEY"] },
+      "hyperdrive": [
+        {
+          "binding": "HYPERDRIVE",
+          "id": "00000000000000000000000000000000",
+          "localConnectionString": "postgres://postgres:postgres@localhost:5432/craftsmen_test"
+        }
+      ]
+    }
+  },
   "observability": {
     "enabled": true,
     "logs": { "enabled": true, "head_sampling_rate": 1 },

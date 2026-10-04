@@ -12,10 +12,14 @@
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "bun --env-file=.env.test test",
-    "db:generate": "bun --env-file=.env.local drizzle-kit generate",
-    "db:migrate": "bun --env-file=.env.local drizzle-kit migrate",
-    "db:seed:reference": "bun --env-file=.env.local src/seed-reference.ts",
-    "db:clear": "bun --env-file=.env.local src/clear.ts"
+    "db:generate": "bun --env-file=.env.development drizzle-kit generate",
+    "db:migrate": "bun --env-file=.env.development drizzle-kit migrate",
+    "db:migrate:preview": "bun --env-file=.env.preview drizzle-kit migrate",
+    "db:migrate:production": "bun --env-file=.env.production drizzle-kit migrate",
+    "db:seed:reference": "bun --env-file=.env.development src/seed-reference.ts",
+    "db:seed:reference:preview": "bun --env-file=.env.preview src/seed-reference.ts",
+    "db:seed:reference:production": "bun --env-file=.env.production src/seed-reference.ts",
+    "db:clear": "bun --env-file=.env.development src/clear.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",

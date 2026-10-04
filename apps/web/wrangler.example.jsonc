@@ -6,9 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "routes": [{ "pattern": "craftsmen.quantum-amplitude.tech", "custom_domain": true }],
   "workers_dev": false,
-  // Production runtime values; `.dev.vars` overrides them locally. Validated by src/lib/env.ts.
   "vars": {
-    // "on": reach the API through the `API` service binding below. "off" (local only): HTTP to API_URL.
     "WRANGLER_BINDING": "on",
     "WEB_ORIGIN": "https://craftsmen.quantum-amplitude.tech"
   },
@@ -17,14 +15,33 @@
     "binding": "ASSETS"
   },
   "services": [
-    {
-      "binding": "API",
-      "service": "local-craftsmen-api"
-    },
-    {
-      "binding": "WORKER_SELF_REFERENCE",
-      "service": "local-craftsmen-web"
-    }
+    { "binding": "API", "service": "local-craftsmen-api" },
+    { "binding": "WORKER_SELF_REFERENCE", "service": "local-craftsmen-web" }
   ],
+  "env": {
+    "development": {
+      "routes": [],
+      "vars": {
+        "WRANGLER_BINDING": "off",
+        "API_URL": "http://localhost:3001",
+        "WEB_ORIGIN": "http://localhost:3000"
+      },
+      "services": [
+        { "binding": "API", "service": "local-craftsmen-api" },
+        { "binding": "WORKER_SELF_REFERENCE", "service": "local-craftsmen-web-development" }
+      ]
+    },
+    "preview": {
+      "routes": [],
+      "vars": {
+        "WRANGLER_BINDING": "on",
+        "WEB_ORIGIN": "http://localhost:3000"
+      },
+      "services": [
+        { "binding": "API", "service": "local-craftsmen-api-preview" },
+        { "binding": "WORKER_SELF_REFERENCE", "service": "local-craftsmen-web-preview" }
+      ]
+    }
+  },
   "observability": { "enabled": true }
 }

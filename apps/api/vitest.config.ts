@@ -5,7 +5,7 @@ export default defineConfig({
   test: { include: ["test/worker.test.ts"] },
   plugins: [
     cloudflareTest({
-      wrangler: { configPath: "./wrangler.jsonc" },
+      wrangler: { configPath: "./wrangler.jsonc", environment: "test" },
     }),
   ],
 });

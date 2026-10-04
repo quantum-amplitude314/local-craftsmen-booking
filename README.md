@@ -48,6 +48,15 @@ bun run test       # database, API integration and Worker runtime tests; needs P
 bun run build      # web build and Worker dry run
 ```
 
+## Running on Node
+
+The project uses the latest Bun because it is in my experience a bit faster and simpler, but
+running on Node is possible as well with a few small changes:
+
+- Web app and db package: should run as they are.
+- API: the local entry `src/bun.ts` uses the simpler `Bun.serve`. Node would need `@hono/node-server`.
+- Tests: would need a port to `node:test` and `node:assert`.
+
 ## Deployment
 
 ```text

@@ -17,7 +17,11 @@
     "db:up": "podman compose up -d",
     "db:down": "podman compose down",
     "db:migrate": "bun run --cwd packages/db db:migrate",
+    "db:migrate:preview": "bun run --cwd packages/db db:migrate:preview",
+    "db:migrate:production": "bun run --cwd packages/db db:migrate:production",
     "db:seed:reference": "bun run --cwd packages/db db:seed:reference",
+    "db:seed:reference:preview": "bun run --cwd packages/db db:seed:reference:preview",
+    "db:seed:reference:production": "bun run --cwd packages/db db:seed:reference:production",
     "db:clear": "bun run --cwd packages/db db:clear"
   },
   "devDependencies": {

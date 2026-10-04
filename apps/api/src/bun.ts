@@ -20,7 +20,7 @@ type LocalRuntime = typeof globalThis & {
 
 const {
   DATABASE_URL: databaseUrl,
-  PORT: port,
+  API_URL: apiUrl,
   BETTER_AUTH_SECRET,
   BETTER_AUTH_URL,
   WEB_ORIGIN,
@@ -50,7 +50,8 @@ const app = createApp<Record<string, never>>({
   },
 });
 
-const server = Bun.serve({ port, fetch: app.fetch });
+const { hostname, port } = new URL(apiUrl);
+const server = Bun.serve({ hostname, port: Number(port), fetch: app.fetch });
 runtime.localCraftsmenServer = server;
 
 if (runtime.localCraftsmenShutdownHandler) {

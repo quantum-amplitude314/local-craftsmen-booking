@@ -4,13 +4,13 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun --hot --env-file=.env.local --env-file=../../packages/db/.env.local src/bun.ts",
-    "dev:preview": "wrangler dev --env-file .env.local --port 3001",
+    "dev": "bun --hot --env-file=.env.development --env-file=../../packages/db/.env.development src/bun.ts",
+    "dev:preview": "wrangler dev --env preview --env-file .env.preview --port 3001",
     "build": "wrangler deploy --dry-run --outdir dist",
-    "deploy": "wrangler deploy",
-    "cf-typegen": "wrangler types --env-file .env.example",
+    "deploy": "wrangler deploy --secrets-file .env.production",
+    "cf-typegen": "wrangler types",
     "typecheck": "bun run cf-typegen && tsc --noEmit",
-    "test": "vitest run && bun run test:auth",
+    "test": "bun --env-file=.env.test run vitest run && bun run test:auth",
     "test:auth": "bun --env-file=.env.test --env-file=../../packages/db/.env.test test test/auth.integration.test.ts"
   },
   "dependencies": {
