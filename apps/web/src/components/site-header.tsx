@@ -39,7 +39,7 @@ async function AccountNavigation() {
   );
 }
 
-/** Copy of src/app/icon.svg; the --brand-mark-* tokens colour it for the current palette. */
+/** Copy of public/icon.svg; the --brand-mark-* tokens colour it for the current palette. */
 function BrandMark() {
   return (
     <svg viewBox="0 0 64 64" aria-hidden="true" className="size-8 shrink-0">

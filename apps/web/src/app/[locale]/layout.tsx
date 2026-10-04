@@ -38,6 +38,14 @@ export const generateMetadata = async (): Promise<Metadata> => {
     metadataBase: new URL(webOrigin),
     title,
     description,
+    // Files in public/ are static assets, served without running the Worker.
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/icon.svg", type: "image/svg+xml", sizes: "any" },
+      ],
+      apple: { url: "/apple-icon.png", type: "image/png", sizes: "180x180" },
+    },
     openGraph: {
       type: "website",
       siteName: t("shell.brand"),

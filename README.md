@@ -64,4 +64,4 @@ browser → web Worker (Next.js, OpenNext) ─service binding →
 API Worker (Hono) ─Hyperdrive → Neon PostgreSQL
 ```
 
-- Deploy the API first; the web's service binding needs it. Both can run locally as Workers in wrangler preview (`dev:preview`, `preview`) against a Neon preview branch
+- Deploy the API first; the web's service binding needs it. Both can run locally as Workers in wrangler preview (`bun run preview` starts both) against a Neon preview branch

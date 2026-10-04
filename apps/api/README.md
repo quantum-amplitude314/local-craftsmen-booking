@@ -6,9 +6,9 @@ from the repo root.
 | Setup | Vars and bindings | Secrets | Database |
 |---|---|---|---|
 | `dev` (Bun) | `.env.development` | `.env.development` | `packages/db/.env.development` |
-| `dev:preview` | `wrangler.jsonc` `env.preview` | `.env.preview` | `env.preview` Hyperdrive `localConnectionString` |
+| `preview` | `wrangler.jsonc` `env.preview` | `.env.preview` | `env.preview` Hyperdrive `localConnectionString` |
 | `test` (Worker tests) | `wrangler.jsonc` `env.test` | `.env.test` | `env.test` Hyperdrive `localConnectionString` |
-| `deploy` | `wrangler.jsonc` top level | `.env.production`, uploaded | Hyperdrive `id` |
+| `deploy` | `wrangler.jsonc` top level | stored on the Worker (`wrangler secret put`) | Hyperdrive `id` |
 
 ## First setup
 
@@ -16,9 +16,11 @@ from the repo root.
 cp apps/api/wrangler.example.jsonc apps/api/wrangler.jsonc
 ```
 
-Then create `.env.preview` and `.env.production` with the secrets, `packages/db/.env.preview` and
-`.env.production` with the database URLs, and set the preview `localConnectionString` and the
-production Hyperdrive `id` in `wrangler.jsonc`.
+Then create `.env.preview` with the secrets (`BETTER_AUTH_SECRET`, `TURNSTILE_SECRET_KEY`,
+`RESEND_API_KEY`) and set each on the production Worker with `wrangler secret put <NAME>` from
+`apps/api`. Set the preview `localConnectionString`, the production Hyperdrive `id` and the contact
+addresses (`CONTACT_SENDER_EMAIL`, `CONTACT_RECIPIENT_EMAIL`) in `wrangler.jsonc`. Database setup
+and migrations: `packages/db/README.md`.
 
 ## Local dev
 
@@ -32,7 +34,7 @@ bun run --cwd apps/api dev                        # http://localhost:3001
 
 ```zsh
 bun run db:migrate:preview                        # when the schema changed
-bun run --cwd apps/api dev:preview                # http://localhost:3001
+bun run --cwd apps/api preview                    # http://localhost:3001
 ```
 
 ## Deploy
