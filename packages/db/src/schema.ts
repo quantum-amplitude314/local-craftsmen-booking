@@ -27,12 +27,6 @@ export const craftEnum = pgEnum("craft", [
   "it",
   "wellness",
 ]);
-export const bookingStatusEnum = pgEnum("booking_status", [
-  "pending",
-  "confirmed",
-  "cancelled",
-  "completed",
-]);
 
 const timestamps = {
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
@@ -209,6 +203,7 @@ export const availabilityArea = pgTable(
   ],
 );
 
+/** Open jobs. Booking is the customer's confirmation; both parties mark the job done after it ended. */
 export const booking = pgTable(
   "booking",
   {
@@ -221,14 +216,18 @@ export const booking = pgTable(
       .references(() => craftsmanProfile.userId),
     craft: craftEnum("craft").notNull(),
     range: tstzrange("range").notNull(),
-    status: bookingStatusEnum("status").notNull().default("pending"),
     cityId: text("city_id")
       .notNull()
       .references(() => city.id),
     districtId: text("district_id"),
     currency: text("currency").notNull(),
     hourlyRate: numeric("hourly_rate", { precision: 12, scale: 2 }).notNull(),
-    ...timestamps,
+    bookedAt: timestamp("booked_at", { withTimezone: true }).notNull().defaultNow(),
+    craftsmanConfirmedAt: timestamp("craftsman_confirmed_at", { withTimezone: true }),
+    customerDoneAt: timestamp("customer_done_at", { withTimezone: true }),
+    craftsmanDoneAt: timestamp("craftsman_done_at", { withTimezone: true }),
+    customerReview: text("customer_review"),
+    craftsmanReview: text("craftsman_review"),
   },
   (table) => [
     foreignKey({
@@ -244,17 +243,91 @@ export const booking = pgTable(
       "booking_rate_positive",
       sql`${table.hourlyRate} > 0 and ${table.hourlyRate} <> 'NaN'::numeric`,
     ),
+    check(
+      "booking_done_after_confirmed",
+      sql`(${table.customerDoneAt} is null and ${table.craftsmanDoneAt} is null) or ${table.craftsmanConfirmedAt} is not null`,
+    ),
+    check(
+      "booking_done_after_end",
+      sql`(${table.customerDoneAt} is null or ${table.customerDoneAt} >= upper(${table.range})) and (${table.craftsmanDoneAt} is null or ${table.craftsmanDoneAt} >= upper(${table.range}))`,
+    ),
+    check(
+      "booking_review_with_done",
+      sql`(${table.customerReview} is null or ${table.customerDoneAt} is not null) and (${table.craftsmanReview} is null or ${table.craftsmanDoneAt} is not null)`,
+    ),
     index("booking_customer_idx").on(table.customerId),
-    index("booking_craftsman_idx").on(table.craftsmanId),
-    index("booking_active_idx")
-      .on(table.craftsmanId)
-      .where(sql`${table.status} in ('pending', 'confirmed')`),
   ],
 );
 
-// Intentionally no foreign keys: historical snapshots survive operational record deletion.
+export const completedBooking = pgTable("completed_booking", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  completedAt: timestamp("completed_at", { withTimezone: true }).notNull().defaultNow(),
+  customerReview: text("customer_review"),
+  craftsmanReview: text("craftsman_review"),
+});
+
+export const cancelledBooking = pgTable("cancelled_booking", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  cancelledAt: timestamp("cancelled_at", { withTimezone: true }).notNull().defaultNow(),
+  cancelledById: text("cancelled_by_id").notNull(),
+  cancelledByName: text("cancelled_by_name").notNull(),
+  reason: text("reason"),
+});
+
+/**
+ * Closed jobs, denormalized: no foreign keys to users, so they outlive deleted accounts. Each links
+ * to exactly one outcome.
+ */
 export const bookingHistory = pgTable(
   "booking_history",
+  {
+    id: uuid("id").primaryKey(),
+    customerId: text("customer_id").notNull(),
+    customerName: text("customer_name").notNull(),
+    craftsmanId: text("craftsman_id").notNull(),
+    craftsmanName: text("craftsman_name").notNull(),
+    craft: craftEnum("craft").notNull(),
+    range: tstzrange("range").notNull(),
+    cityId: text("city_id")
+      .notNull()
+      .references(() => city.id),
+    districtId: text("district_id"),
+    currency: text("currency").notNull(),
+    hourlyRate: numeric("hourly_rate", { precision: 12, scale: 2 }).notNull(),
+    bookedAt: timestamp("booked_at", { withTimezone: true }).notNull(),
+    completedBookingId: uuid("completed_booking_id")
+      .unique()
+      .references(() => completedBooking.id),
+    cancelledBookingId: uuid("cancelled_booking_id")
+      .unique()
+      .references(() => cancelledBooking.id),
+  },
+  (table) => [
+    foreignKey({
+      name: "booking_history_district_city_fk",
+      columns: [table.districtId, table.cityId],
+      foreignColumns: [district.id, district.cityId],
+    }),
+    check(
+      "booking_history_valid_range",
+      sql`not isempty(${table.range}) and not lower_inf(${table.range}) and not upper_inf(${table.range}) and isfinite(lower(${table.range})) and isfinite(upper(${table.range})) and lower_inc(${table.range}) and not upper_inc(${table.range})`,
+    ),
+    check(
+      "booking_history_rate_positive",
+      sql`${table.hourlyRate} > 0 and ${table.hourlyRate} <> 'NaN'::numeric`,
+    ),
+    check(
+      "booking_history_one_outcome",
+      sql`num_nonnulls(${table.completedBookingId}, ${table.cancelledBookingId}) = 1`,
+    ),
+    index("booking_history_customer_idx").on(table.customerId, sql`lower(${table.range})`),
+    index("booking_history_craftsman_idx").on(table.craftsmanId, sql`lower(${table.range})`),
+  ],
+);
+
+// Audit log for manual inspection. No foreign keys: entries outlive deleted records.
+export const bookingLog = pgTable(
+  "booking_log",
   {
     id: uuid("id").primaryKey().defaultRandom(),
     bookingId: uuid("booking_id").notNull(),
@@ -263,5 +336,5 @@ export const bookingHistory = pgTable(
     snapshot: jsonb("snapshot").$type<Record<string, unknown>>().notNull(),
     recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [index("booking_history_booking_idx").on(table.bookingId, table.recordedAt)],
+  (table) => [index("booking_log_booking_idx").on(table.bookingId, table.recordedAt)],
 );
