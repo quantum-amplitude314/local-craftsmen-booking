@@ -1,14 +1,8 @@
-import type {
-  Booking,
-  BookingTransition,
-  CityId,
-  Currency,
-  OwnBooking,
-} from "@local-craftsmen/contracts";
+import type { BookingAction, CityId, Currency, OwnBooking } from "@local-craftsmen/contracts";
 import { prepareScheduleCalendar, type ScheduleCalendarModel } from "@/lib/schedule-calendar-model";
 
 export type BookingActionModel = {
-  transition: BookingTransition;
+  action: BookingAction;
   label: string;
   pendingLabel: string;
 };
@@ -21,7 +15,7 @@ export type BookingCardModel = {
   placeLabel: string;
   priceLabel: string;
   statusLabel: string;
-  statusVariant: "default" | "secondary" | "outline";
+  statusVariant: "default" | "outline";
   cancellable: boolean;
   /** The steps forward; cancelling is offered apart, behind a confirmation. */
   actions: BookingActionModel[];
@@ -38,19 +32,23 @@ export type BookingCalendarModel = {
 
 export type BookingCalendarText = {
   cityName: (id: CityId) => string;
-  status: (status: Booking["status"]) => string;
-  action: (transition: BookingTransition) => string;
-  actionPending: (transition: BookingTransition) => string;
+  status: (status: BookingStatus) => string;
+  action: (action: BookingAction) => string;
+  actionPending: (action: BookingAction) => string;
   price: (parts: { hours: string; rate: string; total: string }) => string;
   empty: string;
 };
 
-const statusVariants: Record<Booking["status"], BookingCardModel["statusVariant"]> = {
+/** An open job is pending until the craftsman confirms it. */
+type BookingStatus = "pending" | "confirmed";
+
+const statusVariants: Record<BookingStatus, BookingCardModel["statusVariant"]> = {
   pending: "outline",
   confirmed: "default",
-  completed: "secondary",
-  cancelled: "secondary",
 };
+
+const statusOf = ({ craftsmanConfirmedAt }: Pick<OwnBooking, "craftsmanConfirmedAt">) =>
+  craftsmanConfirmedAt ? "confirmed" : "pending";
 
 /** The calendar date a moment falls on for whoever is reading the grid. */
 export const dayReader = (timeZone: string) => {
@@ -95,13 +93,13 @@ export const prepareBookingCalendar = ({
 }) => {
   const { cityName, status: statusLabel, action, actionPending, price } = text;
   // The API says what the reader may do with each job; cancelling is offered apart.
-  const stepsForward = (actions: BookingTransition[]) => {
+  const stepsForward = (actions: BookingAction[]) => {
     const steps: BookingActionModel[] = actions
-      .filter((transition) => transition !== "cancel")
-      .map((transition) => ({
-        transition,
-        label: action(transition),
-        pendingLabel: actionPending(transition),
+      .filter((step) => step !== "cancel")
+      .map((step) => ({
+        action: step,
+        label: action(step),
+        pendingLabel: actionPending(step),
       }));
 
     return steps;
@@ -155,16 +153,22 @@ export const prepareBookingCalendar = ({
 
     return label;
   };
+  const daysOf = (jobs: OwnBooking[]) => [
+    ...new Set(jobs.map(({ start }) => dayOf(new Date(start)))),
+  ];
+  const pendingDates = daysOf(bookings.filter((booking) => statusOf(booking) === "pending"));
   const onSelectedDay = bookings.filter(({ start }) => dayOf(new Date(start)) === day);
   const model: BookingCalendarModel = {
     calendar: prepareScheduleCalendar({
       date: day,
       today,
-      markedDates: [...new Set(bookings.map(({ start }) => dayOf(new Date(start))))],
+      markedDates: daysOf(bookings).filter((date) => !pendingDates.includes(date)),
+      emphasizedDates: pendingDates,
     }),
     emptyMessage: onSelectedDay.length === 0 ? text.empty : null,
     cards: onSelectedDay.map((booking) => {
-      const { id, start, end, partyName, location, status, actions } = booking;
+      const { id, start, end, partyName, location, actions } = booking;
+      const status = statusOf(booking);
       const card: BookingCardModel = {
         id,
         timeLabel: formatJobHours({ start, end, format: formatTimeIn(location.timeZone) }),

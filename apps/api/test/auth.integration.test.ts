@@ -20,7 +20,10 @@ import {
   availabilityArea,
   booking,
   bookingHistory,
+  bookingLog,
+  cancelledBooking,
   city,
+  completedBooking,
   type Db,
 } from "@local-craftsmen/db";
 import { startTestDb } from "@local-craftsmen/db/test-db";
@@ -567,7 +570,7 @@ describe("location-aware slots and booking allocation", () => {
     ).toHaveLength(2);
   });
 
-  test("booking part of a slot deletes it completely and snapshots server-selected price and history", async () => {
+  test("booking part of a slot deletes it completely and logs the server-selected price", async () => {
     const slot = await createSlot();
     const start = new Date(new Date(slot.start).getTime() + 3_600_000).toISOString();
     const end = new Date(new Date(start).getTime() + 3_600_000).toISOString();
@@ -594,7 +597,7 @@ describe("location-aware slots and booking allocation", () => {
       hourlyRate: "10.00",
       start,
       end,
-      status: "pending",
+      craftsmanConfirmedAt: null,
       location: {
         cityId: "prague",
         cityName: "Praha",
@@ -617,12 +620,9 @@ describe("location-aware slots and booking allocation", () => {
       cookie: customerCookie,
     });
     expect(await remaining.json()).not.toContainEqual(expect.objectContaining({ craftsmanId }));
-    const history = await database
-      .select()
-      .from(bookingHistory)
-      .where(eq(bookingHistory.bookingId, booked.id));
-    expect(history).toHaveLength(1);
-    expect(history[0]?.snapshot).toMatchObject({
+    const log = await database.select().from(bookingLog).where(eq(bookingLog.bookingId, booked.id));
+    expect(log).toHaveLength(1);
+    expect(log[0]?.snapshot).toMatchObject({
       booking: booked,
       slot: {
         id: slot.id,
@@ -640,11 +640,11 @@ describe("location-aware slots and booking allocation", () => {
     expect(overlap.status).toBe(409);
     await database.delete(booking).where(eq(booking.id, booked.id));
     expect(
-      await database.select().from(bookingHistory).where(eq(bookingHistory.bookingId, booked.id)),
-    ).toEqual(history);
+      await database.select().from(bookingLog).where(eq(bookingLog.bookingId, booked.id)),
+    ).toEqual(log);
   });
 
-  test("lists either party's active jobs overlapping a window, in chronological order", async () => {
+  test("lists either party's open jobs overlapping a window, in chronological order", async () => {
     const book = async () => {
       const { id: slotId, start, end } = await createSlot();
       const response = await call({
@@ -666,23 +666,26 @@ describe("location-aware slots and booking allocation", () => {
     };
     const kept = await book();
     const cancelled = await book();
-    const completed = await book();
     const expired = await book();
     const ongoing = await book();
-    await database.update(booking).set({ status: "cancelled" }).where(eq(booking.id, cancelled.id));
-    await database.update(booking).set({ status: "completed" }).where(eq(booking.id, completed.id));
+    const cancelResponse = await call({
+      path: `/me/bookings/${cancelled.id}/cancel`,
+      method: "POST",
+      cookie: customerCookie,
+    });
+    expect(cancelResponse.status).toBe(200);
     const now = Date.now();
     await database
       .update(booking)
       .set({
-        status: "confirmed",
+        craftsmanConfirmedAt: new Date(now - 86_400_000),
         range: { start: new Date(now - 7_200_000), end: new Date(now - 3_600_000) },
       })
       .where(eq(booking.id, expired.id));
     await database
       .update(booking)
       .set({
-        status: "confirmed",
+        craftsmanConfirmedAt: new Date(now - 86_400_000),
         range: { start: new Date(now - 900_000), end: new Date(now + 3_600_000) },
       })
       .where(eq(booking.id, ongoing.id));
@@ -722,7 +725,6 @@ describe("location-aware slots and booking allocation", () => {
     expect(outsider.map(({ id }) => id)).not.toContain(kept.id);
     const ids = jobs.map(({ id }) => id);
     expect(ids).not.toContain(cancelled.id);
-    expect(ids).not.toContain(completed.id);
     // Both were moved to this week, so a January window must not reach them.
     expect(ids).not.toContain(ongoing.id);
     expect(ids).not.toContain(expired.id);
@@ -738,13 +740,13 @@ describe("location-aware slots and booking allocation", () => {
     const weekIds = week.map(({ id }) => id);
     expect(weekIds).toContain(ongoing.id);
     expect(weekIds).toContain(expired.id);
-    // Each job says what its reader may do now; work is reported done only once it has ended.
+    // Each job says what its reader may do now; either party marks work done once it has ended.
     const actionsOf = ({ jobs, id }: { jobs: typeof week; id: string }) =>
       jobs.find((job) => job.id === id)?.actions;
     expect(actionsOf({ jobs: week, id: ongoing.id })).toEqual(["cancel"]);
-    expect(actionsOf({ jobs: week, id: expired.id })).toEqual(["cancel", "complete"]);
+    expect(actionsOf({ jobs: week, id: expired.id })).toEqual(["cancel", "done"]);
     const customerWeek = await inWindow({ ...thisWeek, cookie: customerCookie });
-    expect(actionsOf({ jobs: customerWeek, id: expired.id })).toEqual(["cancel"]);
+    expect(actionsOf({ jobs: customerWeek, id: expired.id })).toEqual(["cancel", "done"]);
 
     expect(await inWindow({ ...january, cookie: otherCraftsmanCookie })).toEqual([]);
     const tooWide = await call({
@@ -754,7 +756,7 @@ describe("location-aware slots and booking allocation", () => {
     expect(tooWide.status).toBe(400);
   });
 
-  test("moves a job through its lifecycle, and only for the party entitled to ask", async () => {
+  test("takes a job through its actions, only for the party entitled to ask, and closes it", async () => {
     const book = async () => {
       const { id: slotId, start, end } = await createSlot();
       const response = await call({
@@ -774,68 +776,86 @@ describe("location-aware slots and booking allocation", () => {
 
       return booked;
     };
-    const ask = async ({
-      id,
-      transition,
-      cookie,
-    }: {
-      id: string;
-      transition: string;
-      cookie: string;
-    }) => await call({ path: `/me/bookings/${id}/${transition}`, method: "POST", cookie });
+    const ask = async ({ id, action, cookie }: { id: string; action: string; cookie: string }) =>
+      await call({ path: `/me/bookings/${id}/${action}`, method: "POST", cookie });
+    const logOf = async (id: string) => {
+      const entries = await database
+        .select()
+        .from(bookingLog)
+        .where(eq(bookingLog.bookingId, id))
+        .orderBy(bookingLog.recordedAt);
+
+      return entries;
+    };
 
     const job = await book();
-    expect(job.status).toBe("pending");
+    const { id } = job;
     // A job is only ever between its two parties, and confirming is the craftsman's word.
-    expect(
-      (await ask({ id: job.id, transition: "confirm", cookie: otherCustomerCookie })).status,
-    ).toBe(404);
-    expect((await ask({ id: job.id, transition: "confirm", cookie: customerCookie })).status).toBe(
-      409,
-    );
-    expect(
-      (await ask({ id: job.id, transition: "complete", cookie: craftsmanCookie })).status,
-    ).toBe(409);
+    expect((await ask({ id, action: "confirm", cookie: otherCustomerCookie })).status).toBe(404);
+    expect((await ask({ id, action: "confirm", cookie: customerCookie })).status).toBe(409);
+    expect((await ask({ id, action: "done", cookie: craftsmanCookie })).status).toBe(409);
 
-    const confirmed = await ask({ id: job.id, transition: "confirm", cookie: craftsmanCookie });
+    const confirmed = await ask({ id, action: "confirm", cookie: craftsmanCookie });
     expect(confirmed.status).toBe(200);
-    expect(bookingSchema.parse(await confirmed.json())).toMatchObject({
-      id: job.id,
-      status: "confirmed",
-      location: { cityName: "Praha", districtName: "Libeň", timeZone: "Europe/Prague" },
-    });
-    // The work still lies ahead, so there is nothing to call finished yet.
-    expect(
-      (await ask({ id: job.id, transition: "complete", cookie: craftsmanCookie })).status,
-    ).toBe(409);
+    expect<unknown>(await confirmed.json()).toEqual({ confirmed: true });
+    expect((await ask({ id, action: "confirm", cookie: craftsmanCookie })).status).toBe(409);
+    // The work still lies ahead, so there is nothing to call done yet.
+    expect((await ask({ id, action: "done", cookie: customerCookie })).status).toBe(409);
     const lastMonth = Date.now() - 30 * 86_400_000;
     await database
       .update(booking)
       .set({ range: { start: new Date(lastMonth), end: new Date(lastMonth + 3_600_000) } })
-      .where(eq(booking.id, job.id));
-    const completed = await ask({ id: job.id, transition: "complete", cookie: craftsmanCookie });
-    expect(completed.status).toBe(200);
-    expect(bookingSchema.parse(await completed.json()).status).toBe("completed");
-    expect((await ask({ id: job.id, transition: "cancel", cookie: customerCookie })).status).toBe(
-      409,
-    );
+      .where(eq(booking.id, id));
 
-    const dropped = await book();
-    const cancelled = await ask({ id: dropped.id, transition: "cancel", cookie: customerCookie });
-    expect(cancelled.status).toBe(200);
-    expect(bookingSchema.parse(await cancelled.json()).status).toBe("cancelled");
-    const history = await database
+    const firstMark = await ask({ id, action: "done", cookie: customerCookie });
+    expect(firstMark.status).toBe(200);
+    expect<unknown>(await firstMark.json()).toEqual({ completed: false });
+    expect((await ask({ id, action: "done", cookie: customerCookie })).status).toBe(409);
+    const secondMark = await ask({ id, action: "done", cookie: craftsmanCookie });
+    expect(secondMark.status).toBe(200);
+    expect<unknown>(await secondMark.json()).toEqual({ completed: true });
+    expect(await database.select().from(booking).where(eq(booking.id, id))).toHaveLength(0);
+    const [completedJob] = await database
       .select()
       .from(bookingHistory)
-      .where(eq(bookingHistory.bookingId, dropped.id))
-      .orderBy(bookingHistory.recordedAt);
-    expect(history.map(({ event }) => event)).toEqual(["created", "cancelled"]);
-    expect(history.at(-1)).toMatchObject({
-      actorId: customerId,
-      snapshot: { previousStatus: "pending", by: "customer" },
+      .innerJoin(completedBooking, eq(completedBooking.id, bookingHistory.completedBookingId))
+      .where(eq(bookingHistory.id, id));
+    expect(completedJob?.booking_history).toMatchObject({
+      customerId,
+      customerName: "Test customer",
+      craftsmanId,
+      craftsmanName: "Test craftsman",
+      cancelledBookingId: null,
     });
+    expect((await logOf(id)).map(({ event }) => event)).toEqual([
+      "created",
+      "confirmed",
+      "done",
+      "completed",
+    ]);
+    // A closed job is no longer open to any action.
+    expect((await ask({ id, action: "cancel", cookie: customerCookie })).status).toBe(404);
+
+    const dropped = await book();
+    const cancelled = await ask({ id: dropped.id, action: "cancel", cookie: customerCookie });
+    expect(cancelled.status).toBe(200);
+    expect<unknown>(await cancelled.json()).toEqual({ cancelled: true });
+    const [cancelledJob] = await database
+      .select()
+      .from(bookingHistory)
+      .innerJoin(cancelledBooking, eq(cancelledBooking.id, bookingHistory.cancelledBookingId))
+      .where(eq(bookingHistory.id, dropped.id));
+    expect(cancelledJob?.booking_history.completedBookingId).toBeNull();
+    expect(cancelledJob?.cancelled_booking).toMatchObject({
+      cancelledById: customerId,
+      cancelledByName: "Test customer",
+      reason: null,
+    });
+    const droppedLog = await logOf(dropped.id);
+    expect(droppedLog.map(({ event }) => event)).toEqual(["created", "cancelled"]);
+    expect(droppedLog.at(-1)).toMatchObject({ actorId: customerId, snapshot: { by: "customer" } });
     expect(
-      (await ask({ id: crypto.randomUUID(), transition: "cancel", cookie: customerCookie })).status,
+      (await ask({ id: crypto.randomUUID(), action: "cancel", cookie: customerCookie })).status,
     ).toBe(404);
   });
 

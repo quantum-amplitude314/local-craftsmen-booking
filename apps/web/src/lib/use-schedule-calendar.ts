@@ -22,7 +22,7 @@ export const useScheduleCalendar = ({
   onSelect,
 }: ScheduleCalendarProps) => {
   const locale = useLocale();
-  const { selected: confirmedDay, today, markedDays } = calendar;
+  const { selected: confirmedDay, today, markedDays, emphasizedDays } = calendar;
   const [selected, selectOptimistically] = useOptimistic(confirmedDay);
   const selectDay = useCallback(
     (day: Date) => {
@@ -38,7 +38,7 @@ export const useScheduleCalendar = ({
     today,
     defaultMonth: confirmedDay,
     disabled: daysToBlock({ allowPast, today }),
-    modifiers: { marked: markedDays },
+    modifiers: { marked: markedDays, emphasized: emphasizedDays },
     locale: locale === "cs" ? cs : enGB,
     onSelect: selectDay,
   };

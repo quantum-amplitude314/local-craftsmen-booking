@@ -158,17 +158,15 @@
       "price": "{hours} · {rate} / hour · {total} in total",
       "status": {
         "pending": "Pending",
-        "confirmed": "Accepted",
-        "completed": "Completed",
-        "cancelled": "Cancelled"
+        "confirmed": "Accepted"
       },
       "actions": {
         "confirm": "Accept",
         "confirmPending": "Accepting",
         "cancel": "Cancel",
         "cancelPending": "Cancelling",
-        "complete": "Mark done",
-        "completePending": "Marking"
+        "done": "Done",
+        "donePending": "Saving"
       },
       "errors": {
         "refused": "This job has moved on. Reload to see where it stands.",

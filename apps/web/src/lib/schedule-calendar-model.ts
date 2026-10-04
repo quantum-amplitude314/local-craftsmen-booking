@@ -3,6 +3,8 @@ export type ScheduleCalendarModel = {
   selected: Date;
   today: Date;
   markedDays: Date[];
+  /** Days marked in the primary colour; never also in `markedDays`. */
+  emphasizedDays: Date[];
 };
 
 const toCalendarDay = (date: string) => {
@@ -16,15 +18,18 @@ export const prepareScheduleCalendar = ({
   date,
   today,
   markedDates,
+  emphasizedDates = [],
 }: {
   date: string;
   today: string;
   markedDates: string[];
+  emphasizedDates?: string[];
 }) => {
   const calendar: ScheduleCalendarModel = {
     selected: toCalendarDay(date),
     today: toCalendarDay(today),
     markedDays: markedDates.map(toCalendarDay),
+    emphasizedDays: emphasizedDates.map(toCalendarDay),
   };
 
   return calendar;

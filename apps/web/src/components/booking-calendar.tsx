@@ -1,6 +1,6 @@
 "use client";
 
-import type { BookingTransition, OwnBooking } from "@local-craftsmen/contracts";
+import type { BookingAction, OwnBooking } from "@local-craftsmen/contracts";
 import { useLocale, useTranslations } from "next-intl";
 import { useState } from "react";
 import { advanceBooking, type BookingActionState } from "@/app/booking-actions";
@@ -48,7 +48,7 @@ function BookingCard({
   actions,
 }: BookingCardModel) {
   const t = useTranslations("dashboard.bookings");
-  const [asked, setAsked] = useState<BookingTransition | null>(null);
+  const [asked, setAsked] = useState<BookingAction | null>(null);
   const [confirmingCancel, setConfirmingCancel] = useState(false);
   const { state, pending, run } = useMutation({
     action: advanceBooking,
@@ -58,9 +58,9 @@ function BookingCard({
     onResult: () => setConfirmingCancel(false),
   });
   const { error } = state;
-  const ask = (transition: BookingTransition) => {
-    setAsked(transition);
-    run({ id, transition });
+  const ask = (action: BookingAction) => {
+    setAsked(action);
+    run({ id, action });
   };
 
   return (
@@ -88,15 +88,15 @@ function BookingCard({
                 {t("cancelDialog.open")}
               </Button>
             )}
-            {actions.map(({ transition, label, pendingLabel }) => (
+            {actions.map(({ action, label, pendingLabel }) => (
               <PendingButton
-                key={transition}
+                key={action}
                 size="sm"
-                pending={pending && asked === transition}
+                pending={pending && asked === action}
                 disabled={pending}
                 label={label}
                 pendingLabel={pendingLabel}
-                onClick={() => ask(transition)}
+                onClick={() => ask(action)}
               />
             ))}
           </ItemActions>
@@ -155,8 +155,8 @@ export function BookingCalendar({
     text: {
       cityName,
       status: (status) => t(`status.${status}`),
-      action: (transition) => t(`actions.${transition}`),
-      actionPending: (transition) => t(`actions.${transition}Pending`),
+      action: (action) => t(`actions.${action}`),
+      actionPending: (action) => t(`actions.${action}Pending`),
       price: (parts) => t("price", parts),
       empty: t("noBookings"),
     },

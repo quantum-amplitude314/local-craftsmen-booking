@@ -1,10 +1,6 @@
 "use server";
 
-import {
-  type BookingTransition,
-  bookingTransitionSchema,
-  idSchema,
-} from "@local-craftsmen/contracts";
+import { type BookingAction, bookingActionSchema, idSchema } from "@local-craftsmen/contracts";
 import { ORPCError } from "@orpc/client";
 import { apiClient } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
@@ -16,11 +12,11 @@ const bookedPaths = ["/dashboard"];
 
 export const advanceBooking = async (input: {
   id: string;
-  transition: BookingTransition;
+  action: BookingAction;
 }): Promise<BookingActionState> => {
   const id = idSchema.safeParse(input?.id);
-  const transition = bookingTransitionSchema.safeParse(input?.transition);
-  if (!id.success || !transition.success) {
+  const action = bookingActionSchema.safeParse(input?.action);
+  if (!id.success || !action.success) {
     const invalid: BookingActionState = { error: "advanceFailed" };
 
     return invalid;
@@ -32,7 +28,7 @@ export const advanceBooking = async (input: {
   }
 
   try {
-    await apiClient.me.bookings.advance({ id: id.data, transition: transition.data });
+    await apiClient.me.bookings[action.data]({ id: id.data });
   } catch (error) {
     // Someone else moved the job on first; the refreshed page will show where it stands now.
     const refused = error instanceof ORPCError && ["CONFLICT", "NOT_FOUND"].includes(error.code);

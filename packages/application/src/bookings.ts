@@ -1,9 +1,8 @@
 import {
+  type BookingAction,
   type BookingInput,
-  type BookingStatus,
-  type BookingTransition,
+  bookingActionSchema,
   bookingSchema,
-  bookingTransitionSchema,
   type JobLocation,
   type OwnBooking,
   type SessionUser,
@@ -13,7 +12,10 @@ import {
   availabilityArea,
   booking,
   bookingHistory,
+  bookingLog,
+  cancelledBooking,
   city,
+  completedBooking,
   craftsmanProfile,
   craftsmanRate,
   type Db,
@@ -21,8 +23,9 @@ import {
   user,
 } from "@local-craftsmen/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 import { DomainError } from "./errors.ts";
-import { activeBookingStatuses, toWorkEnd } from "./slots.ts";
+import { toWorkEnd } from "./slots.ts";
 
 const jobPlaceColumns = {
   cityName: city.name,
@@ -31,18 +34,28 @@ const jobPlaceColumns = {
 };
 
 type Party = "craftsman" | "customer";
+type OpenBooking = typeof booking.$inferSelect;
+type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 
-/**
- * Every lifecycle rule in one table: who may ask, which statuses accept the request, and what the
- * job becomes. Completion also waits for the job to be over, which no status can express.
- */
-const transitions: Record<
-  BookingTransition,
-  { by: Party | "either"; from: BookingStatus[]; to: BookingStatus; afterWork?: true }
+const doneAtOf = {
+  customer: "customerDoneAt",
+  craftsman: "craftsmanDoneAt",
+} as const satisfies Record<Party, keyof OpenBooking>;
+
+/** Every lifecycle rule in one table (DOMAIN.md, Bookings): when a party may take an action. */
+const rules: Record<
+  BookingAction,
+  (job: { row: OpenBooking; party: Party; now: Date }) => boolean
 > = {
-  confirm: { by: "craftsman", from: ["pending"], to: "confirmed" },
-  cancel: { by: "either", from: ["pending", "confirmed"], to: "cancelled" },
-  complete: { by: "craftsman", from: ["confirmed"], to: "completed", afterWork: true },
+  confirm: ({ row, party }) => party === "craftsman" && row.craftsmanConfirmedAt === null,
+  cancel: () => true,
+  done: ({ row, party, now }) => {
+    const { craftsmanConfirmedAt, range } = row;
+    const allowed =
+      craftsmanConfirmedAt !== null && range.end <= now && row[doneAtOf[party]] === null;
+
+    return allowed;
+  },
 };
 
 /** Which side of a job someone is on; nobody's side when they are not part of it. */
@@ -50,7 +63,7 @@ const partyOf = ({
   row,
   userId,
 }: {
-  row: Pick<typeof booking.$inferSelect, "craftsmanId" | "customerId">;
+  row: Pick<OpenBooking, "craftsmanId" | "customerId">;
   userId: string;
 }) => {
   const parties: Record<Party, string> = { craftsman: row.craftsmanId, customer: row.customerId };
@@ -59,28 +72,12 @@ const partyOf = ({
   return party;
 };
 
-/** The steps someone may take with a job now, read from the same table `advance` enforces. */
-const allowedTransitions = ({
-  row,
-  userId,
-  now,
-}: {
-  row: typeof booking.$inferSelect;
-  userId: string;
-  now: Date;
-}) => {
+/** The actions someone may take with an open job now, from the same rules the actions enforce. */
+const allowedActions = ({ row, userId, now }: { row: OpenBooking; userId: string; now: Date }) => {
   const party = partyOf({ row, userId });
-  const { status, range } = row;
-  const allowed = bookingTransitionSchema.options.filter((transition) => {
-    const { by, from, afterWork } = transitions[transition];
-    const permitted =
-      party !== undefined &&
-      (by === "either" || by === party) &&
-      from.includes(status) &&
-      (!afterWork || range.end <= now);
-
-    return permitted;
-  });
+  const allowed = party
+    ? bookingActionSchema.options.filter((action) => rules[action]({ row, party, now }))
+    : [];
 
   return allowed;
 };
@@ -89,19 +86,77 @@ const toBooking = ({
   row,
   place,
 }: {
-  row: typeof booking.$inferSelect;
+  row: OpenBooking;
   place: Pick<JobLocation, "cityName" | "districtName" | "timeZone">;
 }) => {
-  const { range, cityId, districtId, ...fields } = row;
+  const { range, cityId, districtId, craftsmanConfirmedAt, ...fields } = row;
   const { start, end } = range;
   const result = bookingSchema.parse({
     ...fields,
     start: start.toISOString(),
     end: end.toISOString(),
     location: { cityId, districtId, ...place },
+    craftsmanConfirmedAt: craftsmanConfirmedAt?.toISOString() ?? null,
   });
 
   return result;
+};
+
+const customer = alias(user, "customer");
+const craftsman = alias(user, "craftsman");
+
+/**
+ * Moves an open job to the closed jobs, linked to its outcome row. Both parties' names are copied,
+ * so the closed job outlives their accounts.
+ */
+const close = async ({
+  tx,
+  row,
+  outcome,
+}: {
+  tx: Tx;
+  row: OpenBooking;
+  outcome: { completedBookingId: string } | { cancelledBookingId: string };
+}) => {
+  const {
+    id,
+    customerId,
+    craftsmanId,
+    craft,
+    range,
+    cityId,
+    districtId,
+    currency,
+    hourlyRate,
+    bookedAt,
+  } = row;
+  const [names] = await tx
+    .select({ customerName: customer.name, craftsmanName: craftsman.name })
+    .from(booking)
+    .innerJoin(customer, eq(customer.id, booking.customerId))
+    .innerJoin(craftsman, eq(craftsman.id, booking.craftsmanId))
+    .where(eq(booking.id, id));
+  if (!names) throw new Error("Parties of the job are missing");
+  const [closed] = await tx
+    .insert(bookingHistory)
+    .values({
+      id,
+      customerId,
+      craftsmanId,
+      craft,
+      range,
+      cityId,
+      districtId,
+      currency,
+      hourlyRate,
+      bookedAt,
+      ...names,
+      ...outcome,
+    })
+    .returning();
+  await tx.delete(booking).where(eq(booking.id, id));
+
+  return closed;
 };
 
 /** The names and zone of the place a job is in, read inside the caller's transaction. */
@@ -209,7 +264,7 @@ export const createBookingsService = ({ db }: { db: Db }) => {
         .select({ id: user.id, name: user.name })
         .from(user)
         .where(inArray(user.id, [customerId, craftsmanId]));
-      await tx.insert(bookingHistory).values({
+      await tx.insert(bookingLog).values({
         bookingId: booked.id,
         actorId: customerId,
         event: "created",
@@ -235,7 +290,7 @@ export const createBookingsService = ({ db }: { db: Db }) => {
     return result;
   };
 
-  /** Every active job of yours overlapping the window, in UTC, whichever side of it you are on.
+  /** Every open job of yours overlapping the window, in UTC, whichever side of it you are on.
    * Which calendar day each one lands on is the caller's decision, because only the caller knows
    * the zone its grid is drawn in. */
   const range = async ({ userId, start, end }: { userId: string; start: string; end: string }) => {
@@ -253,7 +308,6 @@ export const createBookingsService = ({ db }: { db: Db }) => {
       .where(
         and(
           sql`${userId} in (${booking.customerId}, ${booking.craftsmanId})`,
-          inArray(booking.status, activeBookingStatuses),
           sql`${booking.range} && tstzrange(${start}::timestamptz, ${end}::timestamptz)`,
         ),
       )
@@ -262,56 +316,130 @@ export const createBookingsService = ({ db }: { db: Db }) => {
     const bookings: OwnBooking[] = rows.map(({ row, place, partyName }) => ({
       ...toBooking({ row, place }),
       partyName,
-      actions: allowedTransitions({ row, userId, now }),
+      actions: allowedActions({ row, userId, now }),
     }));
 
     return bookings;
   };
-  /** Moves one job along its lifecycle for the party asking, and records who asked. */
-  const advance = async ({
+
+  /**
+   * Locks one open job, checks the asking party may take the action now, then applies its effect.
+   * An outsider is told the same thing as someone naming a job that is not open.
+   */
+  const act = async <Result>({
     actor,
     id,
-    transition,
+    action,
+    effect,
   }: {
     actor: SessionUser;
     id: string;
-    transition: BookingTransition;
+    action: BookingAction;
+    effect: (job: { tx: Tx; row: OpenBooking; party: Party; now: Date }) => Promise<Result>;
   }) => {
-    const { by, from, to, afterWork } = transitions[transition];
     const result = await db.transaction(async (tx) => {
-      const [current] = await tx.select().from(booking).where(eq(booking.id, id)).for("update");
-      // An outsider is told the same thing as someone naming a job that never existed.
-      if (!current) throw new DomainError({ code: "NOT_FOUND", message: "Booking not found" });
-      const { status, range, cityId, districtId } = current;
-      const party = partyOf({ row: current, userId: actor.id });
-      if (!party) throw new DomainError({ code: "NOT_FOUND", message: "Booking not found" });
-      if (by !== "either" && by !== party)
-        throw new DomainError({ code: "CONFLICT", message: `Only the ${by} can do that` });
-      if (!from.includes(status))
-        throw new DomainError({ code: "CONFLICT", message: `A ${status} job cannot be ${to}` });
-      if (afterWork && range.end > new Date())
-        throw new DomainError({ code: "CONFLICT", message: "The job is not over yet" });
-      const [updated] = await tx
-        .update(booking)
-        .set({ status: to, updatedAt: new Date() })
-        .where(eq(booking.id, id))
-        .returning();
-      if (!updated) throw new Error("Updated booking is missing");
-      const place = await loadPlace({ tx, cityId, districtId });
-      const advanced = toBooking({ row: updated, place });
-      await tx.insert(bookingHistory).values({
-        bookingId: advanced.id,
-        actorId: actor.id,
-        event: to,
-        snapshot: { booking: advanced, previousStatus: status, by: party },
-      });
+      const [row] = await tx.select().from(booking).where(eq(booking.id, id)).for("update");
+      const party = row && partyOf({ row, userId: actor.id });
+      if (!row || !party)
+        throw new DomainError({ code: "NOT_FOUND", message: "Booking not found" });
+      const now = new Date();
+      if (!rules[action]({ row, party, now }))
+        throw new DomainError({ code: "CONFLICT", message: `Cannot ${action} this job now` });
+      const outcome = await effect({ tx, row, party, now });
 
-      return advanced;
+      return outcome;
     });
 
     return result;
   };
-  const service = { create, range, advance };
+
+  const confirm = ({ actor, id }: { actor: SessionUser; id: string }) =>
+    act({
+      actor,
+      id,
+      action: "confirm",
+      effect: async ({ tx, party, now }) => {
+        const [confirmed] = await tx
+          .update(booking)
+          .set({ craftsmanConfirmedAt: now })
+          .where(eq(booking.id, id))
+          .returning();
+        await tx.insert(bookingLog).values({
+          bookingId: id,
+          actorId: actor.id,
+          event: "confirmed",
+          snapshot: { booking: confirmed, by: party },
+        });
+        const result = { confirmed: true as const };
+
+        return result;
+      },
+    });
+
+  const cancel = ({ actor, id }: { actor: SessionUser; id: string }) =>
+    act({
+      actor,
+      id,
+      action: "cancel",
+      effect: async ({ tx, row, party, now }) => {
+        const [cancelled] = await tx
+          .insert(cancelledBooking)
+          .values({ id, cancelledAt: now, cancelledById: actor.id, cancelledByName: actor.name })
+          .returning();
+        const closed = await close({ tx, row, outcome: { cancelledBookingId: id } });
+        await tx.insert(bookingLog).values({
+          bookingId: id,
+          actorId: actor.id,
+          event: "cancelled",
+          snapshot: { booking: row, closed, cancelled, by: party },
+        });
+        const result = { cancelled: true as const };
+
+        return result;
+      },
+    });
+
+  /** Records the party's done mark; the second mark closes the job as completed. */
+  const done = ({ actor, id }: { actor: SessionUser; id: string }) =>
+    act({
+      actor,
+      id,
+      action: "done",
+      effect: async ({ tx, row, party, now }) => {
+        const marked: OpenBooking = { ...row, [doneAtOf[party]]: now };
+        const { customerDoneAt, craftsmanDoneAt, customerReview, craftsmanReview } = marked;
+        const completed = customerDoneAt !== null && craftsmanDoneAt !== null;
+        if (!completed) {
+          await tx
+            .update(booking)
+            .set({ customerDoneAt, craftsmanDoneAt })
+            .where(eq(booking.id, id));
+          await tx.insert(bookingLog).values({
+            bookingId: id,
+            actorId: actor.id,
+            event: "done",
+            snapshot: { booking: marked, by: party },
+          });
+        } else {
+          const [outcome] = await tx
+            .insert(completedBooking)
+            .values({ id, completedAt: now, customerReview, craftsmanReview })
+            .returning();
+          const closed = await close({ tx, row, outcome: { completedBookingId: id } });
+          await tx.insert(bookingLog).values({
+            bookingId: id,
+            actorId: actor.id,
+            event: "completed",
+            snapshot: { booking: marked, closed, completed: outcome, by: party },
+          });
+        }
+        const result = { completed };
+
+        return result;
+      },
+    });
+
+  const service = { create, range, confirm, cancel, done };
 
   return service;
 };

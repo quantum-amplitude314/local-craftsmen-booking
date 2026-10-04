@@ -2,6 +2,8 @@
 
 import { Calendar } from "@/components/ui/calendar";
 import { type ScheduleCalendarProps, useScheduleCalendar } from "@/lib/use-schedule-calendar";
+import { cn } from "@/lib/utils";
+import styles from "./schedule-calendar.module.css";
 
 /** A month calendar that marks the days with availability or bookings; past days are disabled. */
 export function ScheduleCalendar(props: ScheduleCalendarProps) {
@@ -16,8 +18,8 @@ export function ScheduleCalendar(props: ScheduleCalendarProps) {
       {...calendarProps}
       weekStartsOn={1}
       modifiersClassNames={{
-        marked:
-          "[&>button]:after:absolute [&>button]:after:bottom-1 [&>button]:after:size-1 [&>button]:after:rounded-full [&>button]:after:bg-current",
+        marked: cn(styles.dot),
+        emphasized: cn(styles.dot, "[--dot-colour:var(--primary)]"),
       }}
       className="w-full [--cell-size:2rem] sm:[--cell-size:2.25rem]"
     />

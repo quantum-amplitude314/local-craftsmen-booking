@@ -24,16 +24,15 @@ export const bookingSchema = timeRangeSchema.safeExtend({
   craftsmanId: userIdSchema,
   craft: craftSchema,
   location: jobLocationSchema,
-  status: z.enum(["pending", "confirmed", "cancelled", "completed"]),
   currency: currencySchema,
   hourlyRate: hourlyRateSchema,
+  craftsmanConfirmedAt: z.iso.datetime({ offset: true }).nullable(),
 });
 export type Booking = z.infer<typeof bookingSchema>;
-export type BookingStatus = Booking["status"];
 
-/** What either party can ask of a job, named after the act rather than the resulting status. */
-export const bookingTransitionSchema = z.enum(["confirm", "cancel", "complete"]);
-export type BookingTransition = z.infer<typeof bookingTransitionSchema>;
+/** What a party can do with an open job. */
+export const bookingActionSchema = z.enum(["confirm", "cancel", "done"]);
+export type BookingAction = z.infer<typeof bookingActionSchema>;
 
 /**
  * A job as one of its two parties sees it: the name shown is always the other side's, and the
@@ -41,9 +40,14 @@ export type BookingTransition = z.infer<typeof bookingTransitionSchema>;
  */
 export const ownBookingSchema = bookingSchema.safeExtend({
   partyName: z.string(),
-  actions: z.array(bookingTransitionSchema),
+  actions: z.array(bookingActionSchema),
 });
 export type OwnBooking = z.infer<typeof ownBookingSchema>;
+
+const actionErrors = {
+  NOT_FOUND: { message: "Booking not found" },
+  CONFLICT: { message: "Not allowed on this job now" },
+};
 
 /** A month plus a day of padding on each side, the widest window a calendar page needs. */
 const BOOKING_WINDOW_MAX_MS = 62 * 24 * 60 * 60 * 1000;
@@ -82,16 +86,31 @@ export const ownBookingsContract = {
       ),
     )
     .output(z.array(ownBookingSchema)),
-  advance: oc
+  confirm: oc
     .route({
       method: "POST",
-      path: "/me/bookings/{id}/{transition}",
-      summary: "Confirm, cancel or complete one of your jobs",
+      path: "/me/bookings/{id}/confirm",
+      summary: "Confirm a job you were booked for",
     })
-    .input(z.object({ id: idSchema, transition: bookingTransitionSchema }))
-    .output(bookingSchema)
-    .errors({
-      NOT_FOUND: { message: "Booking not found" },
-      CONFLICT: { message: "The job is not in a state for that" },
-    }),
+    .input(z.object({ id: idSchema }))
+    .output(z.object({ confirmed: z.literal(true) }))
+    .errors(actionErrors),
+  cancel: oc
+    .route({
+      method: "POST",
+      path: "/me/bookings/{id}/cancel",
+      summary: "Cancel one of your open jobs",
+    })
+    .input(z.object({ id: idSchema }))
+    .output(z.object({ cancelled: z.literal(true) }))
+    .errors(actionErrors),
+  done: oc
+    .route({
+      method: "POST",
+      path: "/me/bookings/{id}/done",
+      summary: "Mark one of your jobs done; the second party's mark completes it",
+    })
+    .input(z.object({ id: idSchema }))
+    .output(z.object({ completed: z.boolean() }))
+    .errors(actionErrors),
 };

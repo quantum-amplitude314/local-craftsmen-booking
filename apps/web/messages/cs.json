@@ -158,17 +158,15 @@
       "price": "{hours} · {rate} / hod. · celkem {total}",
       "status": {
         "pending": "Čeká",
-        "confirmed": "Přijato",
-        "completed": "Dokončeno",
-        "cancelled": "Zrušeno"
+        "confirmed": "Přijato"
       },
       "actions": {
         "confirm": "Přijmout",
         "confirmPending": "Přijímám",
         "cancel": "Zrušit",
         "cancelPending": "Ruším",
-        "complete": "Hotovo",
-        "completePending": "Ukládám"
+        "done": "Dokončeno",
+        "donePending": "Ukládám"
       },
       "errors": {
         "refused": "Zakázka se mezitím změnila. Načtěte stránku znovu.",

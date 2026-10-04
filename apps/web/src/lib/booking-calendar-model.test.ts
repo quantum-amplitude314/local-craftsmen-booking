@@ -21,7 +21,7 @@ const job = ({
   craft: "painting",
   partyName: "Dan Customer",
   actions: [],
-  status: "confirmed",
+  craftsmanConfirmedAt: "2040-06-30T10:00:00.000Z",
   currency: "EUR",
   hourlyRate: "10.00",
   start,
@@ -38,8 +38,8 @@ const job = ({
 const text = {
   cityName: (id: string) => (id === "prague" ? "Prague" : "Pardubice"),
   status: (status: string) => status,
-  action: (transition: string) => transition,
-  actionPending: (transition: string) => `${transition}…`,
+  action: (action: string) => action,
+  actionPending: (action: string) => `${action}…`,
   price: ({ hours, rate, total }: { hours: string; rate: string; total: string }) =>
     `${hours} · ${rate} · ${total}`,
   empty: "No jobs on this day.",
@@ -110,6 +110,27 @@ describe("prepareBookingCalendar", () => {
     expect(cards[1]?.placeLabel).toBe("Pardubice · Libeň");
   });
 
+  test("shows a job pending until the craftsman confirms it, and marks its day apart", () => {
+    const pending = job({
+      id: "pending",
+      start: "2040-07-01T06:00:00.000Z",
+      end: "2040-07-01T08:00:00.000Z",
+    });
+    const { cards, calendar } = prepare({
+      bookings: [
+        { ...pending, craftsmanConfirmedAt: null },
+        { ...pending, id: "confirmed" },
+        job({ id: "later", start: "2040-07-03T06:00:00.000Z", end: "2040-07-03T08:00:00.000Z" }),
+      ],
+      day: "2040-07-01",
+      timeZone: "Europe/Prague",
+    });
+
+    expect(cards.map(({ statusLabel }) => statusLabel)).toEqual(["pending", "confirmed"]);
+    expect(calendar.emphasizedDays).toEqual([new Date("2040-07-01T00:00:00.000Z")]);
+    expect(calendar.markedDays).toEqual([new Date("2040-07-03T00:00:00.000Z")]);
+  });
+
   test("offers what the API allows, with cancelling apart from the steps forward", () => {
     const offered = (actions: OwnBooking["actions"]) => {
       const { cards } = prepare({
@@ -129,13 +150,13 @@ describe("prepareBookingCalendar", () => {
       const [card] = cards;
 
       return {
-        forward: card?.actions.map(({ transition }) => transition),
+        forward: card?.actions.map(({ action }) => action),
         cancellable: card?.cancellable,
       };
     };
 
     expect(offered(["confirm", "cancel"])).toEqual({ forward: ["confirm"], cancellable: true });
-    expect(offered(["cancel", "complete"])).toEqual({ forward: ["complete"], cancellable: true });
+    expect(offered(["cancel", "done"])).toEqual({ forward: ["done"], cancellable: true });
     expect(offered(["cancel"])).toEqual({ forward: [], cancellable: true });
     expect(offered([])).toEqual({ forward: [], cancellable: false });
   });

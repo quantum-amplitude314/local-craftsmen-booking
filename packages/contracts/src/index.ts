@@ -41,12 +41,11 @@ export {
 } from "./auth.ts";
 export {
   type Booking,
+  type BookingAction,
   type BookingInput,
-  type BookingStatus,
-  type BookingTransition,
+  bookingActionSchema,
   bookingInputSchema,
   bookingSchema,
-  bookingTransitionSchema,
   type OwnBooking,
   ownBookingSchema,
 } from "./bookings.ts";

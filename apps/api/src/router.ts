@@ -67,12 +67,26 @@ export const router = os.router({
 
         return bookings.range({ userId: user.id, start, end });
       }),
-      advance: os.me.bookings.advance.handler(({ context, input }) => {
+      confirm: os.me.bookings.confirm.handler(({ context, input }) => {
         const { user, bookings } = context;
         if (!user) throw new ORPCError("UNAUTHORIZED");
-        const { id, transition } = input;
+        const { id } = input;
 
-        return execute(() => bookings.advance({ actor: user, id, transition }));
+        return execute(() => bookings.confirm({ actor: user, id }));
+      }),
+      cancel: os.me.bookings.cancel.handler(({ context, input }) => {
+        const { user, bookings } = context;
+        if (!user) throw new ORPCError("UNAUTHORIZED");
+        const { id } = input;
+
+        return execute(() => bookings.cancel({ actor: user, id }));
+      }),
+      done: os.me.bookings.done.handler(({ context, input }) => {
+        const { user, bookings } = context;
+        if (!user) throw new ORPCError("UNAUTHORIZED");
+        const { id } = input;
+
+        return execute(() => bookings.done({ actor: user, id }));
       }),
     },
     profile: {

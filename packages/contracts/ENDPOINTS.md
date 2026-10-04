@@ -18,9 +18,11 @@ GET    /me/availability/day?date=&cityId=
 POST   /me/availability               craftsman: { start, end, areas: [{ cityId, districtId }] }
 DELETE /me/availability/:id           craftsman
 POST   /bookings                      customer: { slotId, start, end, location, currency }
-GET    /me/bookings/range?start=&end= both roles: active jobs in a window (≤ 62 days), with the
+GET    /me/bookings/range?start=&end= both roles: open jobs in a window (≤ 62 days), with the
                                       other party's name and actions
-POST   /me/bookings/:id/:transition   confirm | cancel | complete
+POST   /me/bookings/:id/confirm       craftsman: { confirmed: true }
+POST   /me/bookings/:id/cancel        both roles: { cancelled: true }
+POST   /me/bookings/:id/done          both roles: { completed }, true on the second party's mark
 ```
 
 `start`/`end` on `/slots` mean the slot must contain that whole window.

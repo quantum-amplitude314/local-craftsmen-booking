@@ -29,7 +29,6 @@ import { type BlockedRange, buildQuarters } from "./slot-times.ts";
 
 const BREAK_MS = BREAK_MINUTES * 60_000;
 const SLOT_MAX_MS = SLOT_MAX_MINUTES * 60_000;
-export const activeBookingStatuses: ("pending" | "confirmed")[] = ["pending", "confirmed"];
 const breakInterval = sql.raw(`interval '${BREAK_MINUTES} minutes'`);
 const bookingMinInterval = sql.raw(`interval '${BOOKING_MIN_MINUTES} minutes'`);
 const workRange = sql`tstzrange(lower(${availability.range}), upper(${availability.range}) - ${breakInterval}, '[)')`;
@@ -209,7 +208,6 @@ export const createSlotsService = ({ db }: { db: Db }) => {
         .where(
           and(
             eq(booking.craftsmanId, craftsmanId),
-            inArray(booking.status, activeBookingStatuses),
             sql`tstzrange(lower(${booking.range}), upper(${booking.range}) + ${breakInterval}, '[)') && ${reach}`,
           ),
         ),
@@ -290,7 +288,6 @@ export const createSlotsService = ({ db }: { db: Db }) => {
         .where(
           and(
             eq(booking.craftsmanId, craftsmanId),
-            inArray(booking.status, activeBookingStatuses),
             sql`tstzrange(lower(${booking.range}), upper(${booking.range}) + ${breakInterval}, '[)') && tstzrange(${start}::timestamptz, ${storedEnd.toISOString()}::timestamptz, '[)')`,
           ),
         )
