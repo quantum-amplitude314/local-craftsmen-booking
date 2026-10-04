@@ -5,17 +5,13 @@ import { z } from "zod";
 import { redirect } from "@/i18n/navigation";
 import { routing } from "@/i18n/routing";
 import { sendAuthRequest } from "@/lib/auth";
-import type { AuthError, AuthFormState } from "@/lib/auth-form-state";
+import type { AuthError, AuthFeedback, AuthMode, AuthValues } from "@/lib/auth-form-state";
 import { validateAuthForm } from "@/lib/auth-form-validation";
 
-const getFormLocale = (formData: FormData) => {
-  const requestedLocale = formData.get("locale");
-  const locale = hasLocale(routing.locales, requestedLocale)
-    ? requestedLocale
-    : routing.defaultLocale;
+type AuthRequest = { values: AuthValues; captchaToken: string | null; locale: string };
 
-  return locale;
-};
+const toLocale = (locale: string) =>
+  hasLocale(routing.locales, locale) ? locale : routing.defaultLocale;
 
 // Better Auth captcha plugin codes for a missing or rejected Turnstile token.
 const captchaErrorCodes: unknown[] = ["MISSING_RESPONSE", "VERIFICATION_FAILED"];
@@ -26,7 +22,7 @@ const readAuthError = async ({
   mode,
 }: {
   response: Response;
-  mode: "login" | "register";
+  mode: AuthMode;
 }): Promise<AuthError> => {
   const { status } = response;
   if (status === 429) return "tooManyAttempts";
@@ -43,68 +39,59 @@ const readAuthError = async ({
 };
 
 const authenticate = async ({
-  formData,
   mode,
-}: {
-  formData: FormData;
-  mode: "login" | "register";
-}): Promise<AuthFormState> => {
-  const { parsed, state: validationState, values } = validateAuthForm({ formData, mode });
-  if (!parsed.success) return validationState;
-
-  const captchaToken = formData.get("cf-turnstile-response");
+  values,
+  captchaToken,
+  locale,
+}: AuthRequest & { mode: AuthMode }): Promise<AuthFeedback> => {
+  const { parsed, feedback } = validateAuthForm({ values, mode });
+  if (!parsed.success) return feedback;
 
   try {
     const response = await sendAuthRequest({
       endpoint: mode === "register" ? "sign-up/email" : "sign-in/email",
       body: parsed.data,
-      captchaToken: typeof captchaToken === "string" ? captchaToken : undefined,
+      captchaToken: captchaToken ?? undefined,
     });
     if (!response.ok) {
-      const error = await readAuthError({ response, mode });
-      const state = { error, values };
+      const failed: AuthFeedback = { error: await readAuthError({ response, mode }) };
 
-      return state;
+      return failed;
     }
   } catch {
-    const state: AuthFormState = { error: "serviceUnavailable", values };
+    const unavailable: AuthFeedback = { error: "serviceUnavailable" };
 
-    return state;
+    return unavailable;
   }
 
-  return redirect({ href: "/dashboard", locale: getFormLocale(formData) });
+  return redirect({ href: "/dashboard", locale: toLocale(locale) });
 };
 
-// Server Actions passed to `useActionState` must keep React's (previousState, formData) signature
-// so the forms still submit without client JavaScript.
-export const login = async (_previousState: AuthFormState, formData: FormData) => {
-  const state = await authenticate({ formData, mode: "login" });
+export const login = async (request: AuthRequest) => {
+  const feedback = await authenticate({ ...request, mode: "login" });
 
-  return state;
+  return feedback;
 };
 
-export const register = async (_previousState: AuthFormState, formData: FormData) => {
-  const state = await authenticate({ formData, mode: "register" });
+export const register = async (request: AuthRequest) => {
+  const feedback = await authenticate({ ...request, mode: "register" });
 
-  return state;
+  return feedback;
 };
 
-export const logout = async (
-  _previousState: AuthFormState,
-  formData: FormData,
-): Promise<AuthFormState> => {
+export const logout = async ({ locale }: { locale: string }): Promise<AuthFeedback> => {
   try {
     const response = await sendAuthRequest({ endpoint: "sign-out", body: {} });
     if (!response.ok) {
-      const state: AuthFormState = { error: "logoutFailed" };
+      const failed: AuthFeedback = { error: "logoutFailed" };
 
-      return state;
+      return failed;
     }
   } catch {
-    const state: AuthFormState = { error: "serviceUnavailable" };
+    const unavailable: AuthFeedback = { error: "serviceUnavailable" };
 
-    return state;
+    return unavailable;
   }
 
-  return redirect({ href: "/login", locale: getFormLocale(formData) });
+  return redirect({ href: "/login", locale: toLocale(locale) });
 };

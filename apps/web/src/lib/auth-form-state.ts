@@ -1,5 +1,7 @@
 import type { AuthFieldErrors, UserRole } from "@local-craftsmen/contracts";
 
+export type AuthMode = "login" | "register";
+
 export type AuthError =
   | "checkFields"
   | "tooManyAttempts"
@@ -9,8 +11,6 @@ export type AuthError =
   | "verificationFailed"
   | "logoutFailed";
 
-export type AuthFormState = {
-  error: AuthError | null;
-  fieldErrors?: AuthFieldErrors;
-  values?: { name: string; email: string; role: UserRole };
-};
+export type AuthValues = { name: string; email: string; password: string; role: UserRole };
+
+export type AuthFeedback = { error: AuthError | null; fieldErrors?: AuthFieldErrors };

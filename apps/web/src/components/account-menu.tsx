@@ -3,7 +3,7 @@
 import { type SessionUser, userRoleSchema } from "@local-craftsmen/contracts";
 import { ChevronDown } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
-import { startTransition, useActionState } from "react";
+import { useState, useTransition } from "react";
 import { logout } from "@/app/auth-actions";
 import { LocaleMenu } from "@/components/locale-switcher";
 import { buttonVariants } from "@/components/ui/button";
@@ -18,19 +18,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Link } from "@/i18n/navigation";
+import type { AuthError } from "@/lib/auth-form-state";
 
 export function AccountMenu({ user }: { user: Pick<SessionUser, "name" | "email" | "role"> }) {
   const locale = useLocale();
   const t = useTranslations("header");
   const tAuth = useTranslations("auth");
-  const [state, signOut, pending] = useActionState(logout, { error: null });
-  const { error } = state;
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<AuthError | null>(null);
   const { name, email, role } = user;
 
   const handleSignOut = () => {
-    const formData = new FormData();
-    formData.set("locale", locale);
-    startTransition(() => signOut(formData));
+    startTransition(async () => {
+      const { error: failure } = await logout({ locale });
+      setError(failure);
+    });
   };
 
   return (
