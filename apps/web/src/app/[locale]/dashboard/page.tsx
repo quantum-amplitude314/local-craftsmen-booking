@@ -7,7 +7,6 @@ import {
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import type { ComponentType } from "react";
-import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { redirect } from "@/i18n/navigation";
 import { getCurrentUser } from "@/lib/auth";
 import type { ScheduleParams } from "@/lib/dashboard-schedules";
@@ -48,10 +47,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/[local
       tabIndex={-1}
       className="dashboard-shell flex flex-col gap-6 py-4 sm:py-6"
     >
-      <div className="flex min-w-0 flex-col gap-1">
-        <PageBreadcrumbs current="dashboard" />
-        <h1 className="wrap-anywhere text-muted-foreground">{t("welcome", { name })}</h1>
-      </div>
+      <h1 className="min-w-0 wrap-anywhere text-muted-foreground">{t("welcome", { name })}</h1>
       <RoleDashboard
         day={requestedDay.success ? requestedDay.data : undefined}
         cityId={requestedCity.success ? requestedCity.data : undefined}

@@ -4,7 +4,6 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { cache, Suspense } from "react";
 import { CraftsmanProfile, CraftsmanProfileSkeleton } from "@/components/craftsman-profile";
-import { PageBreadcrumbs } from "@/components/page-breadcrumbs";
 import { redirect } from "@/i18n/navigation";
 import { apiClient } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
@@ -64,7 +63,6 @@ export default async function CraftsmanPage({ params }: PageProps<"/[locale]/cra
 
   return (
     <main id="main-content" tabIndex={-1} className="page-shell flex flex-col gap-8 py-8 sm:py-10">
-      <PageBreadcrumbs current="profile" />
       <Suspense fallback={<CraftsmanProfileSkeleton />}>
         <CraftsmanProfileSection id={id} />
       </Suspense>

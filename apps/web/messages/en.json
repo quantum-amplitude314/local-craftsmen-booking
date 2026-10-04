@@ -106,6 +106,7 @@
     "sentHeading": "Message sent",
     "sent": "Thank you, we have received your message.",
     "back": "Back",
+    "cancel": "Cancel",
     "errors": {
       "checkFields": "Check the highlighted fields.",
       "verificationFailed": "Security check failed. Complete the check again and resubmit.",
@@ -240,6 +241,7 @@
     "bio": "About you",
     "save": "Save profile",
     "saving": "Saving…",
+    "cancel": "Cancel",
     "saved": "Profile saved.",
     "errors": {
       "checkFields": "Check the highlighted fields.",
@@ -279,7 +281,6 @@
     "togglePalette": "Toggle light and dark theme",
     "language": "Language",
     "dashboard": "Dashboard",
-    "breadcrumb": "Breadcrumb",
     "profile": "Profile"
   },
   "notFound": {

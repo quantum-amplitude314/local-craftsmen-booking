@@ -10,13 +10,13 @@ import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useRouter } from "@/i18n/navigation";
 import { type ContactFeedback, type ContactSender, validateContactForm } from "@/lib/contact-form";
+import { useGoBack } from "@/lib/use-go-back";
 
 /** A signed-in sender sees their name and email locked; the API takes both from the session. */
 export function ContactForm({ sender }: { sender: ContactSender | null }) {
   const t = useTranslations("contact");
-  const router = useRouter();
+  const goBack = useGoBack({ fallback: "/" });
   const [feedback, setFeedback] = useState<ContactFeedback>({ sent: false, error: null });
   const [pending, startTransition] = useTransition();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -50,9 +50,6 @@ export function ContactForm({ sender }: { sender: ContactSender | null }) {
   useEffect(() => {
     if (sent) sentHeadingRef.current?.focus();
   }, [sent]);
-
-  // Opened in a new tab, the page has no history to return to.
-  const goBack = () => (window.history.length > 1 ? router.back() : router.push("/"));
 
   // Updates state only while there is an error to clear, so typing does not re-render the form.
   const clearFieldError = (field: ContactField) => {
@@ -176,9 +173,14 @@ export function ContactForm({ sender }: { sender: ContactSender | null }) {
         <FieldError id="contact-error" tabIndex={-1}>
           {error && !pending ? t(`errors.${error}`) : null}
         </FieldError>
-        <Button type="submit" size="lg" disabled={pending || !captchaToken}>
-          {t(pending ? "pending" : "send")}
-        </Button>
+        <Field orientation="horizontal">
+          <Button type="button" variant="ghost" size="lg" className="flex-1" onClick={goBack}>
+            {t("cancel")}
+          </Button>
+          <Button type="submit" size="lg" className="flex-1" disabled={pending || !captchaToken}>
+            {t(pending ? "pending" : "send")}
+          </Button>
+        </Field>
       </form>
     </>
   );

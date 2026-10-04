@@ -6,6 +6,7 @@ import { type ReactNode, useEffect, useRef, useState } from "react";
 import { saveProfile } from "@/app/profile-actions";
 import { OptionCombobox } from "@/components/option-combobox";
 import { PendingButton } from "@/components/pending-button";
+import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldLabel } from "@/components/ui/field";
 import {
   InputGroup,
@@ -28,6 +29,7 @@ import {
   type ProfileValues,
   validateProfileValues,
 } from "@/lib/profile-form";
+import { useGoBack } from "@/lib/use-go-back";
 import { useMutation } from "@/lib/use-mutation";
 
 const initialState: ProfileFormState = {};
@@ -47,7 +49,7 @@ function FormSection({
   return (
     <section
       aria-labelledby={`${id}-heading`}
-      className="grid gap-4 border-b py-8 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:gap-10"
+      className="grid gap-4 border-t py-8 first-of-type:border-t-0 first-of-type:pt-0 last-of-type:pb-0 md:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] md:gap-10"
     >
       <div className="flex flex-col gap-1">
         <h2 id={`${id}-heading`} className="font-medium">
@@ -70,6 +72,7 @@ export function ProfileForm({
   const t = useTranslations("profile");
   const tCrafts = useTranslations("crafts");
   const tCities = useTranslations("cities");
+  const goBack = useGoBack({ fallback: "/dashboard" });
   const { state, run, pending } = useMutation({
     action: saveProfile,
     initialState,
@@ -155,7 +158,7 @@ export function ProfileForm({
       }}
       noValidate
       aria-busy={pending}
-      className="flex max-w-5xl flex-col border-t"
+      className="flex max-w-5xl flex-col"
     >
       <FormSection id="services" title={t("sections.services")} hint={t("sections.servicesHint")}>
         <div className="grid gap-6 sm:grid-cols-2">
@@ -275,6 +278,7 @@ export function ProfileForm({
           <InputGroup>
             <InputGroupTextarea
               id="profile-bio"
+              className="min-h-16"
               name="bio"
               value={bio}
               readOnly={pending}
@@ -302,8 +306,8 @@ export function ProfileForm({
         </Field>
       </FormSection>
 
-      <div className="grid items-center gap-4 py-6 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
-        <div className="min-h-6 min-w-0">
+      <div className="grid items-end gap-4 pt-8 sm:grid-cols-[minmax(0,1fr)_auto]">
+        <div className="order-last min-h-6 min-w-0 sm:order-none sm:flex sm:min-h-10 sm:flex-col sm:justify-center">
           <FieldError id="profile-error" tabIndex={-1}>
             {editedFields.length === 0 && error ? t(`errors.${error}`) : null}
           </FieldError>
@@ -315,18 +319,32 @@ export function ProfileForm({
             {!pending && editedFields.length === 0 && saved ? t("saved") : null}
           </p>
         </div>
-        <p className="text-sm text-muted-foreground">{t("requiredNote")}</p>
-        <PendingButton
-          type="submit"
-          size="lg"
-          pending={pending}
-          label={t("save")}
-          pendingLabel={t("saving")}
-          onClick={(event) => {
-            event.preventDefault();
-            handleSave();
-          }}
-        />
+        <div className="flex flex-col items-end gap-3">
+          <p className="text-sm text-muted-foreground">{t("requiredNote")}</p>
+          <Field orientation="horizontal">
+            <Button
+              type="button"
+              variant="ghost"
+              size="lg"
+              className="flex-1 sm:flex-none"
+              onClick={goBack}
+            >
+              {t("cancel")}
+            </Button>
+            <PendingButton
+              type="submit"
+              size="lg"
+              className="flex-1 sm:flex-none"
+              pending={pending}
+              label={t("save")}
+              pendingLabel={t("saving")}
+              onClick={(event) => {
+                event.preventDefault();
+                handleSave();
+              }}
+            />
+          </Field>
+        </div>
       </div>
     </form>
   );

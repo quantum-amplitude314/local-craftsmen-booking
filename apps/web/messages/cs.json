@@ -106,6 +106,7 @@
     "sentHeading": "Zpráva odeslána",
     "sent": "Děkujeme, vaši zprávu jsme přijali.",
     "back": "Zpět",
+    "cancel": "Zrušit",
     "errors": {
       "checkFields": "Zkontrolujte zvýrazněná pole.",
       "verificationFailed": "Bezpečnostní ověření se nezdařilo. Dokončete ověření znovu a odešlete formulář.",
@@ -240,6 +241,7 @@
     "bio": "O vás",
     "save": "Uložit profil",
     "saving": "Ukládání…",
+    "cancel": "Zrušit",
     "saved": "Profil je uložený.",
     "errors": {
       "checkFields": "Zkontrolujte zvýrazněná pole.",
@@ -279,7 +281,6 @@
     "togglePalette": "Přepnout světlý a tmavý motiv",
     "language": "Jazyk",
     "dashboard": "Dashboard",
-    "breadcrumb": "Drobečková navigace",
     "profile": "Profil"
   },
   "notFound": {
