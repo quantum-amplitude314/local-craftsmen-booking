@@ -3,7 +3,7 @@ import { OpenAPIHandler } from "@orpc/openapi/fetch";
 import { ORPCError, onError } from "@orpc/server";
 import { Hono } from "hono";
 import type { Auth } from "./auth.ts";
-import { type AuthVariables, requireRole, requireSession } from "./auth-middleware.ts";
+import { type AuthVariables, readSession, requireRole, requireSession } from "./auth-middleware.ts";
 import { type ApiContext, router } from "./router.ts";
 
 type RuntimeContext = Omit<ApiContext, "user"> & { getAuth: () => Auth };
@@ -59,6 +59,7 @@ export const createApp = <Bindings extends object>({
   app.use("/slots/*", requireSession);
   app.use("/bookings/*", requireSession);
   app.use("/bookings/*", requireRole(userRoleSchema.enum.customer));
+  app.use("/contact", readSession);
 
   app.use("*", async (context, next) => {
     const apiContext = { ...context.get("apiContext"), user: context.get("user") ?? null };

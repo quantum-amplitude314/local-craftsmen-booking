@@ -3,16 +3,20 @@ import {
   type CraftsmenService,
   DomainError,
   type LocationsService,
+  type MailService,
   type SlotsService,
 } from "@local-craftsmen/application";
 import { CRAFTS, contract, type SessionUser } from "@local-craftsmen/contracts";
 import { implement, ORPCError } from "@orpc/server";
+import type { Turnstile } from "./turnstile.ts";
 
 export type ApiContext = {
   craftsmen: CraftsmenService;
   slots: SlotsService;
   bookings: BookingsService;
   locations: LocationsService;
+  mail: MailService;
+  turnstile: Turnstile;
   user: SessionUser | null;
 };
 
@@ -128,6 +132,25 @@ export const router = os.router({
   },
   crafts: {
     list: os.crafts.list.handler(() => [...CRAFTS]),
+  },
+  contact: {
+    send: os.contact.send.handler(async ({ context, input }) => {
+      const { user, turnstile, mail } = context;
+      const { captchaToken, message, webCf } = input;
+      const { name, email } = user ?? input;
+      const verified = await turnstile.verify({ token: captchaToken });
+      if (!verified) throw new ORPCError("FORBIDDEN", { message: "Security check failed" });
+      await mail.sendContactFormMail({
+        name,
+        email,
+        message,
+        account: user && { id: user.id, role: user.role },
+        webCf: webCf ?? null,
+      });
+      const sent = { sent: true as const };
+
+      return sent;
+    }),
   },
   craftsmen: {
     find: os.craftsmen.find.handler(async ({ context, input }) => {

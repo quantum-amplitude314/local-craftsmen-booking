@@ -2,12 +2,15 @@ import {
   createBookingsService,
   createCraftsmenService,
   createLocationsService,
+  createMailService,
   createSlotsService,
 } from "@local-craftsmen/application";
 import { createDb } from "@local-craftsmen/db";
 import { createApp } from "./app.ts";
 import { createAuth } from "./auth.ts";
 import { readBunEnv } from "./env.ts";
+import { consoleTransport } from "./mail-transports.ts";
+import { createTurnstile } from "./turnstile.ts";
 
 type Database = ReturnType<typeof createDb>;
 type Server = ReturnType<typeof Bun.serve>;
@@ -35,6 +38,11 @@ const craftsmen = createCraftsmenService({ db: database.db });
 const slots = createSlotsService({ db: database.db });
 const bookings = createBookingsService({ db: database.db });
 const locations = createLocationsService({ db: database.db });
+const mail = createMailService({
+  transport: consoleTransport,
+  contactRecipient: "contact@example.com",
+});
+const turnstile = createTurnstile({ secretKey: TURNSTILE_SECRET_KEY });
 const auth = createAuth({
   db: database.db,
   secret: BETTER_AUTH_SECRET,
@@ -44,7 +52,15 @@ const auth = createAuth({
 });
 const app = createApp<Record<string, never>>({
   createApiContext: () => {
-    const apiContext = { craftsmen, slots, bookings, locations, getAuth: () => auth };
+    const apiContext = {
+      craftsmen,
+      slots,
+      bookings,
+      locations,
+      mail,
+      turnstile,
+      getAuth: () => auth,
+    };
 
     return apiContext;
   },

@@ -7,6 +7,7 @@ import "../globals.css";
 import { PaletteScript } from "@/components/palette-script";
 import { QaCredit } from "@/components/qa-credit";
 import { SiteHeader } from "@/components/site-header";
+import { Link } from "@/i18n/navigation";
 import { type Locale, routing } from "@/i18n/routing";
 import { getEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
@@ -77,7 +78,12 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
           {children}
           <footer className="dashboard-shell mt-auto border-t py-6 text-xs text-muted-foreground">
             <div className="flex flex-wrap justify-between gap-2">
-              <p>{t("brand")}</p>
+              <p className="flex gap-3">
+                <span>{t("brand")}</span>
+                <Link href="/contact" className="transition-colors hover:text-foreground">
+                  {t("contact")}
+                </Link>
+              </p>
               <p>{t("tagline")}</p>
             </div>
             <p className="mt-4 text-center">

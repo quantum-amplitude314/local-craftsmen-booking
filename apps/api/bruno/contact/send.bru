@@ -1,0 +1,25 @@
+meta {
+  name: send message
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/contact
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Bruno Visitor",
+    "email": "bruno@example.com",
+    "message": "Hello from Bruno.",
+    "captchaToken": "{{turnstileToken}}"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.sent: eq true
+}

@@ -3,7 +3,9 @@ import {
   createBookingsService,
   createCraftsmenService,
   createLocationsService,
+  createMailService,
   createSlotsService,
+  type Mail,
 } from "@local-craftsmen/application";
 import {
   type Area,
@@ -32,17 +34,27 @@ import { z } from "zod";
 import { createApp } from "../src/app.ts";
 import { createAuth } from "../src/auth.ts";
 import { apiEnvSchema } from "../src/env.ts";
+import { createTurnstile } from "../src/turnstile.ts";
 
 const baseUrl = "http://localhost:3001";
 const webOrigin = "http://localhost:3000";
 const password = "correct-horse-battery";
-const testEnvSchema = apiEnvSchema
-  .pick({ TURNSTILE_SECRET_KEY: true })
-  .extend({ TURNSTILE_TEST_TOKEN: z.string().min(1) });
-const { TURNSTILE_SECRET_KEY: turnstileSecretKey, TURNSTILE_TEST_TOKEN: turnstileToken } =
-  testEnvSchema.parse(process.env);
+const contactRecipient = "contact@example.com";
+const testEnvSchema = apiEnvSchema.pick({ TURNSTILE_SECRET_KEY: true }).extend({
+  TURNSTILE_TEST_TOKEN: z.string().min(1),
+  TURNSTILE_FAILING_SECRET_KEY: z.string().min(1),
+});
+const {
+  TURNSTILE_SECRET_KEY: turnstileSecretKey,
+  TURNSTILE_TEST_TOKEN: turnstileToken,
+  TURNSTILE_FAILING_SECRET_KEY: failingTurnstileSecretKey,
+} = testEnvSchema.parse(process.env);
 
-let app: ReturnType<typeof createApp<Record<string, never>>>;
+type TestApp = ReturnType<typeof createApp<Record<string, never>>>;
+
+let app: TestApp;
+let rejectingApp: TestApp;
+const sentMails: Mail[] = [];
 let stopDb: () => Promise<void>;
 let database: Db;
 
@@ -52,12 +64,14 @@ const call = async ({
   body,
   cookie,
   captchaToken = turnstileToken,
+  target = app,
 }: {
   path: string;
   method?: "GET" | "POST" | "PUT" | "DELETE";
   body?: Record<string, unknown> | undefined;
   cookie?: string;
   captchaToken?: string;
+  target?: TestApp;
 }) => {
   const headers = new Headers({ Origin: webOrigin });
   if (body) headers.set("Content-Type", "application/json");
@@ -67,7 +81,7 @@ const call = async ({
   const request = body
     ? new Request(`${baseUrl}${path}`, { method, headers, body: JSON.stringify(body) })
     : new Request(`${baseUrl}${path}`, { method, headers });
-  const response = await app.fetch(request);
+  const response = await target.fetch(request);
 
   return response;
 };
@@ -106,16 +120,25 @@ beforeAll(async () => {
     webOrigin,
     turnstileSecretKey,
   });
-  const craftsmen = createCraftsmenService({ db });
-
-  app = createApp<Record<string, never>>({
-    createApiContext: () => ({
-      craftsmen,
-      slots: createSlotsService({ db }),
-      bookings: createBookingsService({ db }),
-      locations: createLocationsService({ db }),
-      getAuth: () => auth,
+  const apiContext = {
+    craftsmen: createCraftsmenService({ db }),
+    slots: createSlotsService({ db }),
+    bookings: createBookingsService({ db }),
+    locations: createLocationsService({ db }),
+    mail: createMailService({
+      transport: async (mail) => {
+        sentMails.push(mail);
+      },
+      contactRecipient,
     }),
+    turnstile: createTurnstile({ secretKey: turnstileSecretKey }),
+    getAuth: () => auth,
+  };
+  const rejectingTurnstile = createTurnstile({ secretKey: failingTurnstileSecretKey });
+
+  app = createApp<Record<string, never>>({ createApiContext: () => apiContext });
+  rejectingApp = createApp<Record<string, never>>({
+    createApiContext: () => ({ ...apiContext, turnstile: rejectingTurnstile }),
   });
 });
 
@@ -1316,5 +1339,87 @@ describe("craftsman profile pricing", () => {
             { currency: "USD", hourlyRate: "12.00" },
           ];
     expect(rates).toEqual(expectedRates);
+  });
+});
+
+describe("contact", () => {
+  const message = {
+    name: "Jana Nováková",
+    email: "jana@example.com",
+    message: "Do you cover Brno?",
+  };
+
+  const sendMessage = ({
+    body,
+    target = app,
+  }: {
+    body: Record<string, unknown>;
+    target?: TestApp;
+  }) => call({ path: "/contact", method: "POST", body, target });
+
+  test("mails a message to the site owner, with replies going to the sender", async () => {
+    sentMails.length = 0;
+    const res = await sendMessage({ body: { ...message, captchaToken: turnstileToken } });
+
+    expect(res.status).toBe(200);
+    expect<unknown>(await res.json()).toEqual({ sent: true });
+    expect(sentMails).toEqual([
+      {
+        to: contactRecipient,
+        replyTo: "jana@example.com",
+        subject: "Contact | Jana Nováková",
+        text: "From: Jana Nováková <jana@example.com>\n\nDo you cover Brno?\n",
+      },
+    ]);
+  });
+
+  test("signs a signed-in message with the session's name, email and account, whatever the form says", async () => {
+    sentMails.length = 0;
+    const { email, cookie } = await registerUser({ role: "customer" });
+    const { id } = sessionUserSchema.parse(await (await call({ path: "/me", cookie })).json());
+    const webCf = { country: "CZ", city: "Prague", timezone: "Europe/Prague" };
+    const res = await call({
+      path: "/contact",
+      method: "POST",
+      cookie,
+      body: {
+        ...message,
+        name: "Someone Else",
+        email: "else@example.com",
+        captchaToken: turnstileToken,
+        webCf,
+      },
+    });
+
+    expect(res.status).toBe(200);
+    expect(sentMails).toEqual([
+      {
+        to: contactRecipient,
+        replyTo: email,
+        subject: "Contact | Test customer",
+        text: `From: Test customer <${email}>\n\nDo you cover Brno?\n\n--\nAccount: ${id} (customer)\nCountry: CZ\nCity: Prague\nTime zone: Europe/Prague\n`,
+      },
+    ]);
+  });
+
+  test("sends nothing for invalid fields", async () => {
+    sentMails.length = 0;
+    const res = await sendMessage({
+      body: { name: " ", email: "not-an-email", message: "", captchaToken: turnstileToken },
+    });
+
+    expect(res.status).toBe(400);
+    expect(sentMails).toEqual([]);
+  });
+
+  test("sends nothing when the security check fails", async () => {
+    sentMails.length = 0;
+    const res = await sendMessage({
+      body: { ...message, captchaToken: turnstileToken },
+      target: rejectingApp,
+    });
+
+    expect(res.status).toBe(403);
+    expect(sentMails).toEqual([]);
   });
 });

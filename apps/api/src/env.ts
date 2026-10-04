@@ -8,13 +8,19 @@ export const apiEnvSchema = z.object({
   TURNSTILE_SECRET_KEY: z.string().min(1),
 });
 
+const workerEnvSchema = apiEnvSchema.extend({
+  RESEND_API_KEY: z.string().min(1),
+  CONTACT_SENDER_EMAIL: z.email(),
+  CONTACT_RECIPIENT_EMAIL: z.email(),
+});
+
 const bunEnvSchema = apiEnvSchema.extend({
   ...databaseEnvSchema.shape,
   API_URL: z.url(),
 });
 
 export const parseWorkerEnv = (bindings: Env) => {
-  const workerEnv = apiEnvSchema.parse(bindings);
+  const workerEnv = workerEnvSchema.parse(bindings);
 
   return workerEnv;
 };

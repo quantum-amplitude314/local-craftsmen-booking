@@ -8,7 +8,8 @@
     "brand": "Local Craftsmen",
     "tagline": "Independent skills. Closer to home.",
     "credit": "Built by",
-    "loading": "Loading…"
+    "loading": "Loading…",
+    "contact": "Contact"
   },
   "home": {
     "heading": "Find a craftsman<br></br>near you.",
@@ -91,6 +92,32 @@
       "nameRequired": "Enter your name.",
       "nameTooLong": "Use no more than 100 characters.",
       "roleInvalid": "Choose an account type."
+    }
+  },
+  "contact": {
+    "title": "Contact | Local Craftsmen",
+    "heading": "Contact us",
+    "name": "Name",
+    "email": "Email",
+    "message": "Message",
+    "messageHint": "Up to {limit} characters.",
+    "send": "Send message",
+    "pending": "Sending…",
+    "sentHeading": "Message sent",
+    "sent": "Thank you, we have received your message.",
+    "back": "Back",
+    "errors": {
+      "checkFields": "Check the highlighted fields.",
+      "verificationFailed": "Security check failed. Complete the check again and resubmit.",
+      "serviceUnavailable": "The message could not be sent. Please try again."
+    },
+    "validation": {
+      "invalidValue": "Enter a valid value.",
+      "nameRequired": "Enter your name.",
+      "nameTooLong": "Use no more than 100 characters.",
+      "emailInvalid": "Enter a valid email address.",
+      "messageRequired": "Enter a message.",
+      "messageTooLong": "Use no more than 2000 characters."
     }
   },
   "dashboard": {

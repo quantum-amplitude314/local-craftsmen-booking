@@ -3,6 +3,7 @@ import { z } from "zod";
 import { meContract } from "./auth.ts";
 import { bookingsContract, ownBookingsContract } from "./bookings.ts";
 import { locationsContract } from "./cities.ts";
+import { contactContract } from "./contact.ts";
 import { craftSchema } from "./crafts.ts";
 import { craftsmenContract, ownProfileContract } from "./craftsmen.ts";
 import { ownSlotsContract, slotsContract } from "./slots.ts";
@@ -17,6 +18,7 @@ export const contract = {
   locations: locationsContract,
   slots: slotsContract,
   bookings: bookingsContract,
+  contact: contactContract,
   me: {
     ...meContract,
     profile: ownProfileContract,
@@ -60,6 +62,17 @@ export {
   type Location,
 } from "./cities.ts";
 export { idSchema, type TimeRange, timeRangeSchema, userIdSchema } from "./common.ts";
+export {
+  CONTACT_MESSAGE_MAX_LENGTH,
+  type ContactField,
+  type ContactFieldErrors,
+  type ContactMessage,
+  type ContactValidationError,
+  contactMessageSchema,
+  getContactFieldErrors,
+  type WebCf,
+  webCfSchema,
+} from "./contact.ts";
 export { CRAFTS, type Craft, craftSchema } from "./crafts.ts";
 export {
   type CraftsmanProfile,

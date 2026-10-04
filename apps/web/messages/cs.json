@@ -8,7 +8,8 @@
     "brand": "Local Craftsmen",
     "tagline": "Šikovné ruce. Blízko domova.",
     "credit": "Realizace:",
-    "loading": "Načítání…"
+    "loading": "Načítání…",
+    "contact": "Kontakt"
   },
   "home": {
     "heading": "Najděte řemeslníka<br></br>ve svém okolí.",
@@ -91,6 +92,32 @@
       "nameRequired": "Zadejte své jméno.",
       "nameTooLong": "Použijte nejvýše 100 znaků.",
       "roleInvalid": "Vyberte typ účtu."
+    }
+  },
+  "contact": {
+    "title": "Kontakt | Local Craftsmen",
+    "heading": "Napište nám",
+    "name": "Jméno",
+    "email": "E-mail",
+    "message": "Zpráva",
+    "messageHint": "Nejvýše {limit} znaků.",
+    "send": "Odeslat zprávu",
+    "pending": "Odesílám…",
+    "sentHeading": "Zpráva odeslána",
+    "sent": "Děkujeme, vaši zprávu jsme přijali.",
+    "back": "Zpět",
+    "errors": {
+      "checkFields": "Zkontrolujte zvýrazněná pole.",
+      "verificationFailed": "Bezpečnostní ověření se nezdařilo. Dokončete ověření znovu a odešlete formulář.",
+      "serviceUnavailable": "Zprávu se nepodařilo odeslat. Zkuste to prosím znovu."
+    },
+    "validation": {
+      "invalidValue": "Zadejte platnou hodnotu.",
+      "nameRequired": "Zadejte své jméno.",
+      "nameTooLong": "Použijte nejvýše 100 znaků.",
+      "emailInvalid": "Zadejte platnou e-mailovou adresu.",
+      "messageRequired": "Napište zprávu.",
+      "messageTooLong": "Použijte nejvýše 2000 znaků."
     }
   },
   "dashboard": {

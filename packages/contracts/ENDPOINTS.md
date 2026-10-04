@@ -23,6 +23,9 @@ GET    /me/bookings/range?start=&end= both roles: open jobs in a window (≤ 62 
 POST   /me/bookings/:id/confirm       craftsman: { confirmed: true }
 POST   /me/bookings/:id/cancel        both roles: { cancelled: true }
 POST   /me/bookings/:id/done          both roles: { completed }, true on the second party's mark
+POST   /contact                       public: { name, email, message, captchaToken, webCf? }, mails
+                                      the site owner: { sent: true }; signed in, the name, email
+                                      and account come from the session
 ```
 
 `start`/`end` on `/slots` mean the slot must contain that whole window.

@@ -280,7 +280,6 @@ export function ProfileForm({
               readOnly={pending}
               maxLength={bioMaxLength}
               placeholder={t("bioPlaceholder")}
-              className="min-h-32 max-h-64 overflow-y-auto"
               aria-labelledby="about-heading"
               aria-invalid={!!bioError}
               aria-describedby={describedBy({

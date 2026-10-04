@@ -9,9 +9,11 @@
   "preview_urls": false,
   "vars": {
     "BETTER_AUTH_URL": "https://craftsmen.quantum-amplitude.tech",
-    "WEB_ORIGIN": "https://craftsmen.quantum-amplitude.tech"
+    "WEB_ORIGIN": "https://craftsmen.quantum-amplitude.tech",
+    "CONTACT_SENDER_EMAIL": "no-reply@mail.example.com",
+    "CONTACT_RECIPIENT_EMAIL": "contact@example.com"
   },
-  "secrets": { "required": ["BETTER_AUTH_SECRET", "TURNSTILE_SECRET_KEY"] },
+  "secrets": { "required": ["BETTER_AUTH_SECRET", "TURNSTILE_SECRET_KEY", "RESEND_API_KEY"] },
   "hyperdrive": [
     {
       "binding": "HYPERDRIVE",
@@ -23,9 +25,11 @@
     "preview": {
       "vars": {
         "BETTER_AUTH_URL": "http://localhost:3001",
-        "WEB_ORIGIN": "http://localhost:3000"
+        "WEB_ORIGIN": "http://localhost:3000",
+        "CONTACT_SENDER_EMAIL": "no-reply@mail.example.com",
+        "CONTACT_RECIPIENT_EMAIL": "contact@example.com"
       },
-      "secrets": { "required": ["BETTER_AUTH_SECRET", "TURNSTILE_SECRET_KEY"] },
+      "secrets": { "required": ["BETTER_AUTH_SECRET", "TURNSTILE_SECRET_KEY", "RESEND_API_KEY"] },
       "hyperdrive": [
         {
           "binding": "HYPERDRIVE",
@@ -37,9 +41,11 @@
     "test": {
       "vars": {
         "BETTER_AUTH_URL": "http://localhost:3001",
-        "WEB_ORIGIN": "http://localhost:3000"
+        "WEB_ORIGIN": "http://localhost:3000",
+        "CONTACT_SENDER_EMAIL": "no-reply@example.com",
+        "CONTACT_RECIPIENT_EMAIL": "contact@example.com"
       },
-      "secrets": { "required": ["BETTER_AUTH_SECRET", "TURNSTILE_SECRET_KEY"] },
+      "secrets": { "required": ["BETTER_AUTH_SECRET", "TURNSTILE_SECRET_KEY", "RESEND_API_KEY"] },
       "hyperdrive": [
         {
           "binding": "HYPERDRIVE",
