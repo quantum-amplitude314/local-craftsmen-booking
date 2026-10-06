@@ -1,5 +1,7 @@
 # Local Craftsmen
 
+![Local Craftsmen](apps/web/src/app/%5Blocale%5D/opengraph-image.jpg)
+
 Booking platform connecting customers with local craftsmen. PoC Demo Project.
 
 ## Repo layout
@@ -10,7 +12,7 @@ apps/api                Hono app, oRPC router, Bun entry, Worker entry, Bruno co
 packages/application    framework-neutral application services
 packages/contracts      oRPC contract: Zod schemas, shared enums, routes
 packages/db             Drizzle schema, migrations, location data, seeds
-packages/config         shared tsconfig and Biome
+packages/config         shared tsconfig
 apps/api/bruno          Bruno collection
 ```
 
@@ -31,7 +33,10 @@ apps/api/bruno          Bruno collection
 ## Local setup
 
 ```sh
+curl -fsSL https://bun.com/install | bash   # see https://bun.com/docs/installation
+bun add -g @biomejs/biome                   # or bun add -d @biomejs/biome
 bun install
+bun run db:up                               # PostgreSQL in podman
 ```
 
 - First setup sections in

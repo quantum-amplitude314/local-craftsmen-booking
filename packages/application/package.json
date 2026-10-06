@@ -2,6 +2,7 @@
   "name": "@local-craftsmen/application",
   "version": "1.2.0",
   "private": true,
+  "packageManager": "bun@1.4.2",
   "type": "module",
   "exports": {
     ".": "./src/index.ts"
@@ -12,9 +13,10 @@
   "dependencies": {
     "@local-craftsmen/contracts": "workspace:*",
     "@local-craftsmen/db": "workspace:*",
-    "drizzle-orm": "^0.45.2"
+    "drizzle-orm": "^0.45.3"
   },
   "devDependencies": {
     "@local-craftsmen/config": "workspace:*"
-  }
+  },
+  "trustedDependencies": []
 }
