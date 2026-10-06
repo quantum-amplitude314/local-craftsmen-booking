@@ -20,7 +20,13 @@ import {
 import { Link } from "@/i18n/navigation";
 import type { AuthError } from "@/lib/auth-form-state";
 
-export function AccountMenu({ user }: { user: Pick<SessionUser, "name" | "email" | "role"> }) {
+export function AccountMenu({
+  user,
+  deployedVersion,
+}: {
+  user: Pick<SessionUser, "name" | "email" | "role">;
+  deployedVersion: string;
+}) {
   const locale = useLocale();
   const t = useTranslations("header");
   const tAuth = useTranslations("auth");
@@ -61,6 +67,9 @@ export function AccountMenu({ user }: { user: Pick<SessionUser, "name" | "email"
         <DropdownMenuGroup>
           <DropdownMenuItem closeOnClick={false} disabled={pending} onClick={handleSignOut}>
             {tAuth(pending ? "signingOut" : "signOut")}
+            <span className="ml-auto text-xs text-muted-foreground tabular-nums">
+              {deployedVersion}
+            </span>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         {error && (

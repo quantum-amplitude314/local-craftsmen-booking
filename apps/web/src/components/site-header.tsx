@@ -5,12 +5,14 @@ import { LocaleSwitcher } from "@/components/locale-switcher";
 import { PaletteToggle } from "@/components/palette-toggle";
 import { buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
+import { getDeployedVersion } from "@/lib/app-version";
 import { getCurrentUser } from "@/lib/auth";
 
 async function AccountNavigation() {
-  const [user, t] = await Promise.all([
+  const [user, t, deployedVersion] = await Promise.all([
     getCurrentUser().catch(() => null),
     getTranslations("header"),
+    getDeployedVersion(),
   ]);
 
   return user ? (
@@ -21,7 +23,7 @@ async function AccountNavigation() {
         </Link>
       </nav>
       <PaletteToggle />
-      <AccountMenu user={user} />
+      <AccountMenu user={user} deployedVersion={deployedVersion} />
     </div>
   ) : (
     <div className="ml-auto flex flex-wrap items-center justify-end gap-2">

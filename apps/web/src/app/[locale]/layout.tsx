@@ -9,6 +9,7 @@ import { QaCredit } from "@/components/qa-credit";
 import { SiteHeader } from "@/components/site-header";
 import { Link } from "@/i18n/navigation";
 import { type Locale, routing } from "@/i18n/routing";
+import { appVersion } from "@/lib/app-version";
 import { getEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
@@ -94,9 +95,12 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
               </p>
               <p>{t("tagline")}</p>
             </div>
-            <p className="mt-4 text-center">
-              <QaCredit label={t("credit")} />
-            </p>
+            <div className="mt-4 grid grid-cols-[1fr_auto_1fr] items-baseline gap-2">
+              <p className="col-start-2">
+                <QaCredit label={t("credit")} />
+              </p>
+              <p className="justify-self-end">{appVersion}</p>
+            </div>
           </footer>
         </NextIntlClientProvider>
       </body>
