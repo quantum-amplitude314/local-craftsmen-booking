@@ -1,3 +1,4 @@
+import { env as workerBindings } from "cloudflare:workers";
 import {
   createBookingsService,
   createCraftsmenService,
@@ -12,18 +13,19 @@ import { parseWorkerEnv } from "./env.ts";
 import { createResendTransport } from "./mail-transports.ts";
 import { createTurnstile } from "./turnstile.ts";
 
+const {
+  BETTER_AUTH_SECRET,
+  BETTER_AUTH_URL,
+  WEB_ORIGIN,
+  TURNSTILE_SECRET_KEY,
+  RESEND_API_KEY,
+  CONTACT_SENDER_EMAIL,
+  CONTACT_RECIPIENT_EMAIL,
+} = parseWorkerEnv(workerBindings);
+
 const app = createApp<Env>({
   createApiContext: ({ bindings }) => {
     const { HYPERDRIVE: hyperdrive } = bindings;
-    const {
-      BETTER_AUTH_SECRET,
-      BETTER_AUTH_URL,
-      WEB_ORIGIN,
-      TURNSTILE_SECRET_KEY,
-      RESEND_API_KEY,
-      CONTACT_SENDER_EMAIL,
-      CONTACT_RECIPIENT_EMAIL,
-    } = parseWorkerEnv(bindings);
     const { db } = createDb({
       connectionString: hyperdrive.connectionString,
       fetchTypes: false,

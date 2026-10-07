@@ -1,6 +1,6 @@
 {
   "name": "@local-craftsmen/application",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "packageManager": "bun@1.4.2",
   "type": "module",
@@ -13,7 +13,7 @@
   "dependencies": {
     "@local-craftsmen/contracts": "workspace:*",
     "@local-craftsmen/db": "workspace:*",
-    "drizzle-orm": "^0.45.3"
+    "drizzle-orm": "catalog:"
   },
   "devDependencies": {
     "@local-craftsmen/config": "workspace:*"
