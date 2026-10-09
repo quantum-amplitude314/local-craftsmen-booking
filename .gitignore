@@ -1,5 +1,9 @@
 archive/
+.ignore
+
+# private: nested repos
 docs/
+packages/maintain/
 node_modules/
 .turbo/
 .next/

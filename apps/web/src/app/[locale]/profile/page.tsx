@@ -2,6 +2,7 @@ import { userRoleSchema } from "@local-craftsmen/contracts";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ProfileForm } from "@/components/profile-form";
+import { SessionExpired } from "@/components/session-expired";
 import { redirect } from "@/i18n/navigation";
 import { apiClient } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
@@ -16,7 +17,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 
 export default async function ProfilePage() {
   const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
-  if (!user) return redirect({ href: "/login", locale });
+  if (!user) return <SessionExpired />;
   if (user.role !== userRoleSchema.enum.craftsman) return redirect({ href: "/dashboard", locale });
   const [t, profile, locations] = await Promise.all([
     getTranslations("profile"),

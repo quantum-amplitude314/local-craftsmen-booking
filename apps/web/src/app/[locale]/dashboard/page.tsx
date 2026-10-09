@@ -5,9 +5,9 @@ import {
   type UserRole,
 } from "@local-craftsmen/contracts";
 import type { Metadata } from "next";
-import { getLocale, getTranslations } from "next-intl/server";
+import { getTranslations } from "next-intl/server";
 import type { ComponentType } from "react";
-import { redirect } from "@/i18n/navigation";
+import { SessionExpired } from "@/components/session-expired";
 import { getCurrentUser } from "@/lib/auth";
 import type { ScheduleParams } from "@/lib/dashboard-schedules";
 import { CraftsmanDashboard } from "./craftsman-dashboard";
@@ -26,9 +26,8 @@ export const generateMetadata = async (): Promise<Metadata> => {
 };
 
 export default async function DashboardPage({ searchParams }: PageProps<"/[locale]/dashboard">) {
-  const [user, locale, t, { day, city, craft, district, jobDay }] = await Promise.all([
+  const [user, t, { day, city, craft, district, jobDay }] = await Promise.all([
     getCurrentUser(),
-    getLocale(),
     getTranslations("dashboard"),
     searchParams,
   ]);
@@ -37,7 +36,7 @@ export default async function DashboardPage({ searchParams }: PageProps<"/[local
   const requestedCity = cityIdSchema.safeParse(city);
   const requestedCraft = craftSchema.safeParse(craft);
   const requestedJobDay = scheduleDateSchema.safeParse(jobDay);
-  if (!user) return redirect({ href: "/login", locale });
+  if (!user) return <SessionExpired />;
   const { name, role } = user;
   const RoleDashboard = roleDashboards[role];
 

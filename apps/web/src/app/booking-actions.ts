@@ -2,13 +2,22 @@
 
 import { type BookingAction, bookingActionSchema, idSchema } from "@local-craftsmen/contracts";
 import { ORPCError } from "@orpc/client";
+import { refresh } from "next/cache";
 import { apiClient } from "@/lib/api";
-import { getCurrentUser } from "@/lib/auth";
-import { revalidateLocalized } from "@/lib/revalidate";
+import { isAccessRefused } from "@/lib/api-errors";
 
 export type BookingActionState = { error?: "refused" | "advanceFailed" | "unauthorized" };
 
-const bookedPaths = ["/dashboard"];
+/** Someone else moved the job on first; the refreshed page will show where it stands now. */
+const isRefused = (error: unknown) =>
+  error instanceof ORPCError && ["CONFLICT", "NOT_FOUND"].includes(error.code);
+
+const advanceError = (error: unknown) => {
+  if (isRefused(error)) return "refused";
+  if (isAccessRefused(error)) return "unauthorized";
+
+  return "advanceFailed";
+};
 
 export const advanceBooking = async (input: {
   id: string;
@@ -21,24 +30,17 @@ export const advanceBooking = async (input: {
 
     return invalid;
   }
-  if (!(await getCurrentUser())) {
-    const unauthorized: BookingActionState = { error: "unauthorized" };
-
-    return unauthorized;
-  }
 
   try {
     await apiClient.me.bookings[action.data]({ id: id.data });
   } catch (error) {
-    // Someone else moved the job on first; the refreshed page will show where it stands now.
-    const refused = error instanceof ORPCError && ["CONFLICT", "NOT_FOUND"].includes(error.code);
-    const failure: BookingActionState = { error: refused ? "refused" : "advanceFailed" };
-    if (refused) revalidateLocalized(bookedPaths);
+    const failure: BookingActionState = { error: advanceError(error) };
+    if (isRefused(error)) refresh();
 
     return failure;
   }
 
-  revalidateLocalized(bookedPaths);
+  refresh();
   const advanced: BookingActionState = {};
 
   return advanced;

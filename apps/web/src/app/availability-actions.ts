@@ -1,15 +1,10 @@
 "use server";
 
-import {
-  idSchema,
-  type SlotInput,
-  slotInputSchema,
-  userRoleSchema,
-} from "@local-craftsmen/contracts";
+import { idSchema, type SlotInput, slotInputSchema } from "@local-craftsmen/contracts";
 import { ORPCError } from "@orpc/client";
+import { refresh } from "next/cache";
 import { apiClient } from "@/lib/api";
-import { getCurrentUser } from "@/lib/auth";
-import { revalidateLocalized } from "@/lib/revalidate";
+import { isAccessRefused } from "@/lib/api-errors";
 
 export type SlotFormState = {
   error?: "invalid" | "occupied" | "saveFailed" | "unauthorized";
@@ -18,21 +13,13 @@ export type SlotFormState = {
 
 export type DeleteSlotState = { error?: "deleteFailed" | "unauthorized" };
 
-const scheduledPaths = ["/dashboard"];
-
-const isCraftsman = async () => {
-  const user = await getCurrentUser();
-  const craftsman = user?.role === userRoleSchema.enum.craftsman;
-
-  return craftsman;
-};
-
 const slotErrorsByCode: Record<string, SlotFormState["error"]> = {
   CONFLICT: "occupied",
   BAD_REQUEST: "invalid",
 };
 
 const slotError = (error: unknown) => {
+  if (isAccessRefused(error)) return "unauthorized";
   const reason = (error instanceof ORPCError && slotErrorsByCode[error.code]) || "saveFailed";
 
   return reason;
@@ -45,11 +32,6 @@ export const createSlot = async (input: SlotInput): Promise<SlotFormState> => {
 
     return invalid;
   }
-  if (!(await isCraftsman())) {
-    const unauthorized: SlotFormState = { error: "unauthorized" };
-
-    return unauthorized;
-  }
 
   try {
     await apiClient.me.availability.create(parsed.data);
@@ -59,7 +41,7 @@ export const createSlot = async (input: SlotInput): Promise<SlotFormState> => {
     return failure;
   }
 
-  revalidateLocalized(scheduledPaths);
+  refresh();
   const saved: SlotFormState = { saved: true };
 
   return saved;
@@ -72,24 +54,21 @@ export const deleteSlot = async (input: { id: string }): Promise<DeleteSlotState
 
     return invalid;
   }
-  if (!(await isCraftsman())) {
-    const unauthorized: DeleteSlotState = { error: "unauthorized" };
-
-    return unauthorized;
-  }
 
   try {
     await apiClient.me.availability.remove({ id: parsed.data });
   } catch (error) {
     const alreadyGone = error instanceof ORPCError && error.code === "NOT_FOUND";
     if (!alreadyGone) {
-      const failure: DeleteSlotState = { error: "deleteFailed" };
+      const failure: DeleteSlotState = {
+        error: isAccessRefused(error) ? "unauthorized" : "deleteFailed",
+      };
 
       return failure;
     }
   }
 
-  revalidateLocalized(scheduledPaths);
+  refresh();
   const deleted: DeleteSlotState = {};
 
   return deleted;

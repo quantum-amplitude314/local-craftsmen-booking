@@ -132,7 +132,7 @@
   padding-block: var(--section-space);
 }
 
-/* The brand name as the OG image draws it (docs/brand/og-title.py). */
+/* The brand name as the OG image draws it (packages/maintain/brand/og-title.py). */
 @utility wordmark {
   font-family: var(--font-heading);
   font-variation-settings:

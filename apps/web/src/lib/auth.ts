@@ -6,14 +6,11 @@ import { cookies } from "next/headers";
 import { cache } from "react";
 import { apiFetch, getApiBaseUrl } from "@/lib/api-fetch";
 import { getEnv } from "@/lib/env";
+import { hasSessionCookie } from "@/lib/session-cookie";
 
 export const getCurrentUser = cache(async () => {
   const cookieStore = await cookies();
-  if (
-    !cookieStore.has("better-auth.session_token") &&
-    !cookieStore.has("__Secure-better-auth.session_token")
-  )
-    return null;
+  if (!hasSessionCookie(cookieStore)) return null;
 
   const request = new Request(new URL("/me", await getApiBaseUrl()), {
     headers: { cookie: cookieStore.toString() },

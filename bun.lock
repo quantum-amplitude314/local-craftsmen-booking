@@ -113,6 +113,17 @@
         "drizzle-kit": "^0.31.11",
       },
     },
+    "packages/maintain": {
+      "name": "@local-craftsmen/maintain",
+      "version": "1.2.2",
+      "dependencies": {
+        "better-auth": "catalog:",
+      },
+      "devDependencies": {
+        "@local-craftsmen/config": "workspace:*",
+        "@types/bun": "catalog:",
+      },
+    },
   },
   "overrides": {
     "sharp": "^0.35.5",
@@ -512,6 +523,8 @@
     "@local-craftsmen/contracts": ["@local-craftsmen/contracts@workspace:packages/contracts"],
 
     "@local-craftsmen/db": ["@local-craftsmen/db@workspace:packages/db"],
+
+    "@local-craftsmen/maintain": ["@local-craftsmen/maintain@workspace:packages/maintain"],
 
     "@local-craftsmen/web": ["@local-craftsmen/web@workspace:apps/web"],
 

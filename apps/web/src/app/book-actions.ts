@@ -2,9 +2,9 @@
 
 import { type Booking, bookingInputSchema } from "@local-craftsmen/contracts";
 import { ORPCError } from "@orpc/client";
+import { refresh } from "next/cache";
 import { apiClient } from "@/lib/api";
-import { getCurrentUser } from "@/lib/auth";
-import { revalidateLocalized } from "@/lib/revalidate";
+import { isAccessRefused } from "@/lib/api-errors";
 
 export type BookSlotState = {
   /** When the booked job starts, so the bookings calendar can open on its day. */
@@ -12,9 +12,17 @@ export type BookSlotState = {
   error?: "taken" | "invalid" | "failed" | "unauthorized";
 };
 
-const bookedPaths = ["/dashboard"];
 /** A slot someone else took first, or times that have since passed, both mean: look again. */
 const takenCodes = ["NOT_FOUND", "CONFLICT", "BAD_REQUEST"];
+
+const isTaken = (error: unknown) => error instanceof ORPCError && takenCodes.includes(error.code);
+
+const bookingError = (error: unknown) => {
+  if (isTaken(error)) return "taken";
+  if (isAccessRefused(error)) return "unauthorized";
+
+  return "failed";
+};
 
 export const bookSlot = async (input: unknown): Promise<BookSlotState> => {
   const parsed = bookingInputSchema.safeParse(input);
@@ -23,25 +31,18 @@ export const bookSlot = async (input: unknown): Promise<BookSlotState> => {
 
     return invalid;
   }
-  const account = await getCurrentUser();
-  if (account?.role !== "customer") {
-    const unauthorized: BookSlotState = { error: "unauthorized" };
-
-    return unauthorized;
-  }
 
   let created: Booking;
   try {
     created = await apiClient.bookings.create(parsed.data);
   } catch (error) {
-    const taken = error instanceof ORPCError && takenCodes.includes(error.code);
-    const failure: BookSlotState = { error: taken ? "taken" : "failed" };
-    if (taken) revalidateLocalized(bookedPaths);
+    const failure: BookSlotState = { error: bookingError(error) };
+    if (isTaken(error)) refresh();
 
     return failure;
   }
 
-  revalidateLocalized(bookedPaths);
+  refresh();
   const booked: BookSlotState = { bookedStart: created.start };
 
   return booked;
