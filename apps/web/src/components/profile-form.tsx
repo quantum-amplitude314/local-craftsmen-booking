@@ -23,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   type ProfileField,
   type ProfileFormState,
@@ -347,5 +348,23 @@ export function ProfileForm({
         </div>
       </div>
     </form>
+  );
+}
+
+/** The form's shape while the profile loads. */
+export function ProfileFormSkeleton() {
+  const t = useTranslations("shell");
+
+  return (
+    <div aria-busy="true" className="flex max-w-2xl flex-col gap-6">
+      <p role="status" className="sr-only">
+        {t("loading")}
+      </p>
+      <Skeleton className="h-7 w-40" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-24 w-full" />
+      <Skeleton className="h-10 w-32" />
+    </div>
   );
 }

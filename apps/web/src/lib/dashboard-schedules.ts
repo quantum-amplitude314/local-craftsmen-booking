@@ -1,14 +1,14 @@
 import "server-only";
 
-import type { Area, CityId, Craft } from "@local-craftsmen/contracts";
-import { getAvailabilityDay } from "@/lib/availability-day";
-import { getMonthBookings } from "@/lib/month-bookings";
+import {
+  type CityId,
+  type Craft,
+  cityIdSchema,
+  craftSchema,
+  scheduleDateSchema,
+} from "@local-craftsmen/contracts";
 
-/**
- * What the dashboard URL says its reader is looking at: the craftsman's planner or the customer's
- * offer on the left, bookings on the right. The two keep separate days: they are two clocks, and
- * reading a job must not move the other side.
- */
+/** The dashboard URL; the schedule and the bookings calendar each keep their own day. */
 export type ScheduleParams = {
   day: string | undefined;
   cityId: CityId | undefined;
@@ -18,17 +18,22 @@ export type ScheduleParams = {
   jobDay: string | undefined;
 };
 
-export const getDashboardSchedules = async ({
-  day,
-  cityId,
-  jobDay,
-  baseArea,
-}: Pick<ScheduleParams, "day" | "cityId" | "jobDay"> & { baseArea: Area }) => {
-  const [availability, bookings] = await Promise.all([
-    getAvailabilityDay({ day, cityId, baseArea }),
-    getMonthBookings({ day: jobDay }),
-  ]);
-  const schedules = { availability, bookings };
+export type DashboardSearchParams = PageProps<"/[locale]/dashboard">["searchParams"];
 
-  return schedules;
+/** An unreadable value counts as absent, and each schedule falls back to its own default. */
+export const readScheduleParams = async (searchParams: DashboardSearchParams) => {
+  const { day, city, craft, district, jobDay } = await searchParams;
+  const requestedDay = scheduleDateSchema.safeParse(day);
+  const requestedCity = cityIdSchema.safeParse(city);
+  const requestedCraft = craftSchema.safeParse(craft);
+  const requestedJobDay = scheduleDateSchema.safeParse(jobDay);
+  const params: ScheduleParams = {
+    day: requestedDay.success ? requestedDay.data : undefined,
+    cityId: requestedCity.success ? requestedCity.data : undefined,
+    craft: requestedCraft.success ? requestedCraft.data : undefined,
+    districtId: typeof district === "string" && district ? district : undefined,
+    jobDay: requestedJobDay.success ? requestedJobDay.data : undefined,
+  };
+
+  return params;
 };

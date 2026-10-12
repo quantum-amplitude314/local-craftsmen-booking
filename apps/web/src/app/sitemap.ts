@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
 import { type Locale, localePrefix, routing } from "@/i18n/routing";
-import { getEnv } from "@/lib/env";
+import { getWebOrigin } from "@/lib/env";
 
 const PUBLIC_PATHS = ["/", "/contact", "/login", "/register"];
 
 const sitemap = async () => {
-  const { WEB_ORIGIN: webOrigin } = await getEnv();
+  const webOrigin = await getWebOrigin();
   const localizedUrl = ({ locale, path }: { locale: Locale; path: string }) => {
     const prefix = localePrefix(locale);
     const url = `${webOrigin}${prefix}${prefix && path === "/" ? "" : path}`;

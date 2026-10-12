@@ -292,7 +292,8 @@
     "description": "We monitor errors and will look into it. Try again later.",
     "retry": "Try again",
     "home": "Back to home",
-    "code": "Error code: {digest}"
+    "code": "Error code: {digest}",
+    "section": "This part didn't load."
   },
   "craftsman": {
     "title": "{name} | Local Craftsmen",

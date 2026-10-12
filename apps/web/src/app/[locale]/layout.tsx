@@ -10,7 +10,7 @@ import { SiteHeader } from "@/components/site-header";
 import { Link } from "@/i18n/navigation";
 import { type Locale, routing } from "@/i18n/routing";
 import { appVersion } from "@/lib/app-version";
-import { getEnv } from "@/lib/env";
+import { getWebOrigin } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 const fraunces = Fraunces({
@@ -26,11 +26,13 @@ const notoSans = Noto_Sans({
 
 const OPEN_GRAPH_LOCALES: Record<Locale, string> = { en: "en_US", cs: "cs_CZ" };
 
+export const generateStaticParams = () => routing.locales.map((locale) => ({ locale }));
+
 export const generateMetadata = async (): Promise<Metadata> => {
-  const [t, locale, { WEB_ORIGIN: webOrigin }] = await Promise.all([
+  const [t, locale, webOrigin] = await Promise.all([
     getTranslations(),
     getLocale(),
-    getEnv(),
+    getWebOrigin(),
   ]);
   const title = t("metadata.title");
   const description = t("metadata.description");

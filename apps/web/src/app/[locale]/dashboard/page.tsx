@@ -1,21 +1,24 @@
-import {
-  cityIdSchema,
-  craftSchema,
-  scheduleDateSchema,
-  type UserRole,
-} from "@local-craftsmen/contracts";
+import type { UserRole } from "@local-craftsmen/contracts";
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import type { ComponentType } from "react";
-import { SessionExpired } from "@/components/session-expired";
+import { type ComponentType, Suspense } from "react";
+import { BookingHistoryButton } from "@/components/booking-history-button";
+import { SectionError } from "@/components/section-error";
+import { SessionGate } from "@/components/session-gate";
 import { getCurrentUser } from "@/lib/auth";
-import type { ScheduleParams } from "@/lib/dashboard-schedules";
-import { CraftsmanDashboard } from "./craftsman-dashboard";
-import { CustomerDashboard } from "./customer-dashboard";
+import {
+  type DashboardSearchParams,
+  readScheduleParams,
+  type ScheduleParams,
+} from "@/lib/dashboard-schedules";
+import { BookingsCalendar } from "./bookings-calendar";
+import { CraftsmanSchedule } from "./craftsman-schedule";
+import { CustomerSchedule } from "./customer-schedule";
+import { CalendarSkeleton, GreetingSkeleton, ScheduleSkeleton } from "./skeletons";
 
-const roleDashboards: Record<UserRole, ComponentType<ScheduleParams>> = {
-  customer: CustomerDashboard,
-  craftsman: CraftsmanDashboard,
+const roleSchedules: Record<UserRole, ComponentType<ScheduleParams>> = {
+  customer: CustomerSchedule,
+  craftsman: CraftsmanSchedule,
 };
 
 export const generateMetadata = async (): Promise<Metadata> => {
@@ -25,20 +28,26 @@ export const generateMetadata = async (): Promise<Metadata> => {
   return metadata;
 };
 
+async function Greeting() {
+  const [user, t] = await Promise.all([getCurrentUser(), getTranslations("dashboard")]);
+
+  return user ? (
+    <h1 className="min-w-0 wrap-anywhere text-muted-foreground">
+      {t("welcome", { name: user.name })}
+    </h1>
+  ) : null;
+}
+
+async function RoleSchedule({ searchParams }: { searchParams: DashboardSearchParams }) {
+  const [user, params] = await Promise.all([getCurrentUser(), readScheduleParams(searchParams)]);
+  if (!user) return null;
+  const Schedule = roleSchedules[user.role];
+
+  return <Schedule {...params} />;
+}
+
 export default async function DashboardPage({ searchParams }: PageProps<"/[locale]/dashboard">) {
-  const [user, t, { day, city, craft, district, jobDay }] = await Promise.all([
-    getCurrentUser(),
-    getTranslations("dashboard"),
-    searchParams,
-  ]);
-  // An unreadable value counts as absent, and each dashboard falls back to its own default.
-  const requestedDay = scheduleDateSchema.safeParse(day);
-  const requestedCity = cityIdSchema.safeParse(city);
-  const requestedCraft = craftSchema.safeParse(craft);
-  const requestedJobDay = scheduleDateSchema.safeParse(jobDay);
-  if (!user) return <SessionExpired />;
-  const { name, role } = user;
-  const RoleDashboard = roleDashboards[role];
+  const t = await getTranslations("dashboard");
 
   return (
     <main
@@ -46,14 +55,37 @@ export default async function DashboardPage({ searchParams }: PageProps<"/[local
       tabIndex={-1}
       className="dashboard-shell flex flex-col gap-6 py-4 sm:py-6"
     >
-      <h1 className="min-w-0 wrap-anywhere text-muted-foreground">{t("welcome", { name })}</h1>
-      <RoleDashboard
-        day={requestedDay.success ? requestedDay.data : undefined}
-        cityId={requestedCity.success ? requestedCity.data : undefined}
-        craft={requestedCraft.success ? requestedCraft.data : undefined}
-        districtId={typeof district === "string" && district ? district : undefined}
-        jobDay={requestedJobDay.success ? requestedJobDay.data : undefined}
-      />
+      <Suspense fallback={null}>
+        <SessionGate />
+      </Suspense>
+      <Suspense fallback={<GreetingSkeleton />}>
+        <Greeting />
+      </Suspense>
+      <div className="flex flex-col gap-10 xl:flex-row xl:items-start">
+        <div className="w-full min-w-0 max-w-172 flex-1">
+          <SectionError>
+            <Suspense fallback={<ScheduleSkeleton />}>
+              <RoleSchedule searchParams={searchParams} />
+            </Suspense>
+          </SectionError>
+        </div>
+        <section
+          className="flex w-full min-w-0 max-w-172 flex-1 flex-col gap-6 border-t pt-6"
+          aria-labelledby="bookings-heading"
+        >
+          <div className="flex min-w-0 items-center justify-between gap-4">
+            <h2 id="bookings-heading" className="section-heading">
+              {t("sections.bookings")}
+            </h2>
+            <BookingHistoryButton />
+          </div>
+          <SectionError>
+            <Suspense fallback={<CalendarSkeleton />}>
+              <BookingsCalendar searchParams={searchParams} />
+            </Suspense>
+          </SectionError>
+        </section>
+      </div>
     </main>
   );
 }

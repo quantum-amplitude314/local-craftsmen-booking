@@ -9,13 +9,30 @@ import { getDeployedVersion } from "@/lib/app-version";
 import { getCurrentUser } from "@/lib/auth";
 
 async function AccountNavigation() {
-  const [user, t, deployedVersion] = await Promise.all([
+  const [user, t] = await Promise.all([
     getCurrentUser().catch(() => null),
     getTranslations("header"),
-    getDeployedVersion(),
   ]);
+  if (!user) {
+    return (
+      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+        <LocaleSwitcher />
+        <PaletteToggle />
+        <nav aria-label={t("accountNavigation")} className="flex items-center gap-2">
+          <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
+            {t("signIn")}
+          </Link>
+          <Link href="/register" className={buttonVariants({ variant: "outline" })}>
+            {t("createAccount")}
+          </Link>
+        </nav>
+      </div>
+    );
+  }
+  // After the session read: the Worker's version exists only at request time.
+  const deployedVersion = await getDeployedVersion();
 
-  return user ? (
+  return (
     <div className="ml-auto flex items-center gap-2 sm:gap-3">
       <nav aria-label={t("accountNavigation")}>
         <Link href="/dashboard" className={buttonVariants({ variant: "ghost", size: "lg" })}>
@@ -24,19 +41,6 @@ async function AccountNavigation() {
       </nav>
       <PaletteToggle />
       <AccountMenu user={user} deployedVersion={deployedVersion} />
-    </div>
-  ) : (
-    <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-      <LocaleSwitcher />
-      <PaletteToggle />
-      <nav aria-label={t("accountNavigation")} className="flex items-center gap-2">
-        <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
-          {t("signIn")}
-        </Link>
-        <Link href="/register" className={buttonVariants({ variant: "outline" })}>
-          {t("createAccount")}
-        </Link>
-      </nav>
     </div>
   );
 }

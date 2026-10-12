@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { cacheLife } from "next/cache";
 import { z } from "zod";
 
 const envSchema = z
@@ -25,4 +26,12 @@ export const getEnv = () => {
   env ??= loadEnv();
 
   return env;
+};
+
+export const getWebOrigin = async () => {
+  "use cache";
+  cacheLife("max");
+  const { WEB_ORIGIN: webOrigin } = await getEnv();
+
+  return webOrigin;
 };

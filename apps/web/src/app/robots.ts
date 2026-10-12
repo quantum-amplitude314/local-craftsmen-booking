@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
 import { localePrefix, routing } from "@/i18n/routing";
-import { getEnv } from "@/lib/env";
+import { getWebOrigin } from "@/lib/env";
 
 const PRIVATE_PATHS = ["/dashboard", "/profile", "/craftsmen/"];
 
 const robots = async () => {
-  const { WEB_ORIGIN: webOrigin } = await getEnv();
+  const webOrigin = await getWebOrigin();
   const disallow = routing.locales.flatMap((locale) =>
     PRIVATE_PATHS.map((path) => `${localePrefix(locale)}${path}`),
   );

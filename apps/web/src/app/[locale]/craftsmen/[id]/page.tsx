@@ -5,13 +5,13 @@ import { notFound } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
 import { cache, Suspense } from "react";
 import { CraftsmanProfile, CraftsmanProfileSkeleton } from "@/components/craftsman-profile";
-import { SessionExpired } from "@/components/session-expired";
+import { SectionError } from "@/components/section-error";
+import { SessionGate } from "@/components/session-gate";
 import { apiClient } from "@/lib/api";
 import { getCurrentUser } from "@/lib/auth";
 import { prepareCraftsmanDetail } from "@/lib/craftsman-detail-model";
 import { formattingLocale } from "@/lib/intl-locale";
 
-/** One read per request for the title and the page; an id without a profile reads as none. */
 const findCraftsman = cache(async (id: string) => {
   try {
     const craftsman = await apiClient.craftsmen.find({ id });
@@ -37,10 +37,12 @@ export const generateMetadata = async ({
   return metadata;
 };
 
-/** Everything that waits for the API streams in here, behind the Card's skeleton. */
-async function CraftsmanProfileSection({ id }: { id: string }) {
-  const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
-  if (!user) return <SessionExpired />;
+/** Everything that waits for the request streams in here, behind the Card's skeleton. */
+async function CraftsmanProfileSection({
+  params,
+}: Pick<PageProps<"/[locale]/craftsmen/[id]">, "params">) {
+  const [{ id }, user, locale] = await Promise.all([params, getCurrentUser(), getLocale()]);
+  if (!user) return null;
   const [craftsman, t, craftName, cityName] = await Promise.all([
     findCraftsman(id),
     getTranslations("craftsman"),
@@ -58,14 +60,17 @@ async function CraftsmanProfileSection({ id }: { id: string }) {
   return <CraftsmanProfile profile={profile} />;
 }
 
-export default async function CraftsmanPage({ params }: PageProps<"/[locale]/craftsmen/[id]">) {
-  const { id } = await params;
-
+export default function CraftsmanPage({ params }: PageProps<"/[locale]/craftsmen/[id]">) {
   return (
     <main id="main-content" tabIndex={-1} className="page-shell flex flex-col gap-8 py-8 sm:py-10">
-      <Suspense fallback={<CraftsmanProfileSkeleton />}>
-        <CraftsmanProfileSection id={id} />
+      <Suspense fallback={null}>
+        <SessionGate />
       </Suspense>
+      <SectionError>
+        <Suspense fallback={<CraftsmanProfileSkeleton />}>
+          <CraftsmanProfileSection params={params} />
+        </Suspense>
+      </SectionError>
     </main>
   );
 }

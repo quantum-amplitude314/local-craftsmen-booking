@@ -9,11 +9,11 @@ import { TurnstileWidget } from "@/components/turnstile-widget";
 import { Button } from "@/components/ui/button";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { type ContactFeedback, type ContactSender, validateContactForm } from "@/lib/contact-form";
 import { useGoBack } from "@/lib/use-go-back";
 
-/** A signed-in sender sees their name and email locked; the API takes both from the session. */
 export function ContactForm({ sender }: { sender: ContactSender | null }) {
   const t = useTranslations("contact");
   const goBack = useGoBack({ fallback: "/" });
@@ -183,5 +183,23 @@ export function ContactForm({ sender }: { sender: ContactSender | null }) {
         </Field>
       </form>
     </>
+  );
+}
+
+/** The form's shape while the session decides whether the sender is filled in. */
+export function ContactFormSkeleton() {
+  const t = useTranslations("shell");
+
+  return (
+    <div aria-busy="true" className="flex flex-col gap-6">
+      <p role="status" className="sr-only">
+        {t("loading")}
+      </p>
+      <Skeleton className="mb-4 h-10 w-56" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-10 w-full" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-10 w-36" />
+    </div>
   );
 }

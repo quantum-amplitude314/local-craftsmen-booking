@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { ContactForm } from "@/components/contact-form";
+import { Suspense } from "react";
+import { ContactForm, ContactFormSkeleton } from "@/components/contact-form";
+import { SectionError } from "@/components/section-error";
 import { getCurrentUser } from "@/lib/auth";
 
 export const generateMetadata = async (): Promise<Metadata> => {
@@ -10,14 +12,22 @@ export const generateMetadata = async (): Promise<Metadata> => {
   return metadata;
 };
 
-export default async function ContactPage() {
+async function SenderContactForm() {
   const user = await getCurrentUser();
   const sender = user && { name: user.name, email: user.email };
 
+  return <ContactForm sender={sender} />;
+}
+
+export default function ContactPage() {
   return (
     <main id="main-content" tabIndex={-1} className="page-shell section-space">
       <div className="mx-auto w-full min-w-0 max-w-md">
-        <ContactForm sender={sender} />
+        <SectionError>
+          <Suspense fallback={<ContactFormSkeleton />}>
+            <SenderContactForm />
+          </Suspense>
+        </SectionError>
       </div>
     </main>
   );

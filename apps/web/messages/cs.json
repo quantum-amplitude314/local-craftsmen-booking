@@ -292,7 +292,8 @@
     "description": "Chyby sledujeme a podíváme se na to. Zkuste to prosím později.",
     "retry": "Zkusit znovu",
     "home": "Zpět na úvod",
-    "code": "Kód chyby: {digest}"
+    "code": "Kód chyby: {digest}",
+    "section": "Tuto část se nepodařilo načíst."
   },
   "craftsman": {
     "title": "{name} | Local Craftsmen",
