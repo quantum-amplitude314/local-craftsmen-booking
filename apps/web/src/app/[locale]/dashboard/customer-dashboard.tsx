@@ -1,4 +1,4 @@
-import { CRAFTS } from "@local-craftsmen/contracts";
+import { CRAFTS, LOCATIONS } from "@local-craftsmen/contracts";
 import { getTranslations } from "next-intl/server";
 import { BookingCalendar } from "@/components/booking-calendar";
 import { BookingHistoryButton } from "@/components/booking-history-button";
@@ -14,36 +14,35 @@ export async function CustomerDashboard({
   districtId,
   jobDay,
 }: ScheduleParams) {
-  const [t, craftName, cityName, locations, bookings] = await Promise.all([
-    getTranslations("dashboard"),
-    getTranslations("crafts"),
-    getTranslations("cities"),
-    apiClient.locations.list(),
-    getMonthBookings({ day: jobDay }),
-  ]);
-  const { today } = bookings.clock;
   // Craft and city are always chosen, the first of each until the customer picks; a district
   // outside the city is dropped.
-  const city = locations.find(({ id }) => id === cityId) ?? locations[0];
+  const city = LOCATIONS.find(({ id }) => id === cityId) ?? LOCATIONS[0];
   const filters: OfferFilters = {
     craft: craft ?? CRAFTS[0],
     cityId: city?.id ?? "",
     districtId: city?.districts.some(({ id }) => id === districtId) ? (districtId ?? "") : "",
   };
-  const slots = city
-    ? await apiClient.slots.list({
-        craft: craft ?? CRAFTS[0],
-        cityId: city.id,
-        ...(filters.districtId ? { districtId: filters.districtId } : {}),
-      })
-    : [];
+  const [t, craftName, cityName, bookings, slots] = await Promise.all([
+    getTranslations("dashboard"),
+    getTranslations("crafts"),
+    getTranslations("cities"),
+    getMonthBookings({ day: jobDay }),
+    city
+      ? apiClient.slots.list({
+          craft: craft ?? CRAFTS[0],
+          cityId: city.id,
+          ...(filters.districtId ? { districtId: filters.districtId } : {}),
+        })
+      : [],
+  ]);
+  const { today } = bookings.clock;
   // Read once here, so the server render and hydration agree on which quarters have passed.
   const now = new Date().toISOString();
   const options: OfferFilterOptions = {
     crafts: CRAFTS.map((value) => ({ value, label: craftName(value) })),
-    cities: locations.map(({ id }) => ({ value: id, label: cityName(id) })),
+    cities: LOCATIONS.map(({ id }) => ({ value: id, label: cityName(id) })),
     districtsByCity: Object.fromEntries(
-      locations.map(({ id, districts }) => [
+      LOCATIONS.map(({ id, districts }) => [
         id,
         districts.map(({ id: key, name }) => ({ value: key, label: name })),
       ]),
@@ -65,7 +64,7 @@ export async function CustomerDashboard({
         </div>
         <SlotSearch
           slots={slots}
-          locations={locations}
+          locations={LOCATIONS}
           filters={filters}
           day={day ?? today}
           today={today}

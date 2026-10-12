@@ -2,7 +2,6 @@ import { oc } from "@orpc/contract";
 import { z } from "zod";
 import { meContract } from "./auth.ts";
 import { bookingsContract, ownBookingsContract } from "./bookings.ts";
-import { locationsContract } from "./cities.ts";
 import { contactContract } from "./contact.ts";
 import { craftSchema } from "./crafts.ts";
 import { craftsmenContract, ownProfileContract } from "./craftsmen.ts";
@@ -15,7 +14,6 @@ export const contract = {
       .output(z.array(craftSchema)),
   },
   craftsmen: craftsmenContract,
-  locations: locationsContract,
   slots: slotsContract,
   bookings: bookingsContract,
   contact: contactContract,
@@ -80,6 +78,7 @@ export {
   type ProfileInput,
   profileInputSchema,
 } from "./craftsmen.ts";
+export { LOCATIONS } from "./locations.ts";
 export {
   type CraftsmanRate,
   CURRENCIES,

@@ -6,7 +6,6 @@ Overview of the routes defined in `src/`; update it when a route changes.
 POST   /auth/*                        Better Auth
 GET    /me                            session user
 GET    /crafts
-GET    /locations                     cities with districts
 GET    /slots?craft=&cityId=&districtId=&date=&start=&end=
                                       slots with at least an hour of work ahead, with craftsman,
                                       craft, rates

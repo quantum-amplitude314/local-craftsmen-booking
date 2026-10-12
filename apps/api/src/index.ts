@@ -2,7 +2,6 @@ import { env as workerBindings } from "cloudflare:workers";
 import {
   createBookingsService,
   createCraftsmenService,
-  createLocationsService,
   createMailService,
   createSlotsService,
 } from "@local-craftsmen/application";
@@ -36,7 +35,6 @@ const app = createApp<Env>({
       craftsmen: createCraftsmenService({ db }),
       slots: createSlotsService({ db }),
       bookings: createBookingsService({ db }),
-      locations: createLocationsService({ db }),
       mail: createMailService({
         transport: createResendTransport({
           apiKey: RESEND_API_KEY,

@@ -2,7 +2,6 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import {
   createBookingsService,
   createCraftsmenService,
-  createLocationsService,
   createMailService,
   createSlotsService,
   type Mail,
@@ -124,7 +123,6 @@ beforeAll(async () => {
     craftsmen: createCraftsmenService({ db }),
     slots: createSlotsService({ db }),
     bookings: createBookingsService({ db }),
-    locations: createLocationsService({ db }),
     mail: createMailService({
       transport: async (mail) => {
         sentMails.push(mail);
@@ -198,22 +196,6 @@ describe("location-aware slots and booking allocation", () => {
     craftsmanId = craftsmanProfileSchema.parse(await profile.json()).id;
     const me = await call({ path: "/me", cookie: customerCookie });
     customerId = sessionUserSchema.parse(await me.json()).id;
-  });
-
-  test("serves seeded districts grouped under their canonical cities", async () => {
-    const response = await call({ path: "/locations" });
-    expect(response.status).toBe(200);
-    const locations = await response.json();
-    expect(locations).toHaveLength(3);
-    expect(locations).toContainEqual(
-      expect.objectContaining({
-        id: "prague",
-        districts: expect.arrayContaining([
-          { id: "prague-holesovice", name: "Holešovice" },
-          { id: "prague-liben", name: "Libeň" },
-        ]),
-      }),
-    );
   });
 
   test("guards availability and booking routes by session and role", async () => {

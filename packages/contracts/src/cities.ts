@@ -1,4 +1,3 @@
-import { oc } from "@orpc/contract";
 import { z } from "zod";
 
 export const CITY_IDS = ["prague", "pilsen", "pardubice"] as const;
@@ -30,9 +29,3 @@ export const locationSchema = z.object({
   districts: z.array(z.object({ id: z.string(), name: z.string() })),
 });
 export type Location = z.infer<typeof locationSchema>;
-
-export const locationsContract = {
-  list: oc
-    .route({ method: "GET", path: "/locations", summary: "List maintained cities and districts" })
-    .output(z.array(locationSchema)),
-};

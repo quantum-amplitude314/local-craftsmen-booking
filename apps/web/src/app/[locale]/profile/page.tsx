@@ -1,4 +1,4 @@
-import { userRoleSchema } from "@local-craftsmen/contracts";
+import { LOCATIONS, userRoleSchema } from "@local-craftsmen/contracts";
 import type { Metadata } from "next";
 import { getLocale, getTranslations } from "next-intl/server";
 import { ProfileForm } from "@/components/profile-form";
@@ -19,11 +19,7 @@ export default async function ProfilePage() {
   const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
   if (!user) return <SessionExpired />;
   if (user.role !== userRoleSchema.enum.craftsman) return redirect({ href: "/dashboard", locale });
-  const [t, profile, locations] = await Promise.all([
-    getTranslations("profile"),
-    apiClient.me.profile.get(),
-    apiClient.locations.list(),
-  ]);
+  const [t, profile] = await Promise.all([getTranslations("profile"), apiClient.me.profile.get()]);
 
   return (
     <main id="main-content" tabIndex={-1} className="page-shell flex flex-col gap-8 py-8 sm:py-10">
@@ -31,7 +27,7 @@ export default async function ProfilePage() {
         <h1 className="page-heading">{t("heading")}</h1>
         <p className="body-lead text-muted-foreground">{t("description")}</p>
       </div>
-      <ProfileForm initialValues={getProfileValues(profile)} locations={locations} />
+      <ProfileForm initialValues={getProfileValues(profile)} locations={LOCATIONS} />
     </main>
   );
 }

@@ -3,6 +3,7 @@ import "server-only";
 import {
   type Area,
   type CityId,
+  LOCATIONS,
   SLOT_MAX_MINUTES,
   SLOT_MIN_MINUTES,
 } from "@local-craftsmen/contracts";
@@ -22,9 +23,8 @@ export const getAvailabilityDay = async ({
   baseArea: Area;
 }) => {
   const requestedDay = { ...(day ? { date: day } : {}), ...(cityId ? { cityId } : {}) };
-  const [schedule, locations, locale, t, tDashboard, cityName] = await Promise.all([
+  const [schedule, locale, t, tDashboard, cityName] = await Promise.all([
     apiClient.me.availability.day(requestedDay),
-    apiClient.locations.list(),
     getLocale(),
     getTranslations("dashboard.availability"),
     getTranslations("dashboard"),
@@ -32,7 +32,7 @@ export const getAvailabilityDay = async ({
   ]);
   const availability = prepareAvailability({
     schedule,
-    locations,
+    locations: LOCATIONS,
     baseArea,
     locale: formattingLocale(locale),
     text: {

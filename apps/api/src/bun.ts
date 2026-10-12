@@ -1,7 +1,6 @@
 import {
   createBookingsService,
   createCraftsmenService,
-  createLocationsService,
   createMailService,
   createSlotsService,
 } from "@local-craftsmen/application";
@@ -37,7 +36,6 @@ runtime.localCraftsmenDatabase = database;
 const craftsmen = createCraftsmenService({ db: database.db });
 const slots = createSlotsService({ db: database.db });
 const bookings = createBookingsService({ db: database.db });
-const locations = createLocationsService({ db: database.db });
 const mail = createMailService({
   transport: consoleTransport,
   contactRecipient: "contact@example.com",
@@ -56,7 +54,6 @@ const app = createApp<Record<string, never>>({
       craftsmen,
       slots,
       bookings,
-      locations,
       mail,
       turnstile,
       getAuth: () => auth,

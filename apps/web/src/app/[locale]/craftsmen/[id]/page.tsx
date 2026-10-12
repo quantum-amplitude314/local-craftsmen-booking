@@ -1,3 +1,4 @@
+import { LOCATIONS } from "@local-craftsmen/contracts";
 import { ORPCError } from "@orpc/client";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
@@ -40,9 +41,8 @@ export const generateMetadata = async ({
 async function CraftsmanProfileSection({ id }: { id: string }) {
   const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
   if (!user) return <SessionExpired />;
-  const [craftsman, locations, t, craftName, cityName] = await Promise.all([
+  const [craftsman, t, craftName, cityName] = await Promise.all([
     findCraftsman(id),
-    apiClient.locations.list(),
     getTranslations("craftsman"),
     getTranslations("crafts"),
     getTranslations("cities"),
@@ -50,7 +50,7 @@ async function CraftsmanProfileSection({ id }: { id: string }) {
   if (!craftsman) notFound();
   const profile = prepareCraftsmanDetail({
     craftsman,
-    locations,
+    locations: LOCATIONS,
     locale: formattingLocale(locale),
     text: { craftName, cityName, rate: (rate) => t("rateValue", { rate }) },
   });

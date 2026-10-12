@@ -2,7 +2,6 @@ import {
   type BookingsService,
   type CraftsmenService,
   DomainError,
-  type LocationsService,
   type MailService,
   type SlotsService,
 } from "@local-craftsmen/application";
@@ -14,7 +13,6 @@ export type ApiContext = {
   craftsmen: CraftsmenService;
   slots: SlotsService;
   bookings: BookingsService;
-  locations: LocationsService;
   mail: MailService;
   turnstile: Turnstile;
   user: SessionUser | null;
@@ -115,9 +113,6 @@ export const router = os.router({
 
       return user;
     }),
-  },
-  locations: {
-    list: os.locations.list.handler(({ context }) => context.locations.list()),
   },
   slots: {
     list: os.slots.list.handler(({ context, input }) => context.slots.search({ input })),

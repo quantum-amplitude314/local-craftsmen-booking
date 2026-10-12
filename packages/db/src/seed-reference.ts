@@ -1,11 +1,11 @@
+import { LOCATIONS } from "@local-craftsmen/contracts";
 import { sql } from "drizzle-orm";
-import locations from "../data/locations.json" with { type: "json" };
 import { createDb, type Db } from "./client.ts";
 import { readDatabaseEnv } from "./env.ts";
 import { city, district } from "./schema.ts";
 
-const cities = locations.map(({ id, name, timeZone }) => ({ id, name, timeZone }));
-const districts = locations.flatMap(({ id: cityId, districts }) =>
+const cities = LOCATIONS.map(({ id, name, timeZone }) => ({ id, name, timeZone }));
+const districts = LOCATIONS.flatMap(({ id: cityId, districts }) =>
   districts.map(({ id, name }) => ({ id, cityId, name })),
 );
 
