@@ -18,7 +18,7 @@ export function PhotoHero({
         {/* biome-ignore lint/performance/noImgElement: the Worker has no image optimizer; the AVIF is encoded ahead of time. */}
         <img
           src="/landing-hero-1440.avif"
-          srcSet="/landing-hero-1440.avif 1440w, /landing-hero-2880.avif 2880w"
+          srcSet="/landing-hero-1080.avif 1080w, /landing-hero-1440.avif 1440w, /landing-hero-2880.avif 2880w"
           sizes="(min-width: 94rem) 88rem, calc(100vw - 6rem)"
           alt=""
           width={1440}

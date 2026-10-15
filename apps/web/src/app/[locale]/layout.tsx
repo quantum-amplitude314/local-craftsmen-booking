@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Noto_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -13,15 +13,19 @@ import { appVersion } from "@/lib/app-version";
 import { getWebOrigin } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
-const fraunces = Fraunces({
-  subsets: ["latin", "latin-ext"],
+const fraunces = localFont({
+  src: "../../fonts/fraunces.woff2",
+  weight: "400 500",
   variable: "--font-fraunces",
-  axes: ["SOFT", "WONK", "opsz"],
+  display: "optional",
+  adjustFontFallback: "Times New Roman",
 });
 
-const notoSans = Noto_Sans({
-  subsets: ["latin", "latin-ext"],
+const notoSans = localFont({
+  src: "../../fonts/noto-sans.woff2",
+  weight: "400 700",
   variable: "--font-noto-sans",
+  display: "optional",
 });
 
 const OPEN_GRAPH_LOCALES: Record<Locale, string> = { en: "en_US", cs: "cs_CZ" };

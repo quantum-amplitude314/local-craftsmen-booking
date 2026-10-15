@@ -47,5 +47,5 @@ export default function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: "/((?!api|_next|_vercel|.*\\..*).*)",
+  matcher: "/((?!_next|.*\\.(?:avif|ico|jpg|png|svg|txt|xml)$).*)",
 };

@@ -5,6 +5,8 @@ import { APIError, createAuthMiddleware } from "better-auth/api";
 import { betterAuth } from "better-auth/minimal";
 import { captcha } from "better-auth/plugins";
 
+const SESSION_SECONDS = 60 * 60 * 24 * 7;
+
 export const createAuth = ({
   db,
   secret,
@@ -30,7 +32,11 @@ export const createAuth = ({
       transaction: true,
     }),
     emailAndPassword: { enabled: true, minPasswordLength: 8, maxPasswordLength: 128 },
-    session: { expiresIn: 60 * 60 * 24 * 7, disableSessionRefresh: true },
+    session: {
+      expiresIn: SESSION_SECONDS,
+      disableSessionRefresh: true,
+      cookieCache: { enabled: true, maxAge: SESSION_SECONDS },
+    },
     user: {
       additionalFields: {
         role: {

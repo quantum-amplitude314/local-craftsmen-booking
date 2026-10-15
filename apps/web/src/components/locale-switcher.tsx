@@ -30,7 +30,13 @@ export function LocaleSwitcher() {
       disabled={pending}
     >
       {localeOptions.map(({ value, code, name }) => (
-        <ToggleGroupItem key={value} value={value} lang={value} aria-label={name} title={name}>
+        <ToggleGroupItem
+          key={value}
+          value={value}
+          lang={value}
+          aria-label={`${code} ${name}`}
+          title={name}
+        >
           {code}
         </ToggleGroupItem>
       ))}
@@ -57,7 +63,7 @@ export function LocaleMenu() {
             key={value}
             value={value}
             lang={value}
-            aria-label={name}
+            aria-label={`${code} ${name}`}
             disabled={pending}
             className={cn(
               toggleVariants({ variant: "outline", size: "sm" }),

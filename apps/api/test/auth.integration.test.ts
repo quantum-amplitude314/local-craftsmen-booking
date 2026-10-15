@@ -26,6 +26,7 @@ import {
   city,
   completedBooking,
   type Db,
+  session,
 } from "@local-craftsmen/db";
 import { startTestDb } from "@local-craftsmen/db/test-db";
 import { eq } from "drizzle-orm";
@@ -1048,7 +1049,8 @@ describe("authentication", () => {
 
   test("rejects a session cookie that was tampered with", async () => {
     const { cookie } = await registerUser({ role: "customer" });
-    const response = await call({ path: "/me", cookie: `${cookie}x` });
+    const tamperedCookie = cookie.replace(/session_token=([^;]+)/, "session_token=$1x");
+    const response = await call({ path: "/me", cookie: tamperedCookie });
 
     expect(response.status).toBe(401);
   });
@@ -1077,6 +1079,18 @@ describe("authentication", () => {
 
     const me = await call({ path: "/me", cookie });
 
+    expect(me.status).toBe(401);
+  });
+
+  test("serves other routes from the session cookie cache, while /me reads the database", async () => {
+    const { cookie } = await registerUser({ role: "customer" });
+    const { id } = sessionUserSchema.parse(await (await call({ path: "/me", cookie })).json());
+    await database.delete(session).where(eq(session.userId, id));
+
+    const slots = await call({ path: "/slots?craft=painting", cookie });
+    const me = await call({ path: "/me", cookie });
+
+    expect(slots.status).toBe(200);
     expect(me.status).toBe(401);
   });
 });

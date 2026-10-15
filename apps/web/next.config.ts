@@ -16,7 +16,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  partialPrefetching: true,
   poweredByHeader: false,
+  experimental: { maxPostponedStateSize: "10mb" },
   headers: async () => [{ source: "/(.*)", headers: securityHeaders }],
 };
 const withNextIntl = createNextIntlPlugin("./src/i18n/request.ts");
