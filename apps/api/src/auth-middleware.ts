@@ -8,17 +8,15 @@ export type AuthVariables = {
   user: SessionUser;
 };
 
-/**
- * Other routes trust the session cookie cache; `/me`, called once per page, reads the database,
- * so a deleted session or user is signed out on the next page.
- */
 const FRESH_SESSION_PATH = "/me";
 
 const readSessionUser = async (context: Context<{ Variables: AuthVariables }>) => {
   const auth = context.get("getAuth")();
+  const { method, path, raw } = context.req;
+  const needsFreshSession = method !== "GET" || path === FRESH_SESSION_PATH;
   const session = await auth.api.getSession({
-    headers: context.req.raw.headers,
-    query: { disableCookieCache: context.req.path === FRESH_SESSION_PATH },
+    headers: raw.headers,
+    query: { disableCookieCache: needsFreshSession },
   });
   const user = session ? sessionUserSchema.parse(session.user) : null;
 

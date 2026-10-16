@@ -2,7 +2,7 @@ import "server-only";
 
 import { sessionUserSchema } from "@local-craftsmen/contracts";
 import { parseSetCookieHeader, toCookieOptions } from "better-auth/cookies";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { cache } from "react";
 import { apiFetch, getApiBaseUrl } from "@/lib/api-fetch";
 import { getEnv } from "@/lib/env";
@@ -34,6 +34,7 @@ export const sendAuthRequest = async ({
   captchaToken?: string | undefined;
 }) => {
   const cookieStore = await cookies();
+  const visitorIp = (await headers()).get("cf-connecting-ip");
   const { WEB_ORIGIN: webOrigin } = await getEnv();
   const request = new Request(new URL(`/auth/${endpoint}`, await getApiBaseUrl()), {
     method: "POST",
@@ -41,6 +42,7 @@ export const sendAuthRequest = async ({
       "Content-Type": "application/json",
       Origin: webOrigin,
       Cookie: cookieStore.toString(),
+      ...(visitorIp && { "X-Forwarded-For": visitorIp }),
       ...(captchaToken && { "x-captcha-response": captchaToken }),
     },
     body: JSON.stringify(body),

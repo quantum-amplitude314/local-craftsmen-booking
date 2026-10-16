@@ -1082,16 +1082,27 @@ describe("authentication", () => {
     expect(me.status).toBe(401);
   });
 
-  test("serves other routes from the session cookie cache, while /me reads the database", async () => {
+  test("serves reads from the session cookie cache, while writes and /me read the database", async () => {
     const { cookie } = await registerUser({ role: "customer" });
     const { id } = sessionUserSchema.parse(await (await call({ path: "/me", cookie })).json());
     await database.delete(session).where(eq(session.userId, id));
 
     const slots = await call({ path: "/slots?craft=painting", cookie });
+    const write = await call({ path: "/bookings", method: "POST", body: {}, cookie });
     const me = await call({ path: "/me", cookie });
 
     expect(slots.status).toBe(200);
+    expect(write.status).toBe(401);
     expect(me.status).toBe(401);
+  });
+
+  test("rejects a write with cookies kept from before sign out", async () => {
+    const { cookie } = await registerUser({ role: "customer" });
+    await call({ path: "/auth/sign-out", method: "POST", body: {}, cookie });
+
+    const write = await call({ path: "/bookings", method: "POST", body: {}, cookie });
+
+    expect(write.status).toBe(401);
   });
 });
 
