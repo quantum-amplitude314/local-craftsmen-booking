@@ -8,7 +8,7 @@ const squares = [
   { x: 13.75, y: 36.75 },
 ];
 
-export default function Loading() {
+export function LoadingView() {
   const t = useTranslations("shell");
 
   return (

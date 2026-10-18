@@ -6,6 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "routes": [{ "pattern": "craftsmen.quantum-amplitude.tech", "custom_domain": true }],
   "workers_dev": false,
+  "limits": { "cpu_ms": 3000 },
   "vars": {
     "WRANGLER_BINDING": "on",
     "WEB_ORIGIN": "https://craftsmen.quantum-amplitude.tech"

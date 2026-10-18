@@ -5,7 +5,7 @@ import { PhotoHero } from "@/components/photo-hero";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
 
-export default function ErrorPage({
+export function ErrorView({
   error,
   retry,
 }: {

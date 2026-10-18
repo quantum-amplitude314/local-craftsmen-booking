@@ -6,7 +6,6 @@ import { getLocale, getTranslations } from "next-intl/server";
 import "../globals.css";
 import { PaletteScript } from "@/components/palette-script";
 import { QaCredit } from "@/components/qa-credit";
-import { SiteHeader } from "@/components/site-header";
 import { Link } from "@/i18n/navigation";
 import { type Locale, routing } from "@/i18n/routing";
 import { appVersion } from "@/lib/app-version";
@@ -89,7 +88,6 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
           >
             {t("skipToContent")}
           </a>
-          <SiteHeader />
           {children}
           <footer className="dashboard-shell mt-auto border-t py-6 text-xs text-muted-foreground">
             <div className="flex flex-wrap justify-between gap-2">

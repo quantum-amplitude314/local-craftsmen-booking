@@ -12,7 +12,10 @@ const handleLocaleRouting = createMiddleware(routing);
  */
 const SIGNED_IN_PATHS = ["/dashboard", "/profile", "/craftsmen"];
 
-/** Pages for visitors without an account; a session cookie sends them to the dashboard. */
+/**
+ * Pages for visitors without an account; a session cookie sends them to the dashboard. The
+ * `(signed-out)` route group holds exactly these, so its header reads no session.
+ */
 const SIGNED_OUT_PATHS = ["/", "/login", "/register"];
 
 /** Splits `/cs/dashboard` into the locale prefix `/cs` and the path `/dashboard`. */

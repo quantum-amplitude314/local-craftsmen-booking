@@ -1,5 +1,5 @@
 import { getTranslations } from "next-intl/server";
-import { Suspense } from "react";
+import { type ReactNode, Suspense } from "react";
 import { AccountMenu } from "@/components/account-menu";
 import { LocaleSwitcher } from "@/components/locale-switcher";
 import { PaletteToggle } from "@/components/palette-toggle";
@@ -8,27 +8,32 @@ import { Link } from "@/i18n/navigation";
 import { getDeployedVersion } from "@/lib/app-version";
 import { getCurrentUser } from "@/lib/auth";
 
+/** The account side for a visitor without a session: sign in or create an account. */
+export async function SignedOutNavigation() {
+  const t = await getTranslations("header");
+
+  return (
+    <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+      <LocaleSwitcher />
+      <PaletteToggle />
+      <nav aria-label={t("accountNavigation")} className="flex items-center gap-2">
+        <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
+          {t("signIn")}
+        </Link>
+        <Link href="/register" className={buttonVariants({ variant: "outline" })}>
+          {t("createAccount")}
+        </Link>
+      </nav>
+    </div>
+  );
+}
+
 async function AccountNavigation() {
   const [user, t] = await Promise.all([
     getCurrentUser().catch(() => null),
     getTranslations("header"),
   ]);
-  if (!user) {
-    return (
-      <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
-        <LocaleSwitcher />
-        <PaletteToggle />
-        <nav aria-label={t("accountNavigation")} className="flex items-center gap-2">
-          <Link href="/login" className={buttonVariants({ variant: "ghost" })}>
-            {t("signIn")}
-          </Link>
-          <Link href="/register" className={buttonVariants({ variant: "outline" })}>
-            {t("createAccount")}
-          </Link>
-        </nav>
-      </div>
-    );
-  }
+  if (!user) return <SignedOutNavigation />;
   // After the session read: the Worker's version exists only at request time.
   const deployedVersion = await getDeployedVersion();
 
@@ -42,6 +47,26 @@ async function AccountNavigation() {
       <PaletteToggle />
       <AccountMenu user={user} deployedVersion={deployedVersion} />
     </div>
+  );
+}
+
+/** The account side where any visitor can arrive: it reads the session, so it streams in. */
+export async function SessionNavigation() {
+  const t = await getTranslations("header");
+
+  return (
+    <Suspense
+      fallback={
+        <Link
+          href="/dashboard"
+          className={buttonVariants({ variant: "outline", size: "lg", className: "ml-auto" })}
+        >
+          {t("myAccount")}
+        </Link>
+      }
+    >
+      <AccountNavigation />
+    </Suspense>
   );
 }
 
@@ -60,7 +85,8 @@ function BrandMark() {
   );
 }
 
-export async function SiteHeader() {
+/** The bar on every page; each route group's layout supplies its account side. */
+export async function SiteHeader({ account }: { account: ReactNode }) {
   const [t, shell] = await Promise.all([getTranslations("header"), getTranslations("shell")]);
 
   return (
@@ -69,18 +95,7 @@ export async function SiteHeader() {
         <BrandMark />
         <span className="wordmark">{shell("brand")}</span>
       </Link>
-      <Suspense
-        fallback={
-          <Link
-            href="/dashboard"
-            className={buttonVariants({ variant: "outline", size: "lg", className: "ml-auto" })}
-          >
-            {t("myAccount")}
-          </Link>
-        }
-      >
-        <AccountNavigation />
-      </Suspense>
+      {account}
     </header>
   );
 }

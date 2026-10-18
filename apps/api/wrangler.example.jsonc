@@ -6,6 +6,7 @@
   "compatibility_flags": ["nodejs_compat"],
   // Reachable only through the web Worker's service binding.
   "workers_dev": false,
+  "limits": { "cpu_ms": 1000 },
   "preview_urls": false,
   "vars": {
     "BETTER_AUTH_URL": "https://craftsmen.quantum-amplitude.tech",
