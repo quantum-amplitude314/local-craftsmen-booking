@@ -17,6 +17,7 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
+  reactCompiler: true,
   poweredByHeader: false,
   experimental: { maxPostponedStateSize: "10mb" },
   headers: async () => [{ source: "/(.*)", headers: securityHeaders }],
