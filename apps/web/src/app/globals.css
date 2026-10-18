@@ -2,6 +2,40 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Self-hosted from public/fonts and preloaded by the root layout; the -vN suffix changes with the
+   file, so it can be cached for a year. The fallbacks match the fonts' metrics. */
+@font-face {
+  font-family: "Fraunces";
+  src: url("/fonts/fraunces-v1.woff2") format("woff2");
+  font-weight: 400 500;
+  font-display: optional;
+}
+
+@font-face {
+  font-family: "Fraunces Fallback";
+  src: local("Times New Roman");
+  ascent-override: 82.81%;
+  descent-override: 21.59%;
+  line-gap-override: 0%;
+  size-adjust: 118.09%;
+}
+
+@font-face {
+  font-family: "Noto Sans";
+  src: url("/fonts/noto-sans-v1.woff2") format("woff2");
+  font-weight: 400 700;
+  font-display: optional;
+}
+
+@font-face {
+  font-family: "Noto Sans Fallback";
+  src: local("Arial");
+  ascent-override: 100.41%;
+  descent-override: 27.52%;
+  line-gap-override: 0%;
+  size-adjust: 106.47%;
+}
+
 @custom-variant dark (
   &:where(:root:not([data-palette="light"]), :root:not([data-palette="light"]) *)
 );
@@ -54,6 +88,8 @@
 }
 
 :root {
+  --font-fraunces: "Fraunces", "Fraunces Fallback";
+  --font-noto-sans: "Noto Sans", "Noto Sans Fallback";
   color-scheme: dark;
   --background: #0b132b;
   --foreground: #f4f1de;

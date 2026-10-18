@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -10,22 +9,9 @@ import { Link } from "@/i18n/navigation";
 import { type Locale, routing } from "@/i18n/routing";
 import { appVersion } from "@/lib/app-version";
 import { getWebOrigin } from "@/lib/env";
-import { cn } from "@/lib/utils";
 
-const fraunces = localFont({
-  src: "../../fonts/fraunces.woff2",
-  weight: "400 500",
-  variable: "--font-fraunces",
-  display: "optional",
-  adjustFontFallback: "Times New Roman",
-});
-
-const notoSans = localFont({
-  src: "../../fonts/noto-sans.woff2",
-  weight: "400 700",
-  variable: "--font-noto-sans",
-  display: "optional",
-});
+/** The files the @font-face rules in globals.css load; preloading starts them with the HTML. */
+const FONT_FILES = ["/fonts/fraunces-v1.woff2", "/fonts/noto-sans-v1.woff2"];
 
 const OPEN_GRAPH_LOCALES: Record<Locale, string> = { en: "en_US", cs: "cs_CZ" };
 
@@ -71,14 +57,12 @@ export default async function RootLayout({ children, params }: LayoutProps<"/[lo
   const t = await getTranslations("shell");
 
   return (
-    <html
-      lang={locale}
-      data-palette="dark"
-      suppressHydrationWarning
-      className={cn("h-full antialiased", notoSans.variable, fraunces.variable)}
-    >
+    <html lang={locale} data-palette="dark" suppressHydrationWarning className="h-full antialiased">
       <head>
         <PaletteScript />
+        {FONT_FILES.map((href) => (
+          <link key={href} rel="preload" href={href} as="font" type="font/woff2" crossOrigin="" />
+        ))}
       </head>
       <body className="flex min-h-full flex-col">
         <NextIntlClientProvider>
