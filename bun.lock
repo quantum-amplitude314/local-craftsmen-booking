@@ -12,7 +12,7 @@
     },
     "apps/api": {
       "name": "@local-craftsmen/api",
-      "version": "1.2.6",
+      "version": "1.2.7",
       "dependencies": {
         "@local-craftsmen/application": "workspace:*",
         "@local-craftsmen/contracts": "workspace:*",
@@ -35,7 +35,7 @@
     },
     "apps/web": {
       "name": "@local-craftsmen/web",
-      "version": "1.2.6",
+      "version": "1.2.7",
       "dependencies": {
         "@base-ui/react": "^1.8.0",
         "@local-craftsmen/contracts": "workspace:*",
@@ -73,7 +73,7 @@
     },
     "packages/application": {
       "name": "@local-craftsmen/application",
-      "version": "1.2.6",
+      "version": "1.2.7",
       "dependencies": {
         "@local-craftsmen/contracts": "workspace:*",
         "@local-craftsmen/db": "workspace:*",
@@ -85,11 +85,11 @@
     },
     "packages/config": {
       "name": "@local-craftsmen/config",
-      "version": "1.2.6",
+      "version": "1.2.7",
     },
     "packages/contracts": {
       "name": "@local-craftsmen/contracts",
-      "version": "1.2.6",
+      "version": "1.2.7",
       "dependencies": {
         "@orpc/contract": "catalog:",
         "@orpc/openapi": "catalog:",
@@ -102,7 +102,7 @@
     },
     "packages/db": {
       "name": "@local-craftsmen/db",
-      "version": "1.2.6",
+      "version": "1.2.7",
       "dependencies": {
         "@local-craftsmen/contracts": "workspace:*",
         "drizzle-orm": "catalog:",
@@ -117,7 +117,7 @@
     },
     "packages/maintain": {
       "name": "@local-craftsmen/maintain",
-      "version": "1.2.6",
+      "version": "1.2.7",
       "dependencies": {
         "better-auth": "catalog:",
       },

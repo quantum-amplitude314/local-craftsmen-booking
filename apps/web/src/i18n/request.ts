@@ -1,4 +1,3 @@
-import { notFound } from "next/navigation";
 import { locale as localeRootParam } from "next/root-params";
 import { hasLocale } from "next-intl";
 import { getRequestConfig } from "next-intl/server";
@@ -10,8 +9,10 @@ const messagesByLocale = { cs, en };
 
 export default getRequestConfig(async ({ locale }) => {
   const requestedLocale = locale ?? (await localeRootParam());
-  if (!hasLocale(routing.locales, requestedLocale)) notFound();
-  const config = { locale: requestedLocale, messages: messagesByLocale[requestedLocale] };
+  const supportedLocale = hasLocale(routing.locales, requestedLocale)
+    ? requestedLocale
+    : routing.defaultLocale;
+  const config = { locale: supportedLocale, messages: messagesByLocale[supportedLocale] };
 
   return config;
 });

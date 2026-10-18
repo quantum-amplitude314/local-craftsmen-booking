@@ -49,6 +49,7 @@ export default function proxy(request: NextRequest) {
   return handleLocaleRouting(request);
 }
 
+// worker.ts answers a missing file with these extensions before Next starts; keep both lists equal.
 export const config = {
   matcher: "/((?!_next|.*\\.(?:avif|ico|jpg|png|svg|txt|xml)$).*)",
 };

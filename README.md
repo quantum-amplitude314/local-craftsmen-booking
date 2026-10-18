@@ -1,6 +1,6 @@
 # Local Craftsmen
 
-![Local Craftsmen](apps/web/src/app/%5Blocale%5D/opengraph-image.jpg)
+![Local Craftsmen](apps/web/public/og-image-v1.jpg)
 
 Booking platform connecting customers with local craftsmen. PoC Demo Project.
 

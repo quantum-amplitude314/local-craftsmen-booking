@@ -7,5 +7,6 @@
     "test": { "dependsOn": ["^build", "^test"] },
     "dev": { "cache": false, "persistent": true },
     "preview": { "cache": false, "persistent": true }
-  }
+  },
+  "agentGuidance": false
 }

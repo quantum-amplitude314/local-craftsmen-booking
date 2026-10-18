@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { hasLocale, NextIntlClientProvider } from "next-intl";
+import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import "../globals.css";
 import { PaletteScript } from "@/components/palette-script";
@@ -15,6 +14,9 @@ const FONT_FILES = ["/fonts/fraunces-v1.woff2", "/fonts/noto-sans-v1.woff2"];
 
 const OPEN_GRAPH_LOCALES: Record<Locale, string> = { en: "en_US", cs: "cs_CZ" };
 
+/** Written by packages/maintain/brand/build.sh; X falls back to it. */
+const SHARE_IMAGE = { url: "/og-image-v1.jpg", type: "image/jpeg", width: 1200, height: 630 };
+
 export const generateStaticParams = () => routing.locales.map((locale) => ({ locale }));
 
 export const generateMetadata = async (): Promise<Metadata> => {
@@ -25,12 +27,12 @@ export const generateMetadata = async (): Promise<Metadata> => {
   ]);
   const title = t("metadata.title");
   const description = t("metadata.description");
-  // The shared image comes from opengraph-image.jpg beside this layout; X falls back to it.
+  const brand = t("shell.brand");
+  // The icons and the share image are files in public/, served without running the Worker.
   const metadata: Metadata = {
     metadataBase: new URL(webOrigin),
     title,
     description,
-    // Files in public/ are static assets, served without running the Worker.
     icons: {
       icon: [
         { url: "/favicon.ico", sizes: "48x48" },
@@ -40,10 +42,11 @@ export const generateMetadata = async (): Promise<Metadata> => {
     },
     openGraph: {
       type: "website",
-      siteName: t("shell.brand"),
+      siteName: brand,
       title,
       description,
       locale: OPEN_GRAPH_LOCALES[locale],
+      images: { ...SHARE_IMAGE, alt: brand },
     },
     twitter: { card: "summary_large_image" },
   };
@@ -51,10 +54,9 @@ export const generateMetadata = async (): Promise<Metadata> => {
   return metadata;
 };
 
-export default async function RootLayout({ children, params }: LayoutProps<"/[locale]">) {
-  const { locale } = await params;
-  if (!hasLocale(routing.locales, locale)) notFound();
-  const t = await getTranslations("shell");
+/** Renders for any first segment; i18n/request.ts resolves it to a supported locale. */
+export default async function RootLayout({ children }: LayoutProps<"/[locale]">) {
+  const [locale, t] = await Promise.all([getLocale(), getTranslations("shell")]);
 
   return (
     <html lang={locale} data-palette="dark" suppressHydrationWarning className="h-full antialiased">
