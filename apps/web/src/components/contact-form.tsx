@@ -1,22 +1,58 @@
 "use client";
 
 import { CONTACT_MESSAGE_MAX_LENGTH, type ContactField } from "@local-craftsmen/contracts";
+import { cn } from "cn";
 import { ArrowLeft, CircleCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { type SubmitEvent, useEffect, useRef, useState, useTransition } from "react";
 import { sendContactMessage } from "@/app/contact-actions";
+import { useContactCloseHref } from "@/components/contact-dialog";
 import { TurnstileWidget } from "@/components/turnstile-widget";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { DialogTitle } from "@/components/ui/dialog";
 import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
+import { Link } from "@/i18n/navigation";
 import { type ContactFeedback, type ContactSender, validateContactForm } from "@/lib/contact-form";
 import { useGoBack } from "@/lib/use-go-back";
 
+function ContactExit({
+  variant,
+  className,
+  children,
+}: {
+  variant: "default" | "ghost";
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const closeHref = useContactCloseHref();
+  const goBack = useGoBack({ fallback: "/" });
+
+  if (closeHref) {
+    return (
+      <Link
+        href={closeHref}
+        scroll={false}
+        className={cn(buttonVariants({ variant, size: "lg" }), className)}
+      >
+        {children}
+      </Link>
+    );
+  }
+
+  return (
+    <Button type="button" variant={variant} size="lg" className={className} onClick={goBack}>
+      {children}
+    </Button>
+  );
+}
+
 export function ContactForm({ sender }: { sender: ContactSender | null }) {
   const t = useTranslations("contact");
-  const goBack = useGoBack({ fallback: "/" });
+  const inDialog = useContactCloseHref() !== null;
+  const Heading = inDialog ? DialogTitle : "h1";
   const [feedback, setFeedback] = useState<ContactFeedback>({ sent: false, error: null });
   const [pending, startTransition] = useTransition();
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
@@ -88,22 +124,26 @@ export function ContactForm({ sender }: { sender: ContactSender | null }) {
   if (sent) {
     return (
       <div className="flex flex-col items-start gap-6">
-        <h1 ref={sentHeadingRef} tabIndex={-1} className="page-heading flex items-center gap-3">
+        <Heading
+          ref={sentHeadingRef}
+          tabIndex={-1}
+          className={cn("flex items-center gap-3", !inDialog && "page-heading")}
+        >
           <CircleCheck aria-hidden="true" className="size-10 shrink-0 text-primary" />
           {t("sentHeading")}
-        </h1>
+        </Heading>
         <p className="body-lead text-muted-foreground">{t("sent")}</p>
-        <Button size="lg" onClick={goBack}>
+        <ContactExit variant="default">
           <ArrowLeft data-icon="inline-start" aria-hidden="true" />
           {t("back")}
-        </Button>
+        </ContactExit>
       </div>
     );
   }
 
   return (
     <>
-      <h1 className="page-heading mb-10">{t("heading")}</h1>
+      <Heading className={cn(!inDialog && "page-heading mb-10")}>{t("heading")}</Heading>
       <form
         ref={formRef}
         onSubmit={handleSubmit}
@@ -174,9 +214,9 @@ export function ContactForm({ sender }: { sender: ContactSender | null }) {
           {error && !pending ? t(`errors.${error}`) : null}
         </FieldError>
         <Field orientation="horizontal">
-          <Button type="button" variant="ghost" size="lg" className="flex-1" onClick={goBack}>
+          <ContactExit variant="ghost" className="flex-1">
             {t("cancel")}
-          </Button>
+          </ContactExit>
           <Button type="submit" size="lg" className="flex-1" disabled={pending || !captchaToken}>
             {t(pending ? "pending" : "send")}
           </Button>

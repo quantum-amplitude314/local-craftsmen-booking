@@ -107,6 +107,7 @@
     "sent": "Děkujeme, vaši zprávu jsme přijali.",
     "back": "Zpět",
     "cancel": "Zrušit",
+    "close": "Zavřít",
     "errors": {
       "checkFields": "Zkontrolujte zvýrazněná pole.",
       "verificationFailed": "Bezpečnostní ověření se nezdařilo. Dokončete ověření znovu a odešlete formulář.",

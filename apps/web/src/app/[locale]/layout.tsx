@@ -4,7 +4,6 @@ import { getLocale, getTranslations } from "next-intl/server";
 import "../globals.css";
 import { PaletteScript } from "@/components/palette-script";
 import { QaCredit } from "@/components/qa-credit";
-import { Link } from "@/i18n/navigation";
 import { type Locale, routing } from "@/i18n/routing";
 import { appVersion } from "@/lib/app-version";
 import { getWebOrigin } from "@/lib/env";
@@ -55,7 +54,7 @@ export const generateMetadata = async (): Promise<Metadata> => {
 };
 
 /** Renders for any first segment; i18n/request.ts resolves it to a supported locale. */
-export default async function RootLayout({ children }: LayoutProps<"/[locale]">) {
+export default async function RootLayout({ children, contact }: LayoutProps<"/[locale]">) {
   const [locale, t] = await Promise.all([getLocale(), getTranslations("shell")]);
 
   return (
@@ -79,9 +78,7 @@ export default async function RootLayout({ children }: LayoutProps<"/[locale]">)
             <div className="flex flex-wrap justify-between gap-2">
               <p className="flex gap-3">
                 <span>{t("brand")}</span>
-                <Link href="/contact" className="transition-colors hover:text-foreground">
-                  {t("contact")}
-                </Link>
+                {contact}
               </p>
               <p>{t("tagline")}</p>
             </div>

@@ -107,6 +107,7 @@
     "sent": "Thank you, we have received your message.",
     "back": "Back",
     "cancel": "Cancel",
+    "close": "Close",
     "errors": {
       "checkFields": "Check the highlighted fields.",
       "verificationFailed": "Security check failed. Complete the check again and resubmit.",

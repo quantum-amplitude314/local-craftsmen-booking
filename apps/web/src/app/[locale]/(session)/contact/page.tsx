@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import { Suspense } from "react";
-import { ContactForm, ContactFormSkeleton } from "@/components/contact-form";
+import { ContactFormSkeleton } from "@/components/contact-form";
 import { SectionError } from "@/components/section-error";
-import { getCurrentUser } from "@/lib/auth";
+import { SenderContactForm } from "@/components/sender-contact-form";
 
 export const generateMetadata = async (): Promise<Metadata> => {
   const t = await getTranslations("contact");
@@ -11,13 +11,6 @@ export const generateMetadata = async (): Promise<Metadata> => {
 
   return metadata;
 };
-
-async function SenderContactForm() {
-  const user = await getCurrentUser();
-  const sender = user && { name: user.name, email: user.email };
-
-  return <ContactForm sender={sender} />;
-}
 
 export default function ContactPage() {
   return (
