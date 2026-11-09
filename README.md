@@ -34,7 +34,6 @@ apps/api/bruno          Bruno collection
 
 ```sh
 curl -fsSL https://bun.com/install | bash   # see https://bun.com/docs/installation
-bun add -g @biomejs/biome                   # or bun add -d @biomejs/biome
 bun install
 bun run db:up                               # PostgreSQL in podman
 ```

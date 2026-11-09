@@ -1,6 +1,6 @@
 {
   "name": "@local-craftsmen/api",
-  "version": "1.2.7",
+  "version": "1.2.8",
   "private": true,
   "packageManager": "bun@1.4.4",
   "type": "module",
@@ -21,16 +21,16 @@
     "@orpc/openapi": "catalog:",
     "@orpc/server": "catalog:",
     "better-auth": "catalog:",
-    "hono": "^4.13.14",
+    "hono": "^4.13.17",
     "zod": "catalog:"
   },
   "devDependencies": {
-    "@cloudflare/vitest-plugin": "^1.4.7",
+    "@cloudflare/vitest-plugin": "^1.6.0",
     "@local-craftsmen/config": "workspace:*",
     "@types/bun": "catalog:",
     "@types/node": "catalog:",
     "drizzle-orm": "catalog:",
-    "vitest": "^5.0.5",
+    "vitest": "^5.1.0",
     "wrangler": "catalog:"
   },
   "trustedDependencies": []
