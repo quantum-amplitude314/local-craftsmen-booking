@@ -1,6 +1,6 @@
 {
   "name": "@local-craftsmen/web",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "private": true,
   "packageManager": "bun@1.4.4",
   "scripts": {
@@ -11,7 +11,7 @@
     "preview": "bun --env-file=.env.preview run build:worker --env preview && opennextjs-cloudflare preview --env preview",
     "deploy": "bun run build:worker && opennextjs-cloudflare deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareEnv cloudflare-env.d.ts",
-    "typecheck": "bun run cf-typegen && next typegen && tsc --noEmit",
+    "typecheck": "bun run cf-typegen && next typegen && tsrs --noEmit",
     "test": "bun test src"
   },
   "dependencies": {
@@ -25,7 +25,7 @@
     "cn": "^0.5.2",
     "date-fns": "^4.4.0",
     "lucide-react": "^1.70.0",
-    "next": "16.4.5",
+    "next": "16.4.6",
     "next-intl": "^4.14.9",
     "react": "19.3.1",
     "react-day-picker": "^10.0.2",

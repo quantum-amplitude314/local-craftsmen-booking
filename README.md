@@ -20,7 +20,7 @@ apps/api/bruno          Bruno collection
 
 | Layer | Choice |
 |---|---|
-| Monorepo | Bun workspaces, Turbo, Biome, tsc |
+| Monorepo | Bun workspaces, Turbo, Biome, tsrs |
 | Web | Next.js App Router, React 19, shadcn/ui, Tailwind, next-intl (English default, Czech under `/cs`) |
 | API | Hono + oRPC OpenAPI handler; application services shared by the Bun and Worker entries |
 | Contract | oRPC contract in `packages/contracts` (Zod, REST routes), typed client in the web, no codegen |

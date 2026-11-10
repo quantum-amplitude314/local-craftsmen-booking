@@ -1,6 +1,6 @@
 {
   "name": "local-craftsmen",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "private": true,
   "packageManager": "bun@1.4.4",
   "workspaces": {
@@ -18,8 +18,9 @@
       "@types/node": "^26.6.6",
       "better-auth": "^1.7.18",
       "drizzle-orm": "^0.45.4",
+      "tsrs": "0.23.0-ts7.1.0-beta",
       "typescript": "^7.0.2",
-      "wrangler": "^4.158.0",
+      "wrangler": "^4.159.0",
       "zod": "^4.6.7"
     }
   },
@@ -45,8 +46,8 @@
   "devDependencies": {
     "@biomejs/biome": "^2.6.6",
     "@socketsecurity/bun-security-scanner": "^1.1.3",
-    "turbo": "^2.11.10",
-    "typescript": "catalog:"
+    "tsrs": "catalog:",
+    "turbo": "^2.11.10"
   },
   "overrides": {
     "sharp": "^0.35.5",

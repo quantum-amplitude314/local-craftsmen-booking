@@ -1,6 +1,6 @@
 {
   "name": "@local-craftsmen/db",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "private": true,
   "packageManager": "bun@1.4.4",
   "type": "module",
@@ -11,7 +11,7 @@
     "./test-db": "./src/test-db.ts"
   },
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsrs --noEmit",
     "test": "bun --env-file=.env.test test",
     "db:generate": "bun --env-file=.env.development drizzle-kit generate",
     "db:migrate": "bun --env-file=.env.development drizzle-kit migrate",
@@ -25,7 +25,7 @@
   "dependencies": {
     "@local-craftsmen/contracts": "workspace:*",
     "drizzle-orm": "catalog:",
-    "postgres": "^3.4.9",
+    "postgres": "^4.1.0",
     "zod": "catalog:"
   },
   "devDependencies": {
