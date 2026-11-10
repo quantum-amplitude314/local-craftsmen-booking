@@ -171,6 +171,7 @@
     },
     "bookings": {
       "noBookings": "No jobs on this day.",
+      "stepFailed": "{party}, {time}: {message}",
       "cancelDialog": {
         "open": "Cancel booking",
         "title": "Cancel this booking?",

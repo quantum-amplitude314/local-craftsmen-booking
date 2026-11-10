@@ -171,6 +171,7 @@
     },
     "bookings": {
       "noBookings": "V tento den nemáte žádné zakázky.",
+      "stepFailed": "{party}, {time}: {message}",
       "cancelDialog": {
         "open": "Zrušit rezervaci",
         "title": "Zrušit tuto rezervaci?",

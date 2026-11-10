@@ -7,7 +7,7 @@ import { startTransition, useOptimistic, useState } from "react";
 import { FilterSelect } from "@/components/filter-select";
 import type { Option } from "@/components/option-combobox";
 import { ScheduleCalendar } from "@/components/schedule-calendar";
-import { SlotBookingButton } from "@/components/slot-booking-dialog";
+import { SlotBookingDialog } from "@/components/slot-booking-dialog";
 import { Button } from "@/components/ui/button";
 import { FieldLabel } from "@/components/ui/field";
 import {
@@ -20,7 +20,11 @@ import {
 } from "@/components/ui/item";
 import { Link } from "@/i18n/navigation";
 import { formattingLocale } from "@/lib/intl-locale";
-import { type OfferCardModel, prepareSlotOffer } from "@/lib/slot-offer-model";
+import {
+  type OfferBookingModel,
+  type OfferCardModel,
+  prepareSlotOffer,
+} from "@/lib/slot-offer-model";
 import { useScheduleParams } from "@/lib/use-schedule-params";
 
 const PAGE_SIZE = 4;
@@ -34,14 +38,17 @@ export type OfferFilterOptions = {
 /** Craft and city are always chosen; an empty district means any. */
 export type OfferFilters = { craft: string; cityId: string; districtId: string };
 
-function OfferCard({ card }: { card: OfferCardModel }) {
-  const { timeLabel, craftsmanId, craftsmanName, detailLabel, booking } = card;
+function OfferCard({ card, onBook }: { card: OfferCardModel; onBook: () => void }) {
+  const t = useTranslations("dashboard.slots");
+  const { timeLabel, craftsmanId, craftsmanName, detailLabel } = card;
 
   return (
     <Item role="listitem" size="sm" className="border-primary/20 bg-primary/10">
       <ItemHeader>
         <ItemTitle className="text-base tabular-nums">{timeLabel}</ItemTitle>
-        <SlotBookingButton booking={booking} />
+        <Button type="button" size="sm" onClick={onBook}>
+          {t("book")}
+        </Button>
       </ItemHeader>
       <ItemContent className="min-w-0 gap-0.5">
         <p className="font-medium wrap-break-word">
@@ -58,19 +65,20 @@ function OfferCard({ card }: { card: OfferCardModel }) {
   );
 }
 
-/** Keyed by the day and filters, so a new offer starts on its first page. */
 function OfferList({
   cards,
   emptyMessage,
+  onBook,
 }: {
   cards: OfferCardModel[];
   emptyMessage: string | null;
+  onBook: (booking: OfferBookingModel) => void;
 }) {
   const t = useTranslations("dashboard.slots");
   const [requestedPage, setPage] = useState(0);
   const pages = Math.max(1, Math.ceil(cards.length / PAGE_SIZE));
-  // A booking can shorten the list under the page being read; stay on its last page.
-  const page = Math.min(requestedPage, pages - 1);
+  const lastPage = pages - 1;
+  const page = Math.min(requestedPage, lastPage);
   const shown = cards.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
   if (emptyMessage) return <p className="text-sm text-muted-foreground">{emptyMessage}</p>;
@@ -79,7 +87,7 @@ function OfferList({
     <>
       <ItemGroup>
         {shown.map((card) => (
-          <OfferCard key={card.id} card={card} />
+          <OfferCard key={card.id} card={card} onBook={() => onBook(card.booking)} />
         ))}
       </ItemGroup>
       {pages > 1 && (
@@ -102,7 +110,7 @@ function OfferList({
             variant="ghost"
             size="icon-sm"
             aria-label={t("next")}
-            disabled={page === pages - 1}
+            disabled={page === lastPage}
             onClick={() => setPage(page + 1)}
           >
             <ChevronRight aria-hidden="true" />
@@ -133,8 +141,8 @@ export function SlotSearch({
   const t = useTranslations("dashboard");
   const locale = useLocale();
   const { changing, selectDay, selectCraft, selectCity, selectDistrict } = useScheduleParams();
-  // A choice shows at once and stays until the server answers with the slots it asks for.
   const [shown, showFilters] = useOptimistic(filters);
+  const [booking, setBooking] = useState<OfferBookingModel | null>(null);
   const { craft, cityId, districtId } = shown;
   const { crafts, cities, districtsByCity } = options;
   const districts = districtsByCity[cityId] ?? [];
@@ -161,7 +169,6 @@ export function SlotSearch({
     });
 
   return (
-    // Filters and calendar beside the list only when this column, not the viewport, has room.
     <div className="@container min-w-0">
       <div className="flex flex-col gap-6 @split:flex-row @split:items-start">
         <div className="flex w-full min-w-0 flex-col gap-4 @split:max-w-70">
@@ -204,7 +211,6 @@ export function SlotSearch({
             <ScheduleCalendar calendar={calendar} onSelect={selectDay} />
           </div>
         </div>
-        {/* The controls stay live so the latest choice wins; the list fades only on a slow answer. */}
         <div
           aria-busy={changing}
           data-changing={changing || undefined}
@@ -214,9 +220,11 @@ export function SlotSearch({
             key={`${day}|${filters.craft}|${filters.cityId}|${filters.districtId}`}
             cards={cards}
             emptyMessage={emptyMessage}
+            onBook={setBooking}
           />
         </div>
       </div>
+      <SlotBookingDialog booking={booking} onClose={() => setBooking(null)} />
     </div>
   );
 }

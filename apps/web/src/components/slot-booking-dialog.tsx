@@ -2,7 +2,6 @@
 
 import { BOOKING_MIN_MINUTES, SLOT_MAX_MINUTES } from "@local-craftsmen/contracts";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
 import { type BookSlotState, bookSlot } from "@/app/book-actions";
 import { PendingButton } from "@/components/pending-button";
 import { QuarterGrid } from "@/components/quarter-grid";
@@ -53,8 +52,7 @@ function BookingDialogBody({
     onResult: ({ bookedStart }) => {
       if (!bookedStart) return;
       onBooked();
-      // The new booking shows at once in the bookings calendar beside the offer, on the reader's
-      // day: past midnight in an overnight slot, or in another zone, that is not the slot's date.
+      // Jobs file under the viewer's day, which can differ from the slot's date.
       selectJobDay(viewerDayOf(bookedStart));
     },
   });
@@ -101,8 +99,7 @@ function BookingDialogBody({
       </Select>
     </Field>
   );
-  // One line under the range holds the price or what stands in its way, so the dialog never
-  // changes height while quarters are picked.
+  // Price and issue share one line, so picking quarters keeps the dialog's height.
   const summary = (
     <div aria-live="polite" className="flex min-w-0 flex-col gap-1">
       <p className="min-h-8 text-2xl font-semibold text-primary tabular-nums">{rangeLabel}</p>
@@ -142,19 +139,22 @@ function BookingDialogBody({
   );
 }
 
-export function SlotBookingButton({ booking }: { booking: OfferBookingModel }) {
-  const t = useTranslations("dashboard.slots");
-  const [open, setOpen] = useState(false);
-
+export function SlotBookingDialog({
+  booking,
+  onClose,
+}: {
+  booking: OfferBookingModel | null;
+  onClose: () => void;
+}) {
   return (
-    <>
-      <Button type="button" size="sm" onClick={() => setOpen(true)}>
-        {t("book")}
-      </Button>
-      <Dialog open={open} onOpenChange={setOpen}>
-        {/* Mounted only while open, so every opening starts from the slot's first hour. */}
-        {open && <BookingDialogBody booking={booking} onBooked={() => setOpen(false)} />}
-      </Dialog>
-    </>
+    <Dialog
+      open={booking !== null}
+      onOpenChange={(open) => {
+        if (!open) onClose();
+      }}
+    >
+      {/* Mounted only while open, so each opening starts from the slot's first hour. */}
+      {booking && <BookingDialogBody booking={booking} onBooked={onClose} />}
+    </Dialog>
   );
 }

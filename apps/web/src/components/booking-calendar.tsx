@@ -36,32 +36,35 @@ import { useScheduleParams } from "@/lib/use-schedule-params";
 
 const initialState: BookingActionState = {};
 
+type BookingStep = { card: BookingCardModel; action: BookingAction; shownDay: string };
+
+/** Keeps the card while the dialog animates closed. */
+type CancelDialogState = { card: BookingCardModel; open: boolean };
+
 function BookingCard({
-  id,
-  timeLabel,
-  partyName,
-  placeLabel,
-  priceLabel,
-  statusLabel,
-  statusVariant,
-  cancellable,
-  actions,
-}: BookingCardModel) {
+  card,
+  busy,
+  pendingAction,
+  onCancel,
+  onAdvance,
+}: {
+  card: BookingCardModel;
+  busy: boolean;
+  pendingAction: BookingAction | null;
+  onCancel: () => void;
+  onAdvance: (action: BookingAction) => void;
+}) {
   const t = useTranslations("dashboard.bookings");
-  const [asked, setAsked] = useState<BookingAction | null>(null);
-  const [confirmingCancel, setConfirmingCancel] = useState(false);
-  const { state, pending, run } = useMutation({
-    action: advanceBooking,
-    initialState,
-    failureState: { error: "advanceFailed" },
-    // A failed cancel reports on the card, not in a dialog left hanging open.
-    onResult: () => setConfirmingCancel(false),
-  });
-  const { error } = state;
-  const ask = (action: BookingAction) => {
-    setAsked(action);
-    run({ id, action });
-  };
+  const {
+    timeLabel,
+    partyName,
+    placeLabel,
+    priceLabel,
+    statusLabel,
+    statusVariant,
+    cancellable,
+    actions,
+  } = card;
 
   return (
     <Item role="listitem" size="sm" className="border-primary/20 bg-primary/10">
@@ -82,8 +85,8 @@ function BookingCard({
                 type="button"
                 variant="destructive"
                 size="sm"
-                disabled={pending}
-                onClick={() => setConfirmingCancel(true)}
+                disabled={busy}
+                onClick={onCancel}
               >
                 {t("cancelDialog.open")}
               </Button>
@@ -92,29 +95,54 @@ function BookingCard({
               <PendingButton
                 key={action}
                 size="sm"
-                pending={pending && asked === action}
-                disabled={pending}
+                pending={pendingAction === action}
+                disabled={busy}
                 label={label}
                 pendingLabel={pendingLabel}
-                onClick={() => ask(action)}
+                onClick={() => onAdvance(action)}
               />
             ))}
           </ItemActions>
         </ItemFooter>
       )}
-      <Dialog
-        open={confirmingCancel}
-        onOpenChange={(open) => {
-          if (!pending) setConfirmingCancel(open);
-        }}
-      >
+    </Item>
+  );
+}
+
+function CancelBookingDialog({
+  dialog,
+  pending,
+  error,
+  onConfirm,
+  onClose,
+}: {
+  dialog: CancelDialogState | null;
+  pending: boolean;
+  error: BookingActionState["error"];
+  onConfirm: (card: BookingCardModel) => void;
+  onClose: () => void;
+}) {
+  const t = useTranslations("dashboard.bookings");
+
+  return (
+    <Dialog
+      open={dialog?.open ?? false}
+      onOpenChange={(open) => {
+        if (!open && !pending) onClose();
+      }}
+    >
+      {dialog && (
         <DialogContent showCloseButton={false} className="sm:max-w-sm">
           <DialogHeader>
             <DialogTitle>{t("cancelDialog.title")}</DialogTitle>
             <DialogDescription>
-              {t("cancelDialog.description", { party: partyName, time: timeLabel })}
+              {t("cancelDialog.description", {
+                party: dialog.card.partyName,
+                time: dialog.card.timeLabel,
+              })}
             </DialogDescription>
           </DialogHeader>
+          {error && <FieldError>{t(`errors.${error}`)}</FieldError>}
           <DialogFooter>
             <DialogClose render={<Button type="button" variant="ghost" disabled={pending} />}>
               {t("cancelDialog.keep")}
@@ -124,13 +152,12 @@ function BookingCard({
               pending={pending}
               label={t("cancelDialog.confirm")}
               pendingLabel={t("actions.cancelPending")}
-              onClick={() => ask("cancel")}
+              onClick={() => onConfirm(dialog.card)}
             />
           </DialogFooter>
         </DialogContent>
-      </Dialog>
-      {error && <FieldError className="w-full">{t(`errors.${error}`)}</FieldError>}
-    </Item>
+      )}
+    </Dialog>
   );
 }
 
@@ -161,9 +188,38 @@ export function BookingCalendar({
       empty: t("noBookings"),
     },
   });
+  const [step, setStep] = useState<BookingStep | null>(null);
+  const [cancelDialog, setCancelDialog] = useState<CancelDialogState | null>(null);
+  const closeCancelDialog = () =>
+    setCancelDialog((current) => current && { ...current, open: false });
+  const { state, pending, run, clear } = useMutation({
+    action: advanceBooking,
+    initialState,
+    failureState: { error: "advanceFailed" },
+    onResult: ({ error }) => {
+      if (!error) closeCancelDialog();
+    },
+  });
+  const { error } = state;
+  const advance = ({ card, action }: { card: BookingCardModel; action: BookingAction }) => {
+    setStep({ card, action, shownDay: day });
+    run({ id: card.id, action });
+  };
+  const openCancelDialog = (card: BookingCardModel) => {
+    clear();
+    setCancelDialog({ card, open: true });
+  };
+  const cancelling = step?.action === "cancel";
+  const stepFailure =
+    error && step && !cancelling && step.shownDay === day
+      ? t("stepFailed", {
+          party: step.card.partyName,
+          time: step.card.timeLabel,
+          message: t(`errors.${error}`),
+        })
+      : null;
 
   return (
-    // Calendar beside the cards only when this column, not the viewport, has room for both.
     <div className="@container min-w-0">
       <div className="flex flex-col gap-6 @split:flex-row-reverse @split:items-start">
         <div className="w-full min-w-0 overflow-hidden rounded-xl border @split:max-w-70">
@@ -175,17 +231,37 @@ export function BookingCalendar({
           data-changing={changing || undefined}
           className="flex min-w-0 flex-1 flex-col gap-3 transition-opacity data-changing:opacity-60 data-changing:delay-300"
         >
+          {stepFailure && <FieldError>{stepFailure}</FieldError>}
           {emptyMessage ? (
             <p className="text-sm text-muted-foreground">{emptyMessage}</p>
           ) : (
             <ItemGroup>
-              {cards.map((card) => (
-                <BookingCard key={card.id} {...card} />
-              ))}
+              {cards.map((card) => {
+                const { id } = card;
+                const stepped = step?.card.id === id;
+
+                return (
+                  <BookingCard
+                    key={id}
+                    card={card}
+                    busy={pending}
+                    pendingAction={pending && stepped ? step.action : null}
+                    onCancel={() => openCancelDialog(card)}
+                    onAdvance={(action) => advance({ card, action })}
+                  />
+                );
+              })}
             </ItemGroup>
           )}
         </div>
       </div>
+      <CancelBookingDialog
+        dialog={cancelDialog}
+        pending={pending && cancelling}
+        error={cancelling ? error : undefined}
+        onConfirm={(card) => advance({ card, action: "cancel" })}
+        onClose={closeCancelDialog}
+      />
     </div>
   );
 }
