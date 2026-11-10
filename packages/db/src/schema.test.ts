@@ -10,7 +10,7 @@ const craftsmanId = seedCraftsmen[0].id;
 const readViolatedConstraint = (query: { execute: () => Promise<unknown> }) =>
   query.execute().then(
     () => null,
-    (error: Error & { cause?: { constraint_name?: string } }) => error.cause?.constraint_name,
+    (error: Error & { cause?: { constraint?: string } }) => error.cause?.constraint,
   );
 
 let testDb: Awaited<ReturnType<typeof startTestDb>>;

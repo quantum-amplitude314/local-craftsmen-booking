@@ -1,6 +1,6 @@
 {
   "name": "@local-craftsmen/db",
-  "version": "1.2.11",
+  "version": "1.2.12",
   "private": true,
   "packageManager": "bun@1.4.4",
   "type": "module",
@@ -25,12 +25,13 @@
   "dependencies": {
     "@local-craftsmen/contracts": "workspace:*",
     "drizzle-orm": "catalog:",
-    "postgres": "^4.1.0",
+    "pg": "^8.23.1",
     "zod": "catalog:"
   },
   "devDependencies": {
     "@local-craftsmen/config": "workspace:*",
     "@types/bun": "catalog:",
+    "@types/pg": "^8.23.1",
     "drizzle-kit": "^0.31.11"
   },
   "trustedDependencies": []

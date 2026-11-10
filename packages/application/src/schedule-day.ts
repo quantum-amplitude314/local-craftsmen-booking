@@ -41,7 +41,7 @@ export const readCalendarDay = async ({
   now: string;
   timeZone: string;
 }) => {
-  const [calendarDay] = await db.execute<{
+  const { rows } = await db.execute<{
     today: string;
     date: string;
     dayStart: number;
@@ -60,6 +60,7 @@ export const readCalendarDay = async ({
       (extract(epoch from (day + 1)::timestamp at time zone ${timeZone}) * 1000)::float8 as "dayEnd"
     from requested
   `);
+  const [calendarDay] = rows;
   if (!calendarDay) throw new Error("Calendar day is missing");
 
   return calendarDay;

@@ -135,9 +135,9 @@ beforeAll(async () => {
   };
   const rejectingTurnstile = createTurnstile({ secretKey: failingTurnstileSecretKey });
 
-  app = createApp<Record<string, never>>({ createApiContext: () => apiContext });
+  app = createApp<Record<string, never>>({ createApiContext: () => ({ apiContext }) });
   rejectingApp = createApp<Record<string, never>>({
-    createApiContext: () => ({ ...apiContext, turnstile: rejectingTurnstile }),
+    createApiContext: () => ({ apiContext: { ...apiContext, turnstile: rejectingTurnstile } }),
   });
 });
 

@@ -58,8 +58,9 @@ const app = createApp<Record<string, never>>({
       turnstile,
       getAuth: () => auth,
     };
+    const requestScope = { apiContext };
 
-    return apiContext;
+    return requestScope;
   },
 });
 
@@ -75,7 +76,7 @@ if (runtime.localCraftsmenShutdownHandler) {
 const shutdown = async () => {
   try {
     await runtime.localCraftsmenServer?.stop();
-    await runtime.localCraftsmenDatabase?.close({ timeout: 0 });
+    await runtime.localCraftsmenDatabase?.close();
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error);
     console.error(JSON.stringify({ message: "API shutdown failed", detail }));

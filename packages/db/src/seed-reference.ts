@@ -25,7 +25,7 @@ export const seedReference = async ({ db }: { db: Db }) => {
 };
 
 const hasMigrations = async ({ db }: { db: Db }) => {
-  const rows = await db.execute(sql`select 1 from pg_namespace where nspname = 'drizzle'`);
+  const { rows } = await db.execute(sql`select 1 from pg_namespace where nspname = 'drizzle'`);
   const migrated = rows.length > 0;
 
   return migrated;

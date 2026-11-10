@@ -8,10 +8,13 @@ import { type ApiContext, router } from "./router.ts";
 
 type RuntimeContext = Omit<ApiContext, "user"> & { getAuth: () => Auth };
 
+/** `close` ends what the context opened once the response is out; a Worker's client lasts one request. */
+type RequestScope = { apiContext: RuntimeContext; close?: () => Promise<void> };
+
 type CreateApiContext<Bindings> = (input: {
   bindings: Bindings;
   request: Request;
-}) => RuntimeContext | Promise<RuntimeContext>;
+}) => RequestScope | Promise<RequestScope>;
 
 const handler = new OpenAPIHandler(router, {
   interceptors: [
@@ -37,13 +40,14 @@ export const createApp = <Bindings extends object>({
   app.get("/health", (context) => context.json({ status: "ok" }));
 
   app.use("*", async (context, next) => {
-    const apiContext = await createApiContext({
+    const { apiContext, close } = await createApiContext({
       bindings: context.env,
       request: context.req.raw,
     });
     context.set("apiContext", apiContext);
     context.set("getAuth", apiContext.getAuth);
     await next();
+    if (close) context.executionCtx.waitUntil(close());
   });
 
   app.on(["GET", "POST"], "/auth/*", (context) => {

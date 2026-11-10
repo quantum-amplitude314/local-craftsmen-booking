@@ -25,11 +25,9 @@ const {
 const app = createApp<Env>({
   createApiContext: ({ bindings }) => {
     const { HYPERDRIVE: hyperdrive } = bindings;
-    const { db } = createDb({
+    const { db, close } = createDb({
       connectionString: hyperdrive.connectionString,
-      fetchTypes: false,
       maxConnections: 5,
-      prepareStatements: false,
     });
     const apiContext = {
       craftsmen: createCraftsmenService({ db }),
@@ -52,8 +50,9 @@ const app = createApp<Env>({
           turnstileSecretKey: TURNSTILE_SECRET_KEY,
         }),
     };
+    const requestScope = { apiContext, close };
 
-    return apiContext;
+    return requestScope;
   },
 });
 
