@@ -13,9 +13,17 @@ const envSchema = z
 
 type Env = z.infer<typeof envSchema>;
 
-const loadEnv = async () => {
+const readWorkerEnv = async () => {
   const { env: workerEnv } = await getCloudflareContext({ async: true });
-  const parsed = envSchema.parse(workerEnv);
+
+  return workerEnv;
+};
+
+const loadEnv = async () => {
+  // only `.env.development` sets "off": `next dev` runs without wrangler
+  const isNextDev = process.env.WRANGLER_BINDING === "off";
+  const settings = isNextDev ? process.env : await readWorkerEnv();
+  const parsed = envSchema.parse(settings);
 
   return parsed;
 };
@@ -26,6 +34,15 @@ export const getEnv = () => {
   env ??= loadEnv();
 
   return env;
+};
+
+/** `null` in `next dev`, which runs without a Worker. */
+export const getWorkerContext = async () => {
+  const { WRANGLER_BINDING: wranglerBinding } = await getEnv();
+  if (wranglerBinding === "off") return null;
+  const workerContext = await getCloudflareContext({ async: true });
+
+  return workerContext;
 };
 
 export const getWebOrigin = async () => {

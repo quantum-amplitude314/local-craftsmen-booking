@@ -1,15 +1,15 @@
 "use server";
 
 import { type ContactMessage, webCfSchema } from "@local-craftsmen/contracts";
-import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { ORPCError } from "@orpc/client";
 import { apiClient } from "@/lib/api";
 import { type ContactFeedback, validateContactForm } from "@/lib/contact-form";
+import { getWorkerContext } from "@/lib/env";
 
 /** The visitor's request data as this Worker saw it; the API only sees the web Worker's call. */
 const readWebCf = async () => {
-  const { cf } = await getCloudflareContext({ async: true });
-  const parsed = webCfSchema.safeParse(cf);
+  const context = await getWorkerContext();
+  const parsed = webCfSchema.safeParse(context?.cf);
   const webCf = parsed.success ? parsed.data : undefined;
 
   return webCf;
