@@ -229,6 +229,11 @@
         "invalid": "Zkontrolujte vybraný čas a místo.",
         "failed": "Rezervaci se nepodařilo vytvořit. Zkuste to prosím znovu.",
         "unauthorized": "Pro rezervaci se přihlaste jako zákazník."
+      },
+      "offerChanged": {
+        "craft": "{name} teď nabízí službu {craft}.",
+        "rate": "Sazba je teď {rate}.",
+        "bookAgain": "Zkontrolujte cenu a rezervujte znovu."
       }
     }
   },

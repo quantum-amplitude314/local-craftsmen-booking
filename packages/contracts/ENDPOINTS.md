@@ -16,7 +16,8 @@ GET    /me/availability/day?date=&cityId=
                                       craftsman: quarter-hour states, the day's slots, dates with slots
 POST   /me/availability               craftsman: { start, end, areas: [{ cityId, districtId }] }
 DELETE /me/availability/:id           craftsman
-POST   /bookings                      customer: { slotId, start, end, location, currency }
+POST   /bookings                      customer: { slotId, start, end, location, currency, craft,
+                                      hourlyRate }; 409 OFFER_CHANGED with the current offer
 GET    /me/bookings/range?start=&end= both roles: open jobs in a window (≤ 62 days), with the
                                       other party's name and actions
 POST   /me/bookings/:id/confirm       craftsman: { confirmed: true }

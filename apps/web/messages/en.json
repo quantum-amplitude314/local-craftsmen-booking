@@ -229,6 +229,11 @@
         "invalid": "Check the chosen time and place.",
         "failed": "The booking could not be made. Please try again.",
         "unauthorized": "Sign in as a customer to book."
+      },
+      "offerChanged": {
+        "craft": "{name} now offers {craft}.",
+        "rate": "The rate is now {rate}.",
+        "bookAgain": "Check the price and book again."
       }
     }
   },

@@ -17,7 +17,7 @@ import {
   user,
 } from "@local-craftsmen/db";
 import { and, eq, inArray, sql } from "drizzle-orm";
-import { DomainError } from "../errors.ts";
+import { DomainError, OfferChangedError } from "../errors.ts";
 import { toWorkEnd } from "../slots.ts";
 import { createJobActions } from "./actions.ts";
 import { allowedActions, type OpenBooking } from "./rules.ts";
@@ -70,7 +70,15 @@ const loadPlace = async ({
 
 export const createBookingsService = ({ db }: { db: Db }) => {
   const create = async ({ customerId, input }: { customerId: string; input: BookingInput }) => {
-    const { slotId, start, end, location, currency } = input;
+    const {
+      slotId,
+      start,
+      end,
+      location,
+      currency,
+      craft: seenCraft,
+      hourlyRate: seenHourlyRate,
+    } = input;
     const { cityId, districtId } = location;
     const result = await db.transaction(async (tx) => {
       const [candidate] = await tx
@@ -133,6 +141,9 @@ export const createBookingsService = ({ db }: { db: Db }) => {
       if (!rate) throw new DomainError({ code: "BAD_REQUEST", message: "Currency is not offered" });
       const { hourlyRate } = rate;
       const { craft } = profile;
+      const sameRate = Number(hourlyRate) === Number(seenHourlyRate);
+      const offerChanged = craft !== seenCraft || !sameRate;
+      if (offerChanged) throw new OfferChangedError({ offer: { craft, hourlyRate } });
       const [created] = await tx
         .insert(booking)
         .values({

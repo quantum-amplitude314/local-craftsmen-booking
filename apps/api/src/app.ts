@@ -5,6 +5,7 @@ import { Hono } from "hono";
 import type { Auth } from "./auth.ts";
 import { type AuthVariables, readSession, requireRole, requireSession } from "./auth-middleware.ts";
 import { type ApiContext, router } from "./router.ts";
+import { teapot } from "./teapot.ts";
 
 type RuntimeContext = Omit<ApiContext, "user"> & { getAuth: () => Auth };
 
@@ -38,6 +39,7 @@ export const createApp = <Bindings extends object>({
   }>();
 
   app.get("/health", (context) => context.json({ status: "ok" }));
+  app.route("/teapot", teapot);
 
   app.use("*", async (context, next) => {
     const { apiContext, close } = await createApiContext({

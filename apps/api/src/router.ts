@@ -3,6 +3,7 @@ import {
   type CraftsmenService,
   DomainError,
   type MailService,
+  OfferChangedError,
   type SlotsService,
 } from "@local-craftsmen/application";
 import { CRAFTS, contract, type SessionUser } from "@local-craftsmen/contracts";
@@ -25,6 +26,10 @@ const execute = async <Result>(operation: () => Promise<Result>) => {
     return result;
   } catch (error) {
     if (error instanceof DomainError) throw new ORPCError(error.code, { message: error.message });
+    if (error instanceof OfferChangedError) {
+      const { message, offer } = error;
+      throw new ORPCError("OFFER_CHANGED", { status: 409, message, data: offer });
+    }
     const cause = error instanceof Error ? error.cause : undefined;
     const code = cause && typeof cause === "object" && "code" in cause ? cause.code : undefined;
     if (code === "23503" || code === "23514")

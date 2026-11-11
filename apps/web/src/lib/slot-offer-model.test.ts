@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import type { Location, SlotListing } from "@local-craftsmen/contracts";
-import { prepareSlotOffer } from "@/lib/slot-offer-model";
+import { prepareSlotOffer, withCurrentOffer } from "@/lib/slot-offer-model";
 import { firstFreeHour } from "@/lib/slot-selection";
 
 const locations: Location[] = [
@@ -47,6 +47,7 @@ const quartersAt = (now: string) => {
     districtId: "",
     locale: "en-GB",
     text,
+    openSlot: null,
   });
   const quarters = cards[0]?.booking.quarters ?? [];
 
@@ -83,5 +84,34 @@ describe("prepareSlotOffer", () => {
       first: "2040-07-01T08:45:00.000Z",
       last: "2040-07-01T09:30:00.000Z",
     });
+  });
+
+  test("keeps the open booking after the list drops its slot, at the current offer", () => {
+    const openSlot = withCurrentOffer({
+      slot,
+      currency: "CZK",
+      offer: { craft: "tiling", hourlyRate: "600.00" },
+    });
+    const { cards, openBooking } = prepareSlotOffer({
+      slots: [],
+      locations,
+      day: "2040-07-01",
+      today: "2040-07-01",
+      now: "2040-07-01T07:00:00.000Z",
+      districtId: "",
+      locale: "en-GB",
+      text,
+      openSlot,
+    });
+
+    expect(cards).toHaveLength(0);
+    expect(openBooking).toMatchObject({
+      slotId: "slot",
+      currency: "CZK",
+      craft: "tiling",
+      hourlyRate: "600.00",
+      rateLabel: expect.stringMatching(/^CZK\s600\/h$/),
+    });
+    expect(openBooking?.priceLabels[60]).toMatch(/^1 hr · CZK\s600 · CZK\s600$/);
   });
 });

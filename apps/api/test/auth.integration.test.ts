@@ -149,6 +149,7 @@ describe("location-aware slots and booking allocation", () => {
   let craftsmanId: string;
   let customerId: string;
   let day = 0;
+  const seenOffer = { craft: "painting", hourlyRate: "10.00" };
 
   const createSlot = async (
     areas: Area[] = [
@@ -423,6 +424,7 @@ describe("location-aware slots and booking allocation", () => {
         end: nextSlot.end,
         location: { cityId: "prague", districtId: "prague-liben" },
         currency: "EUR",
+        ...seenOffer,
       },
     });
     expect(booked.status).toBe(200);
@@ -550,6 +552,7 @@ describe("location-aware slots and booking allocation", () => {
       end: slot.end,
       location: { cityId: "prague", districtId: "prague-liben" },
       currency: "EUR",
+      ...seenOffer,
     };
     for (const body of [
       { ...input, location: { cityId: "prague", districtId: "prague-dolni-chabry" } },
@@ -576,6 +579,58 @@ describe("location-aware slots and booking allocation", () => {
     ).toHaveLength(2);
   });
 
+  test("refuses a changed offer with the current one, and books it once the customer sends it", async () => {
+    const { cookie } = await registerUser({ role: "craftsman" });
+    const saveProfile = (changes: Record<string, unknown>) =>
+      call({ path: "/me/profile", method: "PUT", cookie, body: { ...profileInput, ...changes } });
+    expect((await saveProfile({})).status).toBe(200);
+    const created = await call({
+      path: "/me/availability",
+      method: "POST",
+      cookie,
+      body: {
+        start: "2044-03-01T08:00:00.000Z",
+        end: "2044-03-01T10:00:00.000Z",
+        areas: [{ cityId: "prague", districtId: null }],
+      },
+    });
+    const slot = slotSchema.parse(await created.json());
+    const changedRates = [{ currency: "EUR", hourlyRate: "12" }];
+    expect((await saveProfile({ craft: "tiling", rates: changedRates })).status).toBe(200);
+    const book = (offer: { craft: string; hourlyRate: string }) =>
+      call({
+        path: "/bookings",
+        method: "POST",
+        cookie: customerCookie,
+        body: {
+          slotId: slot.id,
+          start: slot.start,
+          end: slot.end,
+          location: { cityId: "prague", districtId: "prague-liben" },
+          currency: "EUR",
+          ...offer,
+        },
+      });
+
+    const refused = await book(seenOffer);
+    expect(refused.status).toBe(409);
+    expect(await refused.json()).toMatchObject({
+      code: "OFFER_CHANGED",
+      data: { craft: "tiling", hourlyRate: "12.00" },
+    });
+    expect(
+      await database.select().from(availability).where(eq(availability.id, slot.id)),
+    ).toHaveLength(1);
+    expect((await book({ craft: "painting", hourlyRate: "12" })).status).toBe(409);
+
+    const accepted = await book({ craft: "tiling", hourlyRate: "12" });
+    expect(accepted.status).toBe(200);
+    expect(bookingSchema.parse(await accepted.json())).toMatchObject({
+      craft: "tiling",
+      hourlyRate: "12.00",
+    });
+  });
+
   test("booking part of a slot deletes it completely and logs the server-selected price", async () => {
     const slot = await createSlot();
     const start = new Date(new Date(slot.start).getTime() + 3_600_000).toISOString();
@@ -590,7 +645,8 @@ describe("location-aware slots and booking allocation", () => {
         end,
         location: { cityId: "prague", districtId: "prague-liben" },
         currency: "EUR",
-        hourlyRate: "1",
+        ...seenOffer,
+        hourlyRate: "10",
         customerId: "seed-customer-1",
         craftsmanId: "seed-painter-1",
       },
@@ -663,6 +719,7 @@ describe("location-aware slots and booking allocation", () => {
           end,
           location: { cityId: "prague", districtId: "prague-liben" },
           currency: "EUR",
+          ...seenOffer,
         },
       });
       expect(response.status).toBe(200);
@@ -775,6 +832,7 @@ describe("location-aware slots and booking allocation", () => {
           end,
           location: { cityId: "prague", districtId: "prague-liben" },
           currency: "EUR",
+          ...seenOffer,
         },
       });
       expect(response.status).toBe(200);
@@ -943,6 +1001,7 @@ describe("location-aware slots and booking allocation", () => {
             districtId: index % 2 ? "prague-liben" : "prague-holesovice",
           },
           currency: "EUR",
+          ...seenOffer,
         },
       });
     });

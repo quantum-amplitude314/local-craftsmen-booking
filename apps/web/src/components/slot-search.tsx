@@ -20,11 +20,7 @@ import {
 } from "@/components/ui/item";
 import { Link } from "@/i18n/navigation";
 import { formattingLocale } from "@/lib/intl-locale";
-import {
-  type OfferBookingModel,
-  type OfferCardModel,
-  prepareSlotOffer,
-} from "@/lib/slot-offer-model";
+import { type OfferCardModel, prepareSlotOffer, withCurrentOffer } from "@/lib/slot-offer-model";
 import { useScheduleParams } from "@/lib/use-schedule-params";
 
 const PAGE_SIZE = 4;
@@ -72,7 +68,7 @@ function OfferList({
 }: {
   cards: OfferCardModel[];
   emptyMessage: string | null;
-  onBook: (booking: OfferBookingModel) => void;
+  onBook: (slotId: string) => void;
 }) {
   const t = useTranslations("dashboard.slots");
   const [requestedPage, setPage] = useState(0);
@@ -87,7 +83,7 @@ function OfferList({
     <>
       <ItemGroup>
         {shown.map((card) => (
-          <OfferCard key={card.id} card={card} onBook={() => onBook(card.booking)} />
+          <OfferCard key={card.id} card={card} onBook={() => onBook(card.id)} />
         ))}
       </ItemGroup>
       {pages > 1 && (
@@ -142,11 +138,11 @@ export function SlotSearch({
   const locale = useLocale();
   const { changing, selectDay, selectCraft, selectCity, selectDistrict } = useScheduleParams();
   const [shown, showFilters] = useOptimistic(filters);
-  const [booking, setBooking] = useState<OfferBookingModel | null>(null);
+  const [openSlot, setOpenSlot] = useState<SlotListing | null>(null);
   const { craft, cityId, districtId } = shown;
   const { crafts, cities, districtsByCity } = options;
   const districts = districtsByCity[cityId] ?? [];
-  const { calendar, cards, emptyMessage } = prepareSlotOffer({
+  const { calendar, cards, emptyMessage, openBooking } = prepareSlotOffer({
     slots,
     locations,
     day,
@@ -161,6 +157,7 @@ export function SlotSearch({
       price: (parts) => t("bookings.price", parts),
       empty: t("slots.empty"),
     },
+    openSlot,
   });
   const choose = ({ patch, navigate }: { patch: Partial<OfferFilters>; navigate: () => void }) =>
     startTransition(() => {
@@ -220,11 +217,19 @@ export function SlotSearch({
             key={`${day}|${filters.craft}|${filters.cityId}|${filters.districtId}`}
             cards={cards}
             emptyMessage={emptyMessage}
-            onBook={setBooking}
+            onBook={(slotId) => setOpenSlot(slots.find(({ id }) => id === slotId) ?? null)}
           />
         </div>
       </div>
-      <SlotBookingDialog booking={booking} onClose={() => setBooking(null)} />
+      <SlotBookingDialog
+        booking={openBooking}
+        onClose={() => setOpenSlot(null)}
+        onOfferChanged={(offer) => {
+          if (!openSlot || !openBooking) return;
+          const { currency } = openBooking;
+          setOpenSlot(withCurrentOffer({ slot: openSlot, currency, offer }));
+        }}
+      />
     </div>
   );
 }

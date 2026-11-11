@@ -1,6 +1,10 @@
 "use client";
 
-import { BOOKING_MIN_MINUTES, SLOT_MAX_MINUTES } from "@local-craftsmen/contracts";
+import {
+  BOOKING_MIN_MINUTES,
+  type BookingOffer,
+  SLOT_MAX_MINUTES,
+} from "@local-craftsmen/contracts";
 import { useTranslations } from "next-intl";
 import { type BookSlotState, bookSlot } from "@/app/book-actions";
 import { PendingButton } from "@/components/pending-button";
@@ -35,12 +39,15 @@ const initialState: BookSlotState = {};
 function BookingDialogBody({
   booking,
   onBooked,
+  onOfferChanged,
 }: {
   booking: OfferBookingModel;
   onBooked: () => void;
+  onOfferChanged: (offer: BookingOffer) => void;
 }) {
   const t = useTranslations("dashboard");
-  const { slotId, craftsmanName, windowLabel, places, placeFixed } = booking;
+  const tCrafts = useTranslations("crafts");
+  const { slotId, craftsmanName, windowLabel, places, placeFixed, craft, rateLabel } = booking;
   const { options, status, place, rangeLabel, priceLabel, input, setPlace, pick } = useOfferBooking(
     { booking },
   );
@@ -49,14 +56,15 @@ function BookingDialogBody({
     action: bookSlot,
     initialState,
     failureState: { error: "failed" },
-    onResult: ({ bookedStart }) => {
+    onResult: ({ bookedStart, offerChange }) => {
+      if (offerChange) onOfferChanged(offerChange.current);
       if (!bookedStart) return;
       onBooked();
       // Jobs file under the viewer's day, which can differ from the slot's date.
       selectJobDay(viewerDayOf(bookedStart));
     },
   });
-  const { error } = state;
+  const { error, offerChange } = state;
   const issues = {
     pickRange: null,
     tooShort: t("availability.tooShort", { hours: BOOKING_MIN_MINUTES / 60 }),
@@ -65,6 +73,16 @@ function BookingDialogBody({
   };
   const issue = error ? t(`slots.errors.${error}`) : issues[status];
   const placeField = `book-${slotId}-place`;
+  const offerNote = offerChange
+    ? [
+        offerChange.craftChanged &&
+          t("slots.offerChanged.craft", { name: craftsmanName, craft: tCrafts(craft) }),
+        offerChange.rateChanged && t("slots.offerChanged.rate", { rate: rateLabel }),
+        t("slots.offerChanged.bookAgain"),
+      ]
+        .filter(Boolean)
+        .join(" ")
+    : null;
 
   const header = (
     <DialogHeader>
@@ -108,6 +126,7 @@ function BookingDialogBody({
       ) : (
         <p className="min-h-5 text-sm text-muted-foreground tabular-nums">{priceLabel}</p>
       )}
+      {offerNote && <p className="text-sm text-destructive">{offerNote}</p>}
     </div>
   );
   const footer = (
@@ -142,9 +161,11 @@ function BookingDialogBody({
 export function SlotBookingDialog({
   booking,
   onClose,
+  onOfferChanged,
 }: {
   booking: OfferBookingModel | null;
   onClose: () => void;
+  onOfferChanged: (offer: BookingOffer) => void;
 }) {
   return (
     <Dialog
@@ -154,7 +175,9 @@ export function SlotBookingDialog({
       }}
     >
       {/* Mounted only while open, so each opening starts from the slot's first hour. */}
-      {booking && <BookingDialogBody booking={booking} onBooked={onClose} />}
+      {booking && (
+        <BookingDialogBody booking={booking} onBooked={onClose} onOfferChanged={onOfferChanged} />
+      )}
     </Dialog>
   );
 }

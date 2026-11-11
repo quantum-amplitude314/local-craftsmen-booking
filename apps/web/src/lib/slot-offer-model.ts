@@ -1,6 +1,8 @@
 import {
   BOOKING_MIN_MINUTES,
+  type BookingOffer,
   type CityId,
+  type Craft,
   type Currency,
   type Location,
   SCHEDULE_STEP_MINUTES,
@@ -20,6 +22,9 @@ export type OfferBookingModel = {
   slotId: string;
   cityId: CityId;
   currency: Currency;
+  craft: Craft;
+  hourlyRate: string;
+  rateLabel: string;
   /** The slot's day on its city's clock, the day the offer calendar files it under. */
   date: string;
   craftsmanName: string;
@@ -48,6 +53,7 @@ export type SlotOfferModel = {
   calendar: ScheduleCalendarModel;
   cards: OfferCardModel[];
   emptyMessage: string | null;
+  openBooking: OfferBookingModel | null;
 };
 
 export type SlotOfferText = {
@@ -71,6 +77,7 @@ export const prepareSlotOffer = ({
   districtId,
   locale,
   text,
+  openSlot,
 }: {
   slots: SlotListing[];
   locations: Location[];
@@ -82,6 +89,7 @@ export const prepareSlotOffer = ({
   districtId: string;
   locale: string;
   text: SlotOfferText;
+  openSlot: SlotListing | null;
 }) => {
   const { wholeCity, rate: rateText, window: windowText, price, empty } = text;
   const nowMs = Date.parse(now);
@@ -171,14 +179,15 @@ export const prepareSlotOffer = ({
             : [],
         );
     const placeLabel = coversWholeCity ? wholeCity : places.map(({ label }) => label).join(", ");
-    const hourlyRate = Number(rate.hourlyRate);
+    const hourlyAmount = Number(rate.hourlyRate);
     const format = moneyIn(rate.currency);
+    const rateLabel = rateText(format.format(hourlyAmount));
     const priceLabels: Record<number, string> = {};
     for (let minutes = BOOKING_MIN_MINUTES; minutes <= window; minutes += SCHEDULE_STEP_MINUTES) {
       priceLabels[minutes] = price({
         hours: hours.format(minutes / 60),
-        rate: format.format(hourlyRate),
-        total: format.format((hourlyRate * minutes) / 60),
+        rate: format.format(hourlyAmount),
+        total: format.format((hourlyAmount * minutes) / 60),
       });
     }
     const startLabel = time.format(new Date(start));
@@ -188,11 +197,14 @@ export const prepareSlotOffer = ({
       timeLabel: `${startLabel} – ${endLabel}`,
       craftsmanId: craftsman.id,
       craftsmanName: craftsman.name,
-      detailLabel: `${placeLabel} · ${rateText(format.format(hourlyRate))}`,
+      detailLabel: `${placeLabel} · ${rateLabel}`,
       booking: {
         slotId: id,
         cityId,
         currency: rate.currency,
+        craft: craftsman.craft,
+        hourlyRate: rate.hourlyRate,
+        rateLabel,
         date: dayReader(timeZone)(new Date(start)),
         craftsmanName: craftsman.name,
         windowLabel: windowText({
@@ -222,7 +234,27 @@ export const prepareSlotOffer = ({
     }),
     cards: onDay,
     emptyMessage: onDay.length === 0 ? empty : null,
+    openBooking: openSlot ? (toOffer(openSlot)[0]?.booking ?? null) : null,
   };
 
   return model;
+};
+
+export const withCurrentOffer = ({
+  slot,
+  currency,
+  offer,
+}: {
+  slot: SlotListing;
+  currency: Currency;
+  offer: BookingOffer;
+}) => {
+  const { craftsman } = slot;
+  const { craft, hourlyRate } = offer;
+  const rates = craftsman.rates.map((rate) =>
+    rate.currency === currency ? { currency, hourlyRate } : rate,
+  );
+  const updated: SlotListing = { ...slot, craftsman: { ...craftsman, craft, rates } };
+
+  return updated;
 };

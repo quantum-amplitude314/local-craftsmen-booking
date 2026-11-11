@@ -5,7 +5,7 @@ import openNextWorker from "./.open-next/worker.js";
  * The extensions src/proxy.ts skips. Cloudflare serves real files from the static assets before
  * the Worker runs, so such a path here is a missing file: answer it without starting Next.
  */
-const MISSING_FILE_PATH = /\.(?:avif|ico|jpg|png|svg|txt|xml)$/;
+const MISSING_FILE_PATH = /\.(?:avif|ico|jpg|png|svg|txt|woff2|xml)$/;
 
 export default {
   fetch: async (request, env, ctx) => {

@@ -12,7 +12,8 @@ import type { QuarterOption } from "@/lib/use-slot-draft";
  * can be booked once it is long enough.
  */
 export const useOfferBooking = ({ booking }: { booking: OfferBookingModel }) => {
-  const { slotId, cityId, currency, quarters, defaultPlace, priceLabels } = booking;
+  const { slotId, cityId, currency, craft, hourlyRate, quarters, defaultPlace, priceLabels } =
+    booking;
   const [selection, setSelection] = useState(() => firstFreeHour({ quarters }));
   const [place, setPlace] = useState(defaultPlace);
   const range = selectedRange({ selection, quarters });
@@ -33,6 +34,8 @@ export const useOfferBooking = ({ booking }: { booking: OfferBookingModel }) => 
           end: range.end,
           location: { cityId, districtId: place || null },
           currency,
+          craft,
+          hourlyRate,
         }
       : null;
   const draft = {

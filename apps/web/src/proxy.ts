@@ -51,5 +51,5 @@ export default function proxy(request: NextRequest) {
 
 // worker.ts answers a missing file with these extensions before Next starts; keep both lists equal.
 export const config = {
-  matcher: "/((?!_next|.*\\.(?:avif|ico|jpg|png|svg|txt|xml)$).*)",
+  matcher: "/((?!_next|.*\\.(?:avif|ico|jpg|png|svg|txt|woff2|xml)$).*)",
 };

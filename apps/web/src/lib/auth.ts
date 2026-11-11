@@ -2,13 +2,16 @@ import "server-only";
 
 import { sessionUserSchema } from "@local-craftsmen/contracts";
 import { parseSetCookieHeader, toCookieOptions } from "better-auth/cookies";
+import { cacheLife } from "next/cache";
 import { cookies, headers } from "next/headers";
-import { cache } from "react";
 import { apiFetch, getApiBaseUrl } from "@/lib/api-fetch";
 import { getEnv } from "@/lib/env";
 import { hasSessionCookie } from "@/lib/session-cookie";
 
-export const getCurrentUser = cache(async () => {
+export const getCurrentUser = async () => {
+  "use cache: private";
+  cacheLife("minutes");
+
   const cookieStore = await cookies();
   if (!hasSessionCookie(cookieStore)) return null;
 
@@ -22,7 +25,7 @@ export const getCurrentUser = cache(async () => {
   const user = sessionUserSchema.parse(await response.json());
 
   return user;
-});
+};
 
 export const sendAuthRequest = async ({
   endpoint,

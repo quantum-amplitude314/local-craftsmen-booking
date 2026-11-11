@@ -6,11 +6,15 @@ import { craftSchema } from "./crafts.ts";
 import { currencySchema, hourlyRateSchema } from "./rates.ts";
 import { BOOKING_MIN_MINUTES, durationMinutes, isOnScheduleStep } from "./schedule.ts";
 
+export const bookingOfferSchema = z.object({ craft: craftSchema, hourlyRate: hourlyRateSchema });
+export type BookingOffer = z.infer<typeof bookingOfferSchema>;
+
 export const bookingInputSchema = timeRangeSchema
   .safeExtend({
     slotId: idSchema,
     location: areaSchema,
     currency: currencySchema,
+    ...bookingOfferSchema.shape,
   })
   .refine(isOnScheduleStep, { message: "Use the 15-minute grid", path: ["start"] })
   .refine((range) => durationMinutes(range) >= BOOKING_MIN_MINUTES, {
@@ -65,6 +69,11 @@ export const bookingsContract = {
       NOT_FOUND: { message: "Slot unavailable" },
       BAD_REQUEST: { message: "Invalid booking location, range, or currency" },
       CONFLICT: { message: "Slot already booked" },
+      OFFER_CHANGED: {
+        status: 409,
+        message: "The service or rate changed; the current offer is attached",
+        data: bookingOfferSchema,
+      },
     }),
 };
 export const ownBookingsContract = {
